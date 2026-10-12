@@ -4,12 +4,14 @@
   import { DisplayBadge } from '@zairakai/vue-components/Display'
   import { computed } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { useFormat } from '../../composables/useFormat'
   import type { Application } from '../../models'
 
   const props = defineProps<{ application: Application }>()
   const emit = defineEmits<{ open: [] }>()
 
   const { t } = useApp()
+  const format = useFormat()
 
   const offer = computed(() => props.application.jobOffer)
 
@@ -35,6 +37,13 @@
     <h3>{{ strLimit(offer?.title ?? '', 70) }}</h3>
     <p class="muted">
       {{ offer?.company?.name }}<template v-if="offer?.location"> - {{ offer.location }}</template>
+    </p>
+    <p
+      v-if="offer && format.salary(offer)"
+      class="muted salary-line"
+      :title="format.salaryInHome(offer)"
+    >
+      {{ format.salary(offer) }}
     </p>
     <div class="row">
       <DisplayBadge

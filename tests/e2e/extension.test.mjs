@@ -129,6 +129,24 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await waitFor(async () => (await root('data-vision')) === 'standard', { message: 'the standard appearance' })
     })
 
+    test('a column is renamed, and the board shows its new name', async () => {
+      const optionsTab = await open('options', 'input[name^=label-]')
+      const boardTab = await open('board', '.column')
+
+      await driver.switchTo().window(optionsTab)
+      await type('input[name^=label-]', 'Backlog')
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => /Backlog/.test(await text('.column:first-child h2')), {
+        message: 'the new name on the board',
+      })
+
+      // An empty name is not kept: the column keeps the last one.
+      await driver.switchTo().window(optionsTab)
+      await type('input[name^=label-]', 'To apply')
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => /To apply/.test(await text('.column:first-child h2')), { message: 'the old name back' })
+    })
+
     test('a column is added, and removed when it is empty', async () => {
       await open('options', '.status-list li')
 
@@ -215,6 +233,51 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       assert.match(await text('.column:nth-child(2) h2'), /Applied\s*1/)
       assert.match(await text('.column:nth-child(2) .application-card'), /Backend developer/)
       assert.match(await text('.column:first-child h2'), /To apply\s*0/)
+    })
+
+    test('a salary in a foreign currency shows on the card, and in the home currency once a rate is given', async () => {
+      // The home currency and the rate are set in the options, in the language of the page.
+      const optionsTab = await open('options', 'select[name=homeCurrency]')
+      await choose('select[name=homeCurrency]', 'EUR')
+
+      await driver.switchTo().window(boardTab)
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('input[name=salaryMin]')).length > 0, { message: 'the salary fields' })
+      await type('input[name=salaryMin]', '4000')
+      await type('input[name=salaryMax]', '5000')
+      await choose('select[name=salaryCurrency]', 'USD')
+      await choose('select[name=salaryPeriod]', 'month')
+      await choose('select[name=salaryKind]', 'gross')
+      await driver.executeScript(
+        `document.querySelector('input[name=salaryMin]').closest('form').querySelector('button[type=submit]').click()`
+      )
+
+      // The card shows the range, the period and the kind, with the dollar as the language writes it.
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+      await waitFor(
+        async () =>
+          (await texts('.application-card .salary-line')).some((line) => /4,000.*5,000.*month.*gross/.test(line)),
+        {
+          message: 'the salary on the card',
+        }
+      )
+
+      // With a rate of 0.9 EUR for 1 USD, the middle of 4 000 - 5 000 a month is 4 500 x 12 x 0.9 = 48 600 EUR a year.
+      await driver.switchTo().window(optionsTab)
+      await waitFor(async () => (await all('input[name=rate-USD]')).length > 0, { message: 'the rate of the dollar' })
+      await type('input[name=rate-USD]', '0.9')
+      await driver.switchTo().window(boardTab)
+      await waitFor(
+        async () =>
+          /48,600/.test((await css('.application-card .salary-line').then((line) => line.getAttribute('title'))) ?? ''),
+        {
+          message: 'the salary in the home currency',
+        }
+      )
+
+      // Back to no home currency, for the tests that follow.
+      await driver.switchTo().window(optionsTab)
+      await choose('select[name=homeCurrency]', '')
     })
 
     test('a reminder typed in the time zone of the settings is stored in UTC and shown in that zone', async () => {

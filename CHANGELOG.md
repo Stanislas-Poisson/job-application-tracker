@@ -7,3 +7,4 @@
 - English and French.
 - Appearance: light, dark or the theme of the system, seven accent colours, two colour-blind modes (red-green, blue-yellow) that use the palette of Okabe and Ito and give each column a shape, and a high-contrast mode. The choice applies to every page at once.
 - Time: every moment is stored in UTC and shown in the time zone chosen in the options (the one of the browser by default); a reminder is typed in that time zone. The day an offer was published is a plain date that no time zone can move. See `docs/formats.md`.
+- Money: a salary is a range with its currency, its period and gross or net, kept in minor units and shown with the format of the currency and of the language (symbol, code or name). The salaries are compared per year in a home currency with the rates the user types. The columns can be renamed again (the name field did not save).
