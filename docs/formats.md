@@ -109,3 +109,15 @@ The fields of a JSON record or a CSV column (the names are not case sensitive, a
 
 - The colour of a tag is a help to the eye: its name is always written, and a new tag takes the next colour of the palette of Okabe and Ito.
 - Removing a tag removes the links that put it on things; the things stay. Deleting an application removes its links and those of its exchanges.
+
+## The board
+
+| What | How |
+| :--- | :--- |
+| Search | Case, accents and extra spaces do not matter (`Éléonore` finds `eleonore`). Every word has to be found, in any order, in the title, the company, the place, the source, the tags or the people of the application. |
+| Filters | Tags (the application must have all of them), favourites, source, company, a lowest priority, applications with a late reminder, and archived or not. The summary says how many are shown out of how many. |
+| Sort | By the order of the board (what the user dragged), the last change, the date added, the priority, the company, the job title, or the salary per year in the home currency. |
+| Direction | `asc` is from the oldest, the lowest or A to Z; each sort starts the way a person wants it first (the newest, the most important and the best paid first, a name from A to Z). |
+| Names | Compared with `Intl.Collator` in the language of the page: accents are not letters apart, and `Dev 2` comes before `Dev 10`. |
+| What cannot be compared | An application without a salary, or whose currency has no rate, goes last whichever the direction. |
+| The view | Kept in the browser, so the board opens as it was left. |
