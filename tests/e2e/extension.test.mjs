@@ -1,0 +1,178 @@
+// End-to-end tests: the built package (the zip of the stores) is loaded in a real browser.
+//
+//   BROWSER=chrome|edge|firefox npm test      (default: chrome)
+//
+// 1. install: the pages of the extension load, with the version and the footer.
+// 2. options: the language, and the columns of the board.
+// 3. flow: an offer is saved in the popup, seen on the board, noted and moved, and it is still there after a reload.
+import assert from 'node:assert/strict'
+import { after, before, describe, test } from 'node:test'
+
+import { By } from 'selenium-webdriver'
+
+import { launch, openPage, unpack, version, waitFor, zipFor } from './lib.mjs'
+
+const browser = process.env.BROWSER || 'chrome'
+
+const REPOSITORY = 'https://github.com/Stanislas-Poisson/job-application-tracker'
+
+describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
+  let driver
+  let base
+
+  before(async () => {
+    const zip = zipFor(browser)
+    const dir = unpack(zip)
+    ;({ driver, base } = await launch(browser, { dir, zip }))
+  })
+  after(async () => driver?.quit())
+
+  const css = (selector) => driver.findElement(By.css(selector))
+  const all = (selector) => driver.findElements(By.css(selector))
+  const texts = async (selector) => Promise.all((await all(selector)).map((element) => element.getText()))
+
+  // Sets a field the way a user does, so that the page sees the change.
+  const type = async (selector, value) => {
+    const element = await css(selector)
+    await element.clear()
+    await element.sendKeys(value)
+  }
+  const choose = (selector, value) =>
+    driver.executeScript(
+      `const select = document.querySelector(arguments[0]);
+       select.value = arguments[1];
+       select.dispatchEvent(new Event('change', { bubbles: true }));`,
+      selector,
+      value
+    )
+
+  // Opens a page in a tab and waits for its content.
+  const open = async (page, ready) => {
+    const handle = await openPage(driver, browser, `${base}${page}.html`)
+    await waitFor(async () => (await all(ready)).length > 0, { message: `${page} to load` })
+    return handle
+  }
+
+  // The footer is the same on every page: the links of the project and the pills of the author.
+  const checkFooter = async () => {
+    const links = await Promise.all((await all('footer .links a')).map((link) => link.getAttribute('href')))
+    assert.deepEqual(links, [REPOSITORY, `${REPOSITORY}/issues`, `${REPOSITORY}/blob/main/PRIVACY.md`])
+    assert.deepEqual(await texts('footer .pills a'), [
+      'GitHub',
+      'GitLab',
+      'LinkedIn',
+      'Twitch',
+      'Linktree',
+      'Support the stream',
+    ])
+    assert.match(await text('footer .made-by'), /Stanislas Poisson \(Zairakai\)/)
+  }
+  const text = async (selector) => (await css(selector)).getText()
+
+  describe('install', () => {
+    for (const page of ['popup', 'options', 'board']) {
+      test(`the ${page} page loads, with the version and the footer`, async () => {
+        await open(page, '#version')
+
+        assert.equal(await text('#version'), `v${version()}`)
+        await checkFooter()
+      })
+    }
+  })
+
+  describe('options', () => {
+    test('the board has the default columns', async () => {
+      await open('options', '.status-list li')
+
+      assert.equal((await all('.status-list li')).length, 6)
+    })
+
+    test('the language changes the texts of the page at once', async () => {
+      await open('options', 'select[name=language]')
+      assert.equal(await text('header nav a'), 'Board')
+
+      await choose('select[name=language]', 'fr')
+      await waitFor(async () => (await text('header nav a')) === 'Tableau', { message: 'the page in French' })
+
+      await choose('select[name=language]', 'en')
+      await waitFor(async () => (await text('header nav a')) === 'Board', { message: 'the page in English' })
+    })
+
+    test('a column is added, and removed when it is empty', async () => {
+      await open('options', '.status-list li')
+
+      await type('input[name=newStatus]', 'Phone screen')
+      await (await all('form button[type=submit]'))[0].click()
+      await waitFor(async () => (await all('.status-list li')).length === 7, { message: 'the new column' })
+
+      const buttons = await all('.status-list li:last-child button')
+      await buttons[buttons.length - 1].click()
+      await waitFor(async () => (await all('.status-list li')).length === 6, { message: 'the column to be removed' })
+    })
+  })
+
+  describe('flow', () => {
+    let boardTab
+    let popupTab
+
+    test('the board is empty to begin with, with a column for each status', async () => {
+      boardTab = await open('board', '.column')
+
+      assert.equal((await all('.column')).length, 6)
+      assert.equal((await all('.application-card')).length, 0)
+      assert.match(await text('h2 + p, main > p.card'), /Nothing here yet/)
+    })
+
+    test('an offer saved in the popup shows on the board that is open, with no reload', async () => {
+      popupTab = await open('popup', 'form')
+
+      await type('input[name=title]', 'Backend developer')
+      await type('input[name=company]', 'Acme')
+      await type('input[name=location]', 'Paris')
+      await type('textarea[name=note]', "Found on a friend's advice")
+      await css('form button[type=submit]').then((button) => button.click())
+      await waitFor(async () => (await all('.success')).length > 0, { message: 'the offer to be saved' })
+
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => (await all('.application-card')).length === 1, { message: 'the card on the board' })
+
+      const card = await text('.application-card')
+      assert.match(card, /Backend developer/)
+      assert.match(card, /Acme/)
+      assert.match(card, /Paris/)
+      assert.match(await text('.column:first-child h2'), /To apply\s*1/)
+    })
+
+    test('the card opens its details, takes a note, and moves to another column', async () => {
+      await driver.switchTo().window(boardTab)
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('textarea[name=newNote]')).length > 0, { message: 'the drawer' })
+
+      // The note typed in the popup is the first one.
+      assert.match(await text('.note-body'), /friend's advice/)
+
+      await type('textarea[name=newNote]', 'Call back on Monday')
+      const addNote = (await all('.drawer-content form button[type=submit]'))[1]
+      await addNote.click()
+      await waitFor(async () => (await all('.note-body')).length === 2, { message: 'the second note' })
+
+      const applied = await driver.executeScript(
+        `return [...document.querySelectorAll('select[name=status] option')].find((option) => option.textContent.trim() === 'Applied').value`
+      )
+      await choose('select[name=status]', applied)
+      await waitFor(async () => (await texts('.drawer-content ul li strong')).includes('Moved to'), {
+        message: 'the move in the timeline',
+      })
+    })
+
+    test('everything is still there after a reload', async () => {
+      await driver.switchTo().window(boardTab)
+      await driver.navigate().refresh()
+      await waitFor(async () => (await all('.application-card')).length === 1, { message: 'the card after the reload' })
+
+      assert.match(await text('.column:nth-child(2) h2'), /Applied\s*1/)
+      assert.match(await text('.column:nth-child(2) .application-card'), /Backend developer/)
+      assert.match(await text('.column:first-child h2'), /To apply\s*0/)
+    })
+  })
+})
