@@ -218,6 +218,36 @@ const fr: TranslationObject = {
       contact: "Ce contact n'existe plus.",
     },
   },
+  import: {
+    title: 'Importer des échanges',
+    hint: 'Ajoutez un e-mail, un message ou une liste qui a eu lieu ailleurs. Vous voyez ce qui a été compris avant que rien ne soit enregistré.',
+    modePaste: 'Coller un texte',
+    modeFiles: 'Depuis des fichiers',
+    paste: 'Le texte',
+    preview: 'Aperçu',
+    files: 'Fichiers e-mail (.eml), ou une liste (.json, .csv)',
+    chooseDirection: 'Reçu ou envoyé ?',
+    nothing: "Rien n'a pu être lu dans ces fichiers.",
+    commit: 'Importer {count}',
+    done: '{added} ajoutés, {duplicates} déjà présents, {skipped} ignorés.',
+    errors: {
+      json: "{file} n'est pas un fichier JSON valide.",
+      format: "{file} ne contient pas de liste d'échanges.",
+    },
+    issues: {
+      channel: 'Le canal est manquant.',
+      direction: 'Dites si c’est reçu ou envoyé.',
+      date: 'La date est manquante : saisissez-la.',
+      content: "Il n'y a ni objet ni texte.",
+      duration: "La durée n'est pas un nombre entier de minutes.",
+    },
+  },
+  exchangeSettings: {
+    title: 'Échanges',
+    ownEmails: 'Vos adresses e-mail',
+    ownEmailsHint:
+      'Une par ligne. Elles permettent de distinguer un e-mail que vous avez envoyé de celui que vous avez reçu, à l’import.',
+  },
   options: {
     title: 'Options',
     language: 'Langue',

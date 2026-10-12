@@ -1,5 +1,5 @@
 import type { StorageAdapter } from './persistence/adapter'
-import { isCountry } from './utils/contact'
+import { isCountry, normalizeEmail } from './utils/contact'
 import { CURRENCY_DISPLAYS, type CurrencyDisplay, DEFAULT_ASSUMPTIONS, isCurrency } from './utils/money'
 import { isValidTimeZone } from './utils/time'
 
@@ -28,6 +28,8 @@ export interface Settings {
   currencyDisplay: CurrencyDisplay
   // What one unit of a currency is worth in the home currency. The user types them: nothing is fetched.
   rates: Record<string, number>
+  // The email addresses of the user, in lower case: they tell a message that was sent from one that was received.
+  ownEmails: string[]
   workingDaysPerYear: number
   hoursPerDay: number
 }
@@ -43,6 +45,7 @@ export const DEFAULT_SETTINGS: Settings = {
   homeCurrency: '',
   currencyDisplay: 'symbol',
   rates: {},
+  ownEmails: [],
   ...DEFAULT_ASSUMPTIONS,
 }
 
@@ -51,7 +54,7 @@ const inRange = (min: number, max: number) => (value: unknown) =>
   'number' === typeof value && Number.isFinite(value) && min <= value && value <= max
 
 // What a setting may hold. A stored value that does not pass is replaced by the default.
-const VALID: { [K in Exclude<keyof Settings, 'rates'>]: (value: unknown) => boolean } = {
+const VALID: { [K in Exclude<keyof Settings, 'rates' | 'ownEmails'>]: (value: unknown) => boolean } = {
   locale: oneOf(LOCALES),
   theme: oneOf(THEMES),
   accent: oneOf(ACCENTS),
@@ -77,11 +80,30 @@ function normalizeRates(value: unknown): Record<string, number> {
   return rates
 }
 
+// The addresses are a list: one that is not an address is dropped, a repeated one is kept once, and there are not more
+// than twenty.
+export function normalizeEmails(value: unknown): string[] {
+  const emails: string[] = []
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const email = 'string' === typeof item ? normalizeEmail(item) : null
+      if (email && !emails.includes(email) && 20 > emails.length) {
+        emails.push(email)
+      }
+    }
+  }
+  return emails
+}
+
 // What was stored, with the defaults for what is missing, and the defaults again for a value that is not allowed
 // (a setting removed in a later version, a file edited by hand).
 export function normalizeSettings(stored: unknown): Settings {
   const source = 'object' === typeof stored && null !== stored ? (stored as Record<string, unknown>) : {}
-  const settings: Settings = { ...DEFAULT_SETTINGS, rates: normalizeRates(source.rates) }
+  const settings: Settings = {
+    ...DEFAULT_SETTINGS,
+    rates: normalizeRates(source.rates),
+    ownEmails: normalizeEmails(source.ownEmails),
+  }
   for (const key of Object.keys(VALID) as (keyof typeof VALID)[]) {
     if (VALID[key](source[key])) {
       ;(settings[key] as unknown) = source[key]
