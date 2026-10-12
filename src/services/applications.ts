@@ -1,3 +1,4 @@
+import type { CountryCode } from 'libphonenumber-js/min'
 import { useRepo } from 'pinia-orm'
 import {
   Activity,
@@ -15,6 +16,7 @@ import type { ActivityType } from '../models/Activity'
 import type { ContactRole } from '../models/ApplicationContact'
 import type { WorkMode } from '../models/JobOffer'
 import { isInstant, isPlainDate } from '../utils/time'
+import { type ContactInput, normalizeContactInput } from './contacts'
 
 export interface CaptureInput {
   title: string
@@ -153,20 +155,18 @@ export function setReminderDone(reminderId: string, done: boolean) {
     .update({ doneAt: done ? now() : null })
 }
 
-export interface ContactInput {
-  firstName: string
-  lastName: string
-  role?: string | null
-  email?: string | null
-  phone?: string | null
-  linkedin?: string | null
-}
-
-// Creates a contact in the company of the offer, and links it to the application.
-export function addContact(applicationId: string, input: ContactInput, link: ContactRole = 'other') {
+// Creates a contact in the company of the offer, and links it to the application. The fields are put in their canonical
+// forms first (see normalizeContactInput): an invalid one throws a ContactError and nothing is saved.
+export function addContact(
+  applicationId: string,
+  input: ContactInput,
+  link: ContactRole = 'other',
+  options: { defaultCountry?: CountryCode } = {}
+) {
+  const fields = normalizeContactInput(input, options)
   const application = useRepo(Application).with('jobOffer').find(applicationId)
   const contact = useRepo(Contact).save({
-    ...input,
+    ...fields,
     companyId: application?.jobOffer?.companyId ?? null,
   })
   useRepo(ApplicationContact).save({ applicationId, contactId: contact.id, role: link })

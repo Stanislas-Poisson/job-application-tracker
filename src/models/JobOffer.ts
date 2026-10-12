@@ -15,7 +15,9 @@ export default class JobOffer extends Model {
   declare sourceId: string | null
   declare title: string
   declare url: string | null
+  // The place as the offer says it, and its ISO 3166-1 country when it is known.
   declare location: string | null
+  declare country: string | null
   declare contractType: string | null
   declare workMode: WorkMode | null
   // The salary: a range in minor units (cents), its currency (ISO 4217), its period and whether it is gross or net.
@@ -41,6 +43,7 @@ export default class JobOffer extends Model {
       title: this.string(''),
       url: this.string(null),
       location: this.string(null),
+      country: this.string(null),
       contractType: this.string(null),
       workMode: this.string(null),
       salaryMin: this.number(null),

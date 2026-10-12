@@ -16,6 +16,10 @@ export default class Contact extends Model {
   declare email: string | null
   declare phone: string | null
   declare linkedin: string | null
+  // Where the person is: an ISO 3166-1 country, an IANA time zone, and the languages they speak (BCP 47 tags).
+  declare country: string | null
+  declare timeZone: string | null
+  declare languages: string[]
   declare createdAt: string
 
   declare company: Company | null
@@ -32,6 +36,9 @@ export default class Contact extends Model {
       email: this.string(null),
       phone: this.string(null),
       linkedin: this.string(null),
+      country: this.string(null),
+      timeZone: this.string(null),
+      languages: this.attr(() => []),
       createdAt: this.string(() => new Date().toISOString()),
       company: this.belongsTo(Company, 'companyId'),
       applications: this.belongsToMany(Application, ApplicationContact, 'contactId', 'applicationId'),

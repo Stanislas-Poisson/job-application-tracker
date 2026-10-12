@@ -10,7 +10,9 @@ export default class Company extends Model {
   declare id: string
   declare name: string
   declare website: string | null
-  declare location: string | null
+  // Where the company is: the city, and its ISO 3166-1 country.
+  declare city: string | null
+  declare country: string | null
   declare sector: string | null
   declare createdAt: string
 
@@ -23,7 +25,8 @@ export default class Company extends Model {
       id: this.uid(),
       name: this.string(''),
       website: this.string(null),
-      location: this.string(null),
+      city: this.string(null),
+      country: this.string(null),
       sector: this.string(null),
       createdAt: this.string(() => new Date().toISOString()),
       offers: this.hasMany(JobOffer, 'companyId'),

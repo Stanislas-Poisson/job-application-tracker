@@ -37,6 +37,7 @@
     "@zairakai/js-i18n": "^1.0.12",
     "@zairakai/js-utils": "^1.0.12",
     "@zairakai/vue-components": "^1.4.2",
+    "libphonenumber-js": "^1.13.15",
     "pinia": "^4.0.3",
     "pinia-orm": "^2.0.0",
     "vue": "^3.5.43"

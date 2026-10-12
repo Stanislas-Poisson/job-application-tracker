@@ -1,4 +1,5 @@
 import type { StorageAdapter } from './persistence/adapter'
+import { isCountry } from './utils/contact'
 import { CURRENCY_DISPLAYS, type CurrencyDisplay, DEFAULT_ASSUMPTIONS, isCurrency } from './utils/money'
 import { isValidTimeZone } from './utils/time'
 
@@ -20,6 +21,8 @@ export interface Settings {
   vision: Vision
   // "auto" is the time zone of the browser, or a name of the IANA database (Europe/Paris).
   timeZone: string
+  // The country a phone number typed without a country code is read in: "auto" is the one of the language of the browser.
+  defaultCountry: string
   // The currency the salaries are compared in (an ISO 4217 code), or '' for none.
   homeCurrency: string
   currencyDisplay: CurrencyDisplay
@@ -36,6 +39,7 @@ export const DEFAULT_SETTINGS: Settings = {
   accent: 'slate',
   vision: 'standard',
   timeZone: 'auto',
+  defaultCountry: 'auto',
   homeCurrency: '',
   currencyDisplay: 'symbol',
   rates: {},
@@ -53,6 +57,7 @@ const VALID: { [K in Exclude<keyof Settings, 'rates'>]: (value: unknown) => bool
   accent: oneOf(ACCENTS),
   vision: oneOf(VISIONS),
   timeZone: (value) => 'auto' === value || isValidTimeZone(value),
+  defaultCountry: (value) => 'auto' === value || isCountry(value),
   homeCurrency: (value) => '' === value || isCurrency(value),
   currencyDisplay: oneOf(CURRENCY_DISPLAYS),
   workingDaysPerYear: inRange(1, 366),
