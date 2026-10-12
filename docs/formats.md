@@ -70,3 +70,30 @@ An exchange is what was said with someone, kept as it was.
 | Its identity | An external reference when the exchange comes from somewhere (the `Message-ID` of an email): an exchange that comes twice is kept once. |
 
 The timeline of an application is the activities the extension recorded and the exchanges, in one list, the most recent first.
+
+### Importing exchanges
+
+An import never saves at once: it shows what it understood, and the user decides.
+
+| Source | What is read |
+| :--- | :--- |
+| Pasted text | The text as the body. When it begins with email headers (`From:`, `Subject:`, `Date:`) it is read as an email. The channel, the direction and the date are chosen in the form. |
+| An email file (`.eml`) | The sender, the recipients, the subject, the date, the `Message-ID`, and the text: folded headers, encoded words (`=?UTF-8?B?...?=`), quoted-printable and base64 bodies in their character set, multipart messages (the plain text, or the HTML turned into text), attachments ignored. |
+| A JSON file | A list of exchanges, or an object with an `exchanges` list. |
+| A CSV file | One exchange per row, with a header row. The separator is found (comma, semicolon, tab). |
+
+The fields of a JSON record or a CSV column (the names are not case sensitive, a few spellings are accepted):
+
+| Field | Meaning |
+| :--- | :--- |
+| `channel` | `email`, `linkedin`, `phone` (or `call`), `sms`, `whatsapp`, `video`, `meeting`, `other`. |
+| `direction` | `received` / `inbound` / `in`, or `sent` / `outbound` / `out`. |
+| `date` (or `occurredAt`, `when`) | With a zone (`2026-10-12T14:30:00Z`, `...+02:00`) it is read as it is. Without one (`2026-10-12 16:30`) it is a wall clock in the time zone of the user. A date alone is read at 09:00. |
+| `subject`, `text` (or `body`) | At least one of them. |
+| `email`, `contact`, `counterpart` | Who it was with. The email address finds the contact first, then the name. |
+| `id` (or `externalRef`, `messageId`) | What identifies the exchange where it comes from. |
+| `duration` | Minutes, for a call or a meeting. |
+
+- A received email and a sent email are told apart by the addresses of the user (in the options). Without any, the direction is asked in the preview.
+- A row with something wrong (no channel, no direction, a date that cannot be read, no subject and no text) is shown with the reason and cannot be imported until it is fixed. A missing date can be typed in the preview.
+- An exchange is identified by its `Message-ID` or `id` for one application: importing the same file twice adds nothing the second time.

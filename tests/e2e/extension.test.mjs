@@ -10,6 +10,10 @@ import { after, before, describe, test } from 'node:test'
 
 import { By } from 'selenium-webdriver'
 
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
 import { launch, openPage, unpack, version, waitFor, zipFor } from './lib.mjs'
 
 const browser = process.env.BROWSER || 'chrome'
@@ -409,6 +413,91 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
       await driver.switchTo().window(optionsTab)
       await choose('select[name=timeZone]', 'auto')
+    })
+
+    test('an email pasted as text, and a CSV file, are imported once each, after a preview', async () => {
+      await driver.switchTo().window(boardTab)
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('details.import')).length > 0, { message: 'the import section' })
+      await driver.executeScript(`document.querySelector('details.import').open = true`)
+
+      const stored = () =>
+        driver.executeAsyncScript(`
+          const done = arguments[arguments.length - 1];
+          chrome.storage.local.get('jat:interactions', (items) => done(items['jat:interactions'] || []));
+        `)
+      const before = (await stored()).length
+
+      // An email that was pasted: it is read as one, with its date in UTC.
+      const eml = [
+        'From: Grace Hopper <grace@example.com>',
+        'To: Me <me@example.com>',
+        'Subject: Second interview',
+        'Date: Mon, 12 Oct 2026 16:30:00 +0200',
+        'Message-ID: <import-1@example.com>',
+        '',
+        'Can we meet on Friday?',
+      ].join('\n')
+      const paste = async () => {
+        await driver.executeScript(
+          `const text = document.querySelector('textarea[name=importText]');
+           text.value = arguments[0];
+           text.dispatchEvent(new Event('input', { bubbles: true }));
+           text.closest('form').querySelector('button[type=submit]').click();`,
+          eml
+        )
+        await waitFor(async () => (await all('.import-row')).length > 0, { message: 'the preview' })
+      }
+      await paste()
+      assert.match(await text('.import-row'), /Second interview/)
+      assert.match(await text('.import-row'), /Grace Hopper/)
+      await driver.executeScript(
+        `[...document.querySelectorAll('details.import button')].find((b) => /Import 1/.test(b.textContent)).click()`
+      )
+      await waitFor(async () => /1 added/.test(await text('details.import [role=status]')), { message: 'the result' })
+
+      const saved = await waitFor(async () => (await stored()).length > before && (await stored()), {
+        message: 'the exchange to be stored',
+      })
+      const imported = saved.find((exchange) => '<import-1@example.com>' === exchange.externalRef)
+      assert.equal(imported.occurredAt, '2026-10-12T14:30:00.000Z')
+      assert.equal(imported.origin, 'paste')
+
+      // The same email a second time is not added again.
+      await paste()
+      await driver.executeScript(
+        `[...document.querySelectorAll('details.import button')].find((b) => /Import 1/.test(b.textContent)).click()`
+      )
+      await waitFor(async () => /1 already there/.test(await text('details.import [role=status]')), {
+        message: 'the duplicate to be seen',
+      })
+
+      // A CSV file: one good row, and one without a date, which is shown with its problem and cannot be chosen.
+      await driver.executeScript(`document.querySelector('input[name=importMode][value=files]').click()`)
+      await waitFor(async () => (await all('input[name=importFiles]')).length > 0, { message: 'the file field' })
+      const file = path.join(os.tmpdir(), `exchanges-${Date.now()}.csv`)
+      fs.writeFileSync(
+        file,
+        'channel,direction,date,subject,text\nphone,sent,2026-10-13T08:00:00Z,Call with Grace,25 minutes\nsms,received,,No date,Hello\n'
+      )
+      await css('input[name=importFiles]').then((input) => input.sendKeys(file))
+      await waitFor(async () => (await all('.import-row')).length === 2, { message: 'the two rows of the file' })
+      assert.match(await text('details.import'), /The date is missing/)
+      assert.equal(
+        await driver.executeScript(
+          `return document.querySelectorAll('.import-row input[type=checkbox]:disabled').length`
+        ),
+        1
+      )
+      await driver.executeScript(
+        `[...document.querySelectorAll('details.import button')].find((b) => /Import 1/.test(b.textContent)).click()`
+      )
+      await waitFor(async () => /1 added/.test(await text('details.import [role=status]')), {
+        message: 'the result of the file',
+      })
+      fs.rmSync(file)
+
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
     })
 
     test('a reminder typed in the time zone of the settings is stored in UTC and shown in that zone', async () => {

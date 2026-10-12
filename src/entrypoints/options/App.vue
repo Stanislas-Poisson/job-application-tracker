@@ -3,6 +3,7 @@
   import AppHeader from '../../components/AppHeader.vue'
   import AppearanceSetting from '../../components/options/AppearanceSetting.vue'
   import DataTools from '../../components/options/DataTools.vue'
+  import ExchangeSetting from '../../components/options/ExchangeSetting.vue'
   import LanguageSetting from '../../components/options/LanguageSetting.vue'
   import MoneySetting from '../../components/options/MoneySetting.vue'
   import RegionalSetting from '../../components/options/RegionalSetting.vue'
@@ -25,6 +26,7 @@
       <section class="card"><AppearanceSetting /></section>
       <section class="card"><RegionalSetting /></section>
       <section class="card"><MoneySetting /></section>
+      <section class="card"><ExchangeSetting /></section>
       <section class="card"><StatusEditor /></section>
       <section class="card"><DataTools /></section>
     </div>

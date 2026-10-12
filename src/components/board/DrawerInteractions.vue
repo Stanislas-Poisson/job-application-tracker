@@ -7,6 +7,7 @@
   import { CHANNELS, DIRECTIONS } from '../../models/Interaction'
   import { InteractionError, addInteraction, removeInteraction } from '../../services/interactions'
   import { utcToZonedInput, zonedToUtc } from '../../utils/time'
+  import ImportExchanges from './ImportExchanges.vue'
 
   const props = defineProps<{ application: Application }>()
 
@@ -140,6 +141,8 @@
       </p>
       <FormButton type="submit">{{ t('interactions.add') }}</FormButton>
     </form>
+
+    <ImportExchanges :application="application" />
 
     <ul>
       <li
