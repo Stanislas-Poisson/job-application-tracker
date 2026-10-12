@@ -90,8 +90,9 @@
 
     <div class="board">
       <BoardColumn
-        v-for="column in columns"
+        v-for="(column, index) in columns"
         :key="column.status.id"
+        :index="index"
         :status="column.status"
         :applications="column.applications"
         @open="openId = $event"

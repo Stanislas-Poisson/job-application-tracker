@@ -10,9 +10,15 @@ export function useApp() {
 
   // Reading the locale in t() makes every text that uses it follow a change of language.
   const t = (path: string, replacements?: Record<string, string | number>) => {
-    context.translator.setLocale(resolveLocale(context.locale.value, navigator.language))
+    context.translator.setLocale(resolveLocale(context.settings.locale, navigator.language))
     return context.translator.__(path, replacements)
   }
 
-  return { t, locale: context.locale, persistence: context.persistence, translator: context.translator }
+  return {
+    t,
+    settings: context.settings,
+    updateSettings: context.updateSettings,
+    persistence: context.persistence,
+    translator: context.translator,
+  }
 }

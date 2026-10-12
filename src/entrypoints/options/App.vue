@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import AppFooter from '../../components/AppFooter.vue'
   import AppHeader from '../../components/AppHeader.vue'
+  import AppearanceSetting from '../../components/options/AppearanceSetting.vue'
   import DataTools from '../../components/options/DataTools.vue'
   import LanguageSetting from '../../components/options/LanguageSetting.vue'
   import StatusEditor from '../../components/options/StatusEditor.vue'
@@ -19,6 +20,7 @@
 
     <div class="stack">
       <section class="card"><LanguageSetting /></section>
+      <section class="card"><AppearanceSetting /></section>
       <section class="card"><StatusEditor /></section>
       <section class="card"><DataTools /></section>
     </div>

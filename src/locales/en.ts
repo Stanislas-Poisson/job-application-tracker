@@ -68,6 +68,34 @@ const en: TranslationObject = {
     interview: 'Interview',
     other: 'Event',
   },
+  appearance: {
+    title: 'Appearance',
+    theme: 'Theme',
+    accent: 'Accent colour',
+    vision: 'Vision',
+    visionHint:
+      'The colour-blind modes use colours that stay apart for red-green or blue-yellow colour blindness, and give each column a shape. High contrast makes the text and the lines stronger.',
+    themes: {
+      auto: 'Follow the system',
+      light: 'Light',
+      dark: 'Dark',
+    },
+    accents: {
+      slate: 'Slate',
+      blue: 'Blue',
+      teal: 'Teal',
+      green: 'Green',
+      purple: 'Purple',
+      pink: 'Pink',
+      orange: 'Orange',
+    },
+    visions: {
+      standard: 'Standard',
+      'red-green': 'Red-green colour blindness',
+      'blue-yellow': 'Blue-yellow colour blindness',
+      'high-contrast': 'High contrast',
+    },
+  },
   options: {
     title: 'Options',
     language: 'Language',

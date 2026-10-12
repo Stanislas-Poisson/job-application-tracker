@@ -69,6 +69,34 @@ const fr: TranslationObject = {
     interview: 'Entretien',
     other: 'Évènement',
   },
+  appearance: {
+    title: 'Apparence',
+    theme: 'Thème',
+    accent: "Couleur d'accent",
+    vision: 'Vision',
+    visionHint:
+      'Les modes pour le daltonisme utilisent des couleurs qui restent distinctes pour le rouge-vert ou le bleu-jaune, et donnent une forme à chaque colonne. Le contraste élevé renforce le texte et les traits.',
+    themes: {
+      auto: 'Suivre le système',
+      light: 'Clair',
+      dark: 'Sombre',
+    },
+    accents: {
+      slate: 'Ardoise',
+      blue: 'Bleu',
+      teal: 'Sarcelle',
+      green: 'Vert',
+      purple: 'Violet',
+      pink: 'Rose',
+      orange: 'Orange',
+    },
+    visions: {
+      standard: 'Standard',
+      'red-green': 'Daltonisme rouge-vert',
+      'blue-yellow': 'Daltonisme bleu-jaune',
+      'high-contrast': 'Contraste élevé',
+    },
+  },
   options: {
     title: 'Options',
     language: 'Langue',

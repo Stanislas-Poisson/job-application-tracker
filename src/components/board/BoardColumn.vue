@@ -1,12 +1,19 @@
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import { computed, ref } from 'vue'
+  import { statusColor, statusShape } from '../../appearance'
+  import { useApp } from '../../composables/useApp'
   import type { Application, Status } from '../../models'
   import ApplicationCard from './ApplicationCard.vue'
 
-  defineProps<{ status: Status; applications: Application[] }>()
+  const props = defineProps<{ status: Status; applications: Application[]; index: number }>()
   const emit = defineEmits<{ open: [id: string]; dropApplication: [id: string] }>()
 
+  const { settings } = useApp()
+
   const over = ref(false)
+  // In a colour-blind mode the colour comes from a safe palette and a shape goes with it.
+  const color = computed(() => statusColor(props.status.color, props.index, settings.vision))
+  const shape = computed(() => statusShape(props.index, settings.vision))
 
   function onDrop(event: DragEvent) {
     over.value = false
@@ -25,8 +32,17 @@
     @dragleave="over = false"
     @drop.prevent="onDrop"
   >
-    <h2 :style="{ '--status': status.color }">
-      <span class="dot" />
+    <h2 :style="{ '--status': color }">
+      <span
+        v-if="shape"
+        class="shape"
+        aria-hidden="true"
+        >{{ shape }}</span
+      >
+      <span
+        v-else
+        class="dot"
+      />
       {{ status.label }}
       <span class="count">{{ applications.length }}</span>
     </h2>
