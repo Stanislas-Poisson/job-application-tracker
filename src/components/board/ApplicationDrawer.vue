@@ -7,6 +7,7 @@
   import DrawerContacts from './DrawerContacts.vue'
   import DrawerDetails from './DrawerDetails.vue'
   import DrawerInteractions from './DrawerInteractions.vue'
+  import DrawerLabels from './DrawerLabels.vue'
   import DrawerNotes from './DrawerNotes.vue'
   import DrawerReminders from './DrawerReminders.vue'
   import DrawerTimeline from './DrawerTimeline.vue'
@@ -25,6 +26,7 @@
           .with('notes')
           .with('activities')
           .with('interactions')
+          .with('tags')
           .with('reminders')
           .find(props.applicationId)
       : null
@@ -46,6 +48,7 @@
         :application="application"
         @deleted="emit('close')"
       />
+      <DrawerLabels :application="application" />
       <DrawerInteractions :application="application" />
       <DrawerNotes :application="application" />
       <DrawerReminders :application="application" />

@@ -1,6 +1,8 @@
 import { Model } from 'pinia-orm'
 import Application from './Application'
 import Contact from './Contact'
+import Tag from './Tag'
+import Taggable from './Taggable'
 
 export const CHANNELS = ['email', 'linkedin', 'phone', 'sms', 'whatsapp', 'video', 'in_person', 'other'] as const
 export const DIRECTIONS = ['inbound', 'outbound'] as const
@@ -37,6 +39,7 @@ export default class Interaction extends Model {
 
   declare application: Application | null
   declare contact: Contact | null
+  declare tags: Tag[]
 
   static fields() {
     return {
@@ -55,6 +58,7 @@ export default class Interaction extends Model {
       createdAt: this.string(() => new Date().toISOString()),
       application: this.belongsTo(Application, 'applicationId'),
       contact: this.belongsTo(Contact, 'contactId'),
+      tags: this.morphToMany(Tag, Taggable, 'tagId', 'taggableId', 'taggableType'),
     }
   }
 }

@@ -97,3 +97,15 @@ The fields of a JSON record or a CSV column (the names are not case sensitive, a
 - A received email and a sent email are told apart by the addresses of the user (in the options). Without any, the direction is asked in the preview.
 - A row with something wrong (no channel, no direction, a date that cannot be read, no subject and no text) is shown with the reason and cannot be imported until it is fixed. A missing date can be typed in the preview.
 - An exchange is identified by its `Message-ID` or `id` for one application: importing the same file twice adds nothing the second time.
+
+## Tags, favourites and priority
+
+| What | Stored as |
+| :--- | :--- |
+| A tag | A name and a colour (`#rrggbb`). Two names that differ only by the case, the accents or the spaces around are one tag. |
+| Putting a tag on something | A link record (`taggables`) with the tag, the id and the kind of the thing: `applications`, `companies`, `contacts` or `interactions`. A tag can be on many things, a thing can have many tags. |
+| A favourite | A flag (`isFavorite`) on an application, a company or a contact. |
+| A priority | A whole number on an application: 0 none, 1 low, 2 medium, 3 high. |
+
+- The colour of a tag is a help to the eye: its name is always written, and a new tag takes the next colour of the palette of Okabe and Ito.
+- Removing a tag removes the links that put it on things; the things stay. Deleting an application removes its links and those of its exchanges.

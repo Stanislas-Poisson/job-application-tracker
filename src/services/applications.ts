@@ -7,11 +7,13 @@ import {
   Company,
   Contact,
   ContactMethod,
+  Interaction,
   JobOffer,
   Note,
   Reminder,
   Source,
   Status,
+  Taggable,
 } from '../models'
 import type { ActivityType } from '../models/Activity'
 import type { ContactRole } from '../models/ApplicationContact'
@@ -192,5 +194,12 @@ export function deleteApplication(applicationId: string) {
   useRepo(Reminder).where('applicationId', applicationId).delete()
   useRepo(ApplicationContact).where('applicationId', applicationId).delete()
   useRepo(Note).where('noteableType', 'applications').where('noteableId', applicationId).delete()
+  // The exchanges of the application go with it, and so do the tags that were put on them.
+  const exchanges = useRepo(Interaction).where('applicationId', applicationId).get()
+  exchanges.forEach((exchange) =>
+    useRepo(Taggable).where('taggableType', 'interactions').where('taggableId', exchange.id).delete()
+  )
+  useRepo(Interaction).where('applicationId', applicationId).delete()
+  useRepo(Taggable).where('taggableType', 'applications').where('taggableId', applicationId).delete()
   useRepo(Application).destroy(applicationId)
 }
