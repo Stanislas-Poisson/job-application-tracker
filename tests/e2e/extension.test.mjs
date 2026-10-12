@@ -500,6 +500,44 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
     })
 
+    test('a tag, a favourite and a priority show on the card, and a tag is renamed from the options', async () => {
+      await driver.switchTo().window(boardTab)
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('input[name=tagName]')).length > 0, { message: 'the labels section' })
+
+      await type('input[name=tagName]', 'remote')
+      await driver.executeScript(
+        `document.querySelector('input[name=tagName]').closest('form').querySelector('button[type=submit]').click()`
+      )
+      await css('button[name=favorite]').then((button) => button.click())
+      await choose('select[name=priority]', '3')
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      await waitFor(async () => /remote/.test(await text('.application-card .tag-chip')), {
+        message: 'the tag on the card',
+      })
+      assert.equal((await all('.application-card .card-star')).length, 1)
+      assert.match(await text('.application-card'), /High/)
+
+      // The tag is renamed in the options, and the card follows.
+      const optionsTab = await open('options', 'input[name^=tag-]')
+      await type('input[name^=tag-]', 'télétravail')
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => /télétravail/.test(await text('.application-card .tag-chip')), {
+        message: 'the new name of the tag',
+      })
+
+      // The links are stored once, whatever the tag is called.
+      const links = await driver.executeAsyncScript(`
+        const done = arguments[arguments.length - 1];
+        chrome.storage.local.get(['jat:taggables', 'jat:tags'], (items) => done([items['jat:taggables'] || [], items['jat:tags'] || []]));
+      `)
+      assert.equal(links[0].length, 1)
+      assert.equal(links[1][0].name, 'télétravail')
+
+      await driver.switchTo().window(optionsTab)
+    })
+
     test('a reminder typed in the time zone of the settings is stored in UTC and shown in that zone', async () => {
       // Kiritimati is UTC+14: 09:00 on the 24th there is 19:00 on the 23rd in UTC.
       const optionsTab = await open('options', 'select[name=timeZone]')

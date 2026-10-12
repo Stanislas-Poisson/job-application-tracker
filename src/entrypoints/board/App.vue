@@ -22,6 +22,7 @@
     useRepo(Application)
       .with('jobOffer', (query) => query.with('company').with('source'))
       .with('reminders')
+      .with('tags')
       .where('archived', showArchived.value)
       .get()
   )

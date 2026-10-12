@@ -6,6 +6,7 @@
   import type { Application } from '../../models'
   import { addContact, unlinkContact } from '../../services/applications'
   import { ContactError } from '../../services/contacts'
+  import { toggleFavorite } from '../../services/tags'
   import { countryName, languageName, listCountries, resolveCountry } from '../../utils/contact'
   import { formatTimeIn, listTimeZones } from '../../utils/time'
   import ContactMethods from './ContactMethods.vue'
@@ -136,6 +137,15 @@
         class="contact"
       >
         <div class="row">
+          <button
+            type="button"
+            class="favorite favorite-small"
+            :aria-pressed="contact.isFavorite"
+            :aria-label="t('labels.favorite')"
+            @click="toggleFavorite('contacts', contact.id)"
+          >
+            <span aria-hidden="true">{{ contact.isFavorite ? '\u2605' : '\u2606' }}</span>
+          </button>
           <strong>{{ contact.firstName }} {{ contact.lastName }}</strong>
           <small
             v-if="contact.role"

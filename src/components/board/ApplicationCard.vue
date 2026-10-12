@@ -34,7 +34,15 @@
     @click="emit('open')"
     @keydown.enter="emit('open')"
   >
-    <h3>{{ strLimit(offer?.title ?? '', 70) }}</h3>
+    <h3>
+      <span
+        v-if="application.isFavorite"
+        class="card-star"
+        :title="t('labels.favorite')"
+        >&#9733;</span
+      >
+      {{ strLimit(offer?.title ?? '', 70) }}
+    </h3>
     <p class="muted">
       {{ offer?.company?.name }}<template v-if="offer?.location"> - {{ offer.location }}</template>
     </p>
@@ -45,11 +53,30 @@
     >
       {{ format.salary(offer) }}
     </p>
+    <ul
+      v-if="application.tags?.length"
+      class="tag-list card-tags"
+    >
+      <li
+        v-for="tag in application.tags"
+        :key="tag.id"
+        class="tag-chip"
+        :style="{ '--tag': tag.color }"
+      >
+        <span dir="auto">{{ tag.name }}</span>
+      </li>
+    </ul>
     <div class="row">
       <DisplayBadge
         v-if="offer?.source"
         size="small"
         >{{ offer.source.label }}</DisplayBadge
+      >
+      <DisplayBadge
+        v-if="0 < application.priority"
+        size="small"
+        :variant="3 === application.priority ? 'warning' : 'default'"
+        >{{ t(`labels.priorities.${application.priority}`) }}</DisplayBadge
       >
       <DisplayBadge
         v-if="overdue"
@@ -62,6 +89,14 @@
 </template>
 
 <style lang="scss">
+  .card-star {
+    color: var(--primary);
+  }
+
+  .card-tags {
+    margin-block-end: 0.4rem;
+  }
+
   .application-card {
     padding: 0.7rem 0.8rem;
     background: var(--surface);

@@ -248,6 +248,28 @@ const fr: TranslationObject = {
     ownEmailsHint:
       'Une par ligne. Elles permettent de distinguer un e-mail que vous avez envoyé de celui que vous avez reçu, à l’import.',
   },
+  labels: {
+    title: 'Repères',
+    favorite: 'Favori',
+    priority: 'Priorité',
+    priorities: { '0': 'Aucune priorité', '1': 'Basse', '2': 'Moyenne', '3': 'Haute' },
+    add: 'Ajouter une étiquette',
+    addButton: 'Ajouter',
+    remove: "Retirer l'étiquette {name}",
+    manage: 'Étiquettes',
+    manageHint:
+      'Les étiquettes que vous mettez sur les candidatures. Renommez-les, changez leur couleur ou retirez-les.',
+    none: "Pas encore d'étiquette. Ajoutez-en une à une candidature, ou ici.",
+    usage: 'utilisée {count} fois',
+    confirmDelete: 'Cette étiquette est sur {count} éléments. La retirer de tous ?',
+    errors: {
+      name: "Donnez à l'étiquette un nom qu'aucune autre n'utilise.",
+      color: 'La couleur doit être écrite comme #0072b2.',
+      tag: "Cette étiquette n'existe plus.",
+      target: "Cet élément n'existe plus.",
+      priority: 'Choisissez une priorité dans la liste.',
+    },
+  },
   options: {
     title: 'Options',
     language: 'Langue',
