@@ -52,6 +52,7 @@ export function useFormat() {
   return {
     locale,
     timeZone,
+    conversion,
     instant: (iso: string) => formatInstant(iso, { locale: locale.value, timeZone: timeZone.value }),
     date: (plain: string) => formatDate(plain, locale.value),
     // "EUR 45,000 - 55,000 / year (gross)", in the language and with the currency display of the settings.

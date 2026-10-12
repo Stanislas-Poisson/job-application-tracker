@@ -538,6 +538,74 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.switchTo().window(optionsTab)
     })
 
+    test('the board is searched, filtered and sorted, and keeps the view it was left in', async () => {
+      // Two more applications, in the first column.
+      for (const [title, company] of [
+        ['Zebra engineer', 'Globex'],
+        ['Alpha engineer', 'Initech'],
+      ]) {
+        await open('popup', 'form')
+        await type('input[name=title]', title)
+        await type('input[name=company]', company)
+        await css('form button[type=submit]').then((button) => button.click())
+        await waitFor(async () => (await all('.success')).length > 0, { message: `${title} to be saved` })
+      }
+
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => (await all('.application-card')).length === 3, { message: 'the three cards' })
+      assert.match(await text('.filter-summary'), /3 of 3/)
+
+      // A search ignores the case and the accents, and the summary says how many are shown.
+      await type('input[name=search]', 'INITECH')
+      await waitFor(async () => (await all('.application-card')).length === 1, {
+        message: 'the search to narrow the board',
+      })
+      assert.match(await text('.application-card'), /Alpha engineer/)
+      assert.match(await text('.filter-summary'), /1 of 3/)
+      await driver.executeScript(
+        `[...document.querySelectorAll('.filter-summary button')].find((b) => /Clear/.test(b.textContent)).click()`
+      )
+      await waitFor(async () => (await all('.application-card')).length === 3, { message: 'the filters to be cleared' })
+
+      // The favourites: the first application was starred earlier.
+      await driver.executeScript(`document.querySelector('details.filter-panel').open = true`)
+      await driver.executeScript(`document.querySelector('input[name=filterFavorites]').click()`)
+      await waitFor(async () => (await all('.application-card')).length === 1, { message: 'the favourites' })
+      assert.match(await text('.application-card'), /Backend developer/)
+      await driver.executeScript(`document.querySelector('input[name=filterFavorites]').click()`)
+
+      // A sort by the job title, from A to Z then from Z to A, in the column of the new applications.
+      const order = async () => texts('.column:first-child .application-card h3')
+      await choose('select[name=sort]', 'title')
+      await waitFor(async () => /Alpha/.test((await order())[0] ?? ''), { message: 'A to Z' })
+      await css('button[name=direction]').then((button) => button.click())
+      await waitFor(async () => /Zebra/.test((await order())[0] ?? ''), { message: 'Z to A' })
+
+      // The view is kept: the board opens with the sort that was chosen.
+      await waitFor(
+        async () =>
+          'title' ===
+          (await driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:view', (items) => done((items['jat:view'] || {}).sort));
+          `)),
+        { message: 'the view to be stored' }
+      )
+      await driver.navigate().refresh()
+      await waitFor(async () => (await all('.application-card')).length === 3, {
+        message: 'the board after the reload',
+      })
+      await waitFor(
+        async () =>
+          (await driver.executeScript(`return document.querySelector('select[name=sort]').value`)) === 'title',
+        {
+          message: 'the sort to be kept',
+        }
+      )
+
+      await choose('select[name=sort]', 'manual')
+    })
+
     test('a reminder typed in the time zone of the settings is stored in UTC and shown in that zone', async () => {
       // Kiritimati is UTC+14: 09:00 on the 24th there is 19:00 on the 23rd in UTC.
       const optionsTab = await open('options', 'select[name=timeZone]')

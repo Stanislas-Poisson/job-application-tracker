@@ -1,53 +1,55 @@
 <script setup lang="ts">
-  import { FormInput } from '@zairakai/vue-components/Form'
   import { useRepo } from 'pinia-orm'
   import { computed, ref } from 'vue'
   import AppFooter from '../../components/AppFooter.vue'
   import AppHeader from '../../components/AppHeader.vue'
   import ApplicationDrawer from '../../components/board/ApplicationDrawer.vue'
   import BoardColumn from '../../components/board/BoardColumn.vue'
+  import BoardFilters from '../../components/board/BoardFilters.vue'
   import { useApp } from '../../composables/useApp'
+  import { useBoardView } from '../../composables/useBoardView'
+  import { useFormat } from '../../composables/useFormat'
   import { Application, Status } from '../../models'
   import { moveApplication } from '../../services/applications'
+  import { queryApplications } from '../../services/boardQuery'
 
   const { t, persistence } = useApp()
+  const format = useFormat()
+  const { view, clearFilters } = useBoardView()
 
-  const search = ref('')
-  const showArchived = ref(false)
   const openId = ref<string | null>(null)
 
   const statuses = computed(() => useRepo(Status).orderBy('order').get())
 
-  const applications = computed(() =>
+  // Every application, with what the filters and the search look at.
+  const everything = computed(() =>
     useRepo(Application)
       .with('jobOffer', (query) => query.with('company').with('source'))
       .with('reminders')
       .with('tags')
-      .where('archived', showArchived.value)
+      .with('contacts')
       .get()
   )
 
-  // The text typed in the search box is looked for in the title, the company and the place.
-  const visible = computed(() => {
-    const wanted = search.value.trim().toLowerCase()
-    if ('' === wanted) {
-      return applications.value
-    }
-    return applications.value.filter((application) =>
-      [application.jobOffer?.title, application.jobOffer?.company?.name, application.jobOffer?.location]
-        .join(' ')
-        .toLowerCase()
-        .includes(wanted)
-    )
-  })
+  // What the user chose to see, in the order chosen.
+  const visible = computed(() =>
+    queryApplications(everything.value, view, {
+      now: new Date(),
+      locale: format.locale.value,
+      conversion: format.conversion(),
+    })
+  )
 
   const columns = computed(() =>
     statuses.value.map((status) => ({
       status,
-      applications: visible.value
-        .filter((application) => application.statusId === status.id)
-        .sort((a, b) => a.position - b.position),
+      applications: visible.value.filter((application) => application.statusId === status.id),
     }))
+  )
+
+  // The applications that the archive switch leaves in, to say how many of them the filters keep.
+  const inScope = computed(
+    () => everything.value.filter((application) => application.archived === view.showArchived).length
   )
 
   async function drop(applicationId: string, statusId: string) {
@@ -66,24 +68,14 @@
       >
     </AppHeader>
 
-    <div class="row toolbar">
-      <FormInput
-        v-model="search"
-        name="search"
-        type="search"
-        :placeholder="t('board.search')"
-      />
-      <label class="row">
-        <input
-          v-model="showArchived"
-          type="checkbox"
-        />
-        {{ t('board.showArchived') }}
-      </label>
-    </div>
+    <BoardFilters
+      :shown="visible.length"
+      :total="inScope"
+      @clear="clearFilters"
+    />
 
     <p
-      v-if="0 === applications.length"
+      v-if="0 === everything.length"
       class="card muted"
     >
       {{ t('board.empty') }}
