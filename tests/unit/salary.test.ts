@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { reactive } from 'vue'
+import { memoryAdapter } from '../../src/persistence/adapter'
 import { SalaryError, type SalaryForm, salaryFromForm } from '../../src/services/salary'
-import { DEFAULT_SETTINGS, normalizeSettings } from '../../src/settings'
+import { DEFAULT_SETTINGS, loadSettings, normalizeSettings, saveSettings } from '../../src/settings'
 
 const form = (overrides: Partial<SalaryForm>): SalaryForm => ({
   min: '',
@@ -119,6 +121,17 @@ describe('the money settings', () => {
     expect(settings.rates).toEqual({ USD: 0.9, JPY: 0.006 })
     expect(settings.workingDaysPerYear).toBe(DEFAULT_SETTINGS.workingDaysPerYear)
     expect(settings.hoursPerDay).toBe(DEFAULT_SETTINGS.hoursPerDay)
+  })
+
+  it('saves settings that a page holds as a reactive object, rates included', async () => {
+    // A reactive object has proxies inside, and a browser cannot store a proxy: Firefox refuses to clone it.
+    const adapter = memoryAdapter()
+    const settings = reactive(normalizeSettings({ rates: { USD: 0.9 } }))
+    Object.assign(settings, { rates: { USD: 0.9, CHF: 1.05 } })
+
+    await saveSettings(adapter, { ...settings })
+
+    expect((await loadSettings(adapter)).rates).toEqual({ USD: 0.9, CHF: 1.05 })
   })
 
   it('does not share the rates between two readings', () => {

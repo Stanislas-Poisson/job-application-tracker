@@ -90,6 +90,8 @@ export async function loadSettings(adapter: StorageAdapter): Promise<Settings> {
   return normalizeSettings(stored[SETTINGS_KEY])
 }
 
+// The settings are plain data when they are written: a page holds them as a reactive object, with proxies inside (the
+// rates), and a browser cannot store a proxy.
 export async function saveSettings(adapter: StorageAdapter, settings: Settings) {
-  await adapter.set({ [SETTINGS_KEY]: settings })
+  await adapter.set({ [SETTINGS_KEY]: JSON.parse(JSON.stringify(settings)) as Settings })
 }
