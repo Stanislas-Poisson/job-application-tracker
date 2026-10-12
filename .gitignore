@@ -1,0 +1,10 @@
+node_modules/
+.output/
+.wxt/
+.cache/
+build/
+coverage/
+dist/
+*.log
+.env
+.env.*

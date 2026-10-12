@@ -1,0 +1,10 @@
+{
+  "config": {
+    "default": true,
+    "MD013": false,
+    "MD024": { "siblings_only": true },
+    // The README starts with a centered block of HTML, like the ones of the other extensions.
+    "MD033": false,
+    "MD041": false
+  }
+}

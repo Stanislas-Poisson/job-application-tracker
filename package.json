@@ -1,0 +1,61 @@
+{
+  "name": "job-application-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A browser extension that keeps the job offers you saw and follows each application, locally.",
+  "license": "MIT",
+  "author": "Stanislas Poisson <stanislas.p@the-white-rabbits.fr> (https://github.com/Stanislas-Poisson)",
+  "homepage": "https://github.com/Stanislas-Poisson/job-application-tracker#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Stanislas-Poisson/job-application-tracker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Stanislas-Poisson/job-application-tracker/issues"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "postinstall": "wxt prepare",
+    "typecheck": "vue-tsc --noEmit",
+    "eslint": "eslint .",
+    "prettier": "prettier . --check",
+    "stylelint": "stylelint \"**/*.{css,scss,vue}\"",
+    "markdownlint": "markdownlint-cli2 \"**/*.md\" \"#**/node_modules\" \"#.output\" \"#.wxt\" \"#.github\"",
+    "test": "vitest run",
+    "quality": "npm run typecheck && npm run eslint && npm run prettier && npm run stylelint && npm run markdownlint && npm test"
+  },
+  "dependencies": {
+    "@zairakai/js-i18n": "^1.0.12",
+    "@zairakai/js-utils": "^1.0.12",
+    "@zairakai/vue-components": "^1.4.2",
+    "pinia": "^4.0.3",
+    "pinia-orm": "^2.0.0",
+    "vue": "^3.5.43"
+  },
+  "devDependencies": {
+    "@stanislas-poisson/js-dev-tools": "^1.0.0",
+    "@vitest/coverage-v8": "^5.0.4",
+    "@vue/test-utils": "^2.5.1",
+    "@wxt-dev/module-vue": "^1.0.3",
+    "@zairakai/mithril-scss": "^1.2.3",
+    "eslint": "^10.12.0",
+    "happy-dom": "^21.0.1",
+    "markdownlint-cli2": "^0.23.3",
+    "prettier": "^3.9.10",
+    "sass": "^1.105.1",
+    "stylelint": "^17.16.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.4",
+    "vue-tsc": "^3.3.13",
+    "wxt": "^0.21.4"
+  }
+}

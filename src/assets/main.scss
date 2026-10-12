@@ -1,0 +1,242 @@
+@use "@zairakai/mithril-scss/components";
+
+// The styles of the components come from mithril-scss, with its light and dark tokens. What follows is the layout
+// of the three pages and the footer, the same as in the other extensions.
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--on-background);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  font-size: 0.92rem;
+}
+
+a {
+  color: var(--primary);
+}
+
+.page {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+}
+
+.page-narrow {
+  max-width: 44rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+
+  img {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 1.05rem;
+  }
+
+  p {
+    margin: 0;
+    color: var(--zk-muted);
+    font-size: 0.82rem;
+  }
+
+  nav {
+    margin-left: auto;
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+  }
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--zk-border);
+  border-radius: var(--zk-radius-lg);
+  padding: 1.25rem;
+}
+
+.muted {
+  color: var(--zk-muted);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.error {
+  color: var(--error);
+}
+
+.success {
+  color: var(--zk-success);
+}
+
+// The native controls: mithril-scss leaves them as the browser draws them, so they get the tokens here.
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+
+  label {
+    font-size: 0.82rem;
+    color: var(--zk-muted);
+  }
+}
+
+[data-input] {
+  display: flex;
+}
+
+input:not([type="checkbox"], [type="radio"], [type="color"], [type="file"]),
+select,
+textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.45rem 0.6rem;
+  font: inherit;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--zk-border-strong);
+  border-radius: var(--zk-radius);
+
+  &:focus {
+    border-color: var(--zk-focus);
+    outline: 2px solid var(--zk-focus);
+    outline-offset: -1px;
+  }
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  padding: 0.45rem 1rem;
+  font: inherit;
+  font-size: 0.85rem;
+  color: inherit;
+  cursor: pointer;
+  background: var(--surface);
+  border: 1px solid var(--zk-border-strong);
+  border-radius: var(--zk-radius);
+  transition: all var(--zk-duration) ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  &[type="submit"] {
+    color: var(--on-primary);
+    background: var(--primary);
+    border-color: var(--primary);
+
+    &:hover:not(:disabled) {
+      color: var(--on-primary);
+      filter: brightness(1.1);
+    }
+  }
+}
+
+// Only the fields that take text or a choice share the width of a row: a button keeps its own.
+.row > .field:has(input:not([type="checkbox"], [type="radio"]), select, textarea) {
+  flex: 1;
+}
+
+.card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+// The footer, as in the other extensions.
+footer {
+  margin-top: 1.75rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--zk-border);
+
+  .links {
+    font-size: 0.8rem;
+    margin: 0 0 0.75rem;
+
+    a {
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .made-by {
+    font-size: 0.8rem;
+    color: var(--zk-muted);
+    margin: 0 0 0.6rem;
+  }
+
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.76rem;
+      padding: 0.3rem 0.75rem 0.3rem 0.55rem;
+      border-radius: 999px;
+      text-decoration: none;
+      border: 1px solid color-mix(in srgb, var(--pill) 35%, var(--zk-border));
+      background: color-mix(in srgb, var(--pill) 10%, transparent);
+      color: color-mix(in srgb, var(--pill) 70%, var(--on-surface));
+      transition: all 0.15s ease;
+    }
+
+    a svg {
+      width: 14px;
+      height: 14px;
+      fill: currentcolor;
+      flex-shrink: 0;
+    }
+
+    a:hover {
+      color: #fff;
+      background: var(--pill);
+      border-color: var(--pill);
+      transform: translateY(-1px);
+    }
+  }
+}
