@@ -11,6 +11,8 @@ export default defineConfig({
     homepage_url: 'https://github.com/Stanislas-Poisson/job-application-tracker',
     // storage: the data. activeTab: the title and the address of the page the user is looking at, when the popup opens.
     permissions: ['storage', 'activeTab'],
+    // Asked only when the user turns on the automatic exchange rates, and dropped when it is turned off.
+    optional_host_permissions: ['https://api.frankfurter.dev/*'],
     ...('firefox' === browser
       ? {
           browser_specific_settings: {

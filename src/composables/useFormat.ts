@@ -9,6 +9,7 @@ import {
   describeSalary,
   formatMoney,
 } from '../utils/money'
+import { effectiveRates } from '../utils/rates'
 import { formatDate, formatInstant, resolveTimeZone } from '../utils/time'
 import { useApp } from './useApp'
 
@@ -45,7 +46,7 @@ export function useFormat() {
 
   const conversion = (): Conversion => ({
     home: settings.homeCurrency,
-    rates: settings.rates,
+    rates: effectiveRates(settings),
     assumptions: { workingDaysPerYear: settings.workingDaysPerYear, hoursPerDay: settings.hoursPerDay },
   })
 
