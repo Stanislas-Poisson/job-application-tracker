@@ -9,10 +9,10 @@ describe('models', () => {
     freshStore()
   })
 
-  it('has eleven models, each with its own entity name', () => {
+  it('has twelve models, each with its own entity name', () => {
     const entities = MODELS.map((model) => model.entity)
-    expect(entities).toHaveLength(11)
-    expect(new Set(entities).size).toBe(11)
+    expect(entities).toHaveLength(12)
+    expect(new Set(entities).size).toBe(12)
   })
 
   it('starts with the default statuses in order and the default sources', () => {

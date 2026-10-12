@@ -6,6 +6,7 @@
   import { Application } from '../../models'
   import DrawerContacts from './DrawerContacts.vue'
   import DrawerDetails from './DrawerDetails.vue'
+  import DrawerInteractions from './DrawerInteractions.vue'
   import DrawerNotes from './DrawerNotes.vue'
   import DrawerReminders from './DrawerReminders.vue'
   import DrawerTimeline from './DrawerTimeline.vue'
@@ -23,6 +24,7 @@
           .with('contacts', (query) => query.with('methods'))
           .with('notes')
           .with('activities')
+          .with('interactions')
           .with('reminders')
           .find(props.applicationId)
       : null
@@ -44,6 +46,7 @@
         :application="application"
         @deleted="emit('close')"
       />
+      <DrawerInteractions :application="application" />
       <DrawerNotes :application="application" />
       <DrawerReminders :application="application" />
       <DrawerContacts :application="application" />

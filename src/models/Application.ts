@@ -2,6 +2,7 @@ import { Model } from 'pinia-orm'
 import Activity from './Activity'
 import ApplicationContact from './ApplicationContact'
 import Contact from './Contact'
+import Interaction from './Interaction'
 import JobOffer from './JobOffer'
 import Note from './Note'
 import Reminder from './Reminder'
@@ -26,6 +27,7 @@ export default class Application extends Model {
   declare contacts: Contact[]
   declare notes: Note[]
   declare activities: Activity[]
+  declare interactions: Interaction[]
   declare reminders: Reminder[]
 
   static fields() {
@@ -43,6 +45,7 @@ export default class Application extends Model {
       contacts: this.belongsToMany(Contact, ApplicationContact, 'applicationId', 'contactId'),
       notes: this.morphMany(Note, 'noteableId', 'noteableType'),
       activities: this.hasMany(Activity, 'applicationId'),
+      interactions: this.hasMany(Interaction, 'applicationId'),
       reminders: this.hasMany(Reminder, 'applicationId'),
     }
   }
