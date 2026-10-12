@@ -14,6 +14,16 @@ export type ThemeMode = (typeof THEMES)[number]
 export type Accent = (typeof ACCENTS)[number]
 export type Vision = (typeof VISIONS)[number]
 
+// Rates fetched for a home currency: one unit of a currency in that home currency.
+export interface FetchedRates {
+  home: string
+  // The day the rates are for (YYYY-MM-DD), as the service gives it.
+  date: string
+  // When they were fetched (UTC).
+  fetchedAt: string
+  rates: Record<string, number>
+}
+
 export interface Settings {
   locale: Locale
   theme: ThemeMode
@@ -28,6 +38,10 @@ export interface Settings {
   currencyDisplay: CurrencyDisplay
   // What one unit of a currency is worth in the home currency. The user types them: nothing is fetched.
   rates: Record<string, number>
+  // Off by default. On: the rates the user did not type are fetched once a day from a free service.
+  autoRates: boolean
+  // What was fetched last: the rates, in the home currency they were fetched for.
+  autoRatesData: FetchedRates | null
   // The email addresses of the user, in lower case: they tell a message that was sent from one that was received.
   ownEmails: string[]
   workingDaysPerYear: number
@@ -45,6 +59,8 @@ export const DEFAULT_SETTINGS: Settings = {
   homeCurrency: '',
   currencyDisplay: 'symbol',
   rates: {},
+  autoRates: false,
+  autoRatesData: null,
   ownEmails: [],
   ...DEFAULT_ASSUMPTIONS,
 }
@@ -54,21 +70,23 @@ const inRange = (min: number, max: number) => (value: unknown) =>
   'number' === typeof value && Number.isFinite(value) && min <= value && value <= max
 
 // What a setting may hold. A stored value that does not pass is replaced by the default.
-const VALID: { [K in Exclude<keyof Settings, 'rates' | 'ownEmails'>]: (value: unknown) => boolean } = {
-  locale: oneOf(LOCALES),
-  theme: oneOf(THEMES),
-  accent: oneOf(ACCENTS),
-  vision: oneOf(VISIONS),
-  timeZone: (value) => 'auto' === value || isValidTimeZone(value),
-  defaultCountry: (value) => 'auto' === value || isCountry(value),
-  homeCurrency: (value) => '' === value || isCurrency(value),
-  currencyDisplay: oneOf(CURRENCY_DISPLAYS),
-  workingDaysPerYear: inRange(1, 366),
-  hoursPerDay: inRange(1, 24),
-}
+const VALID: { [K in Exclude<keyof Settings, 'rates' | 'ownEmails' | 'autoRatesData'>]: (value: unknown) => boolean } =
+  {
+    locale: oneOf(LOCALES),
+    theme: oneOf(THEMES),
+    accent: oneOf(ACCENTS),
+    vision: oneOf(VISIONS),
+    timeZone: (value) => 'auto' === value || isValidTimeZone(value),
+    defaultCountry: (value) => 'auto' === value || isCountry(value),
+    homeCurrency: (value) => '' === value || isCurrency(value),
+    currencyDisplay: oneOf(CURRENCY_DISPLAYS),
+    autoRates: (value) => 'boolean' === typeof value,
+    workingDaysPerYear: inRange(1, 366),
+    hoursPerDay: inRange(1, 24),
+  }
 
 // The rates are a list: an entry that is not a currency, or not a positive number, is dropped and the others stay.
-function normalizeRates(value: unknown): Record<string, number> {
+export function normalizeRates(value: unknown): Record<string, number> {
   const rates: Record<string, number> = {}
   if ('object' === typeof value && null !== value) {
     for (const [code, rate] of Object.entries(value)) {
@@ -78,6 +96,25 @@ function normalizeRates(value: unknown): Record<string, number> {
     }
   }
   return rates
+}
+
+function normalizeFetched(value: unknown): FetchedRates | null {
+  if ('object' !== typeof value || null === value) {
+    return null
+  }
+  const source = value as Record<string, unknown>
+  const rates = normalizeRates(source.rates)
+  if (
+    !isCurrency(source.home) ||
+    'string' !== typeof source.date ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(source.date) ||
+    'string' !== typeof source.fetchedAt ||
+    Number.isNaN(Date.parse(source.fetchedAt)) ||
+    0 === Object.keys(rates).length
+  ) {
+    return null
+  }
+  return { home: source.home, date: source.date, fetchedAt: source.fetchedAt, rates }
 }
 
 // The addresses are a list: one that is not an address is dropped, a repeated one is kept once, and there are not more
@@ -102,6 +139,7 @@ export function normalizeSettings(stored: unknown): Settings {
   const settings: Settings = {
     ...DEFAULT_SETTINGS,
     rates: normalizeRates(source.rates),
+    autoRatesData: normalizeFetched(source.autoRatesData),
     ownEmails: normalizeEmails(source.ownEmails),
   }
   for (const key of Object.keys(VALID) as (keyof typeof VALID)[]) {
