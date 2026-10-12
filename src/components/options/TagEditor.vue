@@ -1,0 +1,98 @@
+<script setup lang="ts">
+  import { FormButton, FormInput } from '@zairakai/vue-components/Form'
+  import { useRepo } from 'pinia-orm'
+  import { computed, ref } from 'vue'
+  import { useApp } from '../../composables/useApp'
+  import { Tag } from '../../models'
+  import { TagError, createTag, deleteTag, recolorTag, renameTag, tagUsage } from '../../services/tags'
+
+  const { t } = useApp()
+
+  const name = ref('')
+  const problem = ref('')
+
+  const tags = computed(() => useRepo(Tag).orderBy('name').get())
+
+  // A refused change is said under the list, and the field keeps what the tag was named.
+  function attempt(action: () => void) {
+    problem.value = ''
+    try {
+      action()
+    } catch (error) {
+      if (error instanceof TagError) {
+        problem.value = t(`labels.errors.${error.code}`)
+        return
+      }
+      throw error
+    }
+  }
+
+  function add() {
+    attempt(() => {
+      createTag(name.value)
+      name.value = ''
+    })
+  }
+
+  function remove(tag: Tag) {
+    if (0 === tagUsage(tag.id) || window.confirm(t('labels.confirmDelete', { count: tagUsage(tag.id) }))) {
+      deleteTag(tag.id)
+    }
+  }
+</script>
+
+<template>
+  <h2>{{ t('labels.manage') }}</h2>
+  <p class="muted">{{ t('labels.manageHint') }}</p>
+  <p
+    v-if="0 === tags.length"
+    class="muted"
+  >
+    {{ t('labels.none') }}
+  </p>
+  <ul class="status-list">
+    <li
+      v-for="tag in tags"
+      :key="tag.id"
+      class="row"
+    >
+      <input
+        type="color"
+        :value="tag.color"
+        :aria-label="t('options.color')"
+        @change="attempt(() => recolorTag(tag.id, ($event.target as HTMLInputElement).value))"
+      />
+      <FormInput
+        :model-value="tag.name"
+        :name="`tag-${tag.id}`"
+        :field="false"
+        @update:model-value="attempt(() => renameTag(tag.id, String($event)))"
+      />
+      <span class="muted">{{ t('labels.usage', { count: tagUsage(tag.id) }) }}</span>
+      <FormButton
+        type="button"
+        @click="remove(tag)"
+      >
+        {{ t('options.remove') }}
+      </FormButton>
+    </li>
+  </ul>
+  <form
+    class="row"
+    @submit.prevent="add"
+  >
+    <FormInput
+      v-model="name"
+      name="newTag"
+      :placeholder="t('labels.add')"
+      :field="false"
+    />
+    <FormButton type="submit">{{ t('options.add') }}</FormButton>
+  </form>
+  <p
+    v-if="problem"
+    class="error"
+  >
+    {{ problem }}
+  </p>
+</template>

@@ -14,7 +14,11 @@
 
   const usage = (status: Status) => useRepo(Application).where('statusId', status.id).get().length
 
+  // An empty name is not kept: the column would have no title. The field shows what is typed, the column keeps its name.
   function rename(status: Status, label: string) {
+    if ('' === label.trim()) {
+      return
+    }
     useRepo(Status).where('id', status.id).update({ label })
   }
 
@@ -81,7 +85,7 @@
         :model-value="status.label"
         :name="`label-${status.id}`"
         :field="false"
-        @change="rename(status, ($event.target as HTMLInputElement).value)"
+        @update:model-value="rename(status, String($event))"
       />
       <label class="row">
         <input

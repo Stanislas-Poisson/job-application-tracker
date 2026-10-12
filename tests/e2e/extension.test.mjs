@@ -10,6 +10,10 @@ import { after, before, describe, test } from 'node:test'
 
 import { By } from 'selenium-webdriver'
 
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+
 import { launch, openPage, unpack, version, waitFor, zipFor } from './lib.mjs'
 
 const browser = process.env.BROWSER || 'chrome'
@@ -98,6 +102,55 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await waitFor(async () => (await text('header nav a')) === 'Board', { message: 'the page in English' })
     })
 
+    test('the appearance applies at once, and to a page that is open elsewhere', async () => {
+      const root = (name) => driver.executeScript(`return document.documentElement.getAttribute('${name}')`)
+      const boardTab = await open('board', '.column')
+      await open('options', 'select[name=theme]')
+
+      await choose('select[name=theme]', 'dark')
+      await css('button[data-accent-choice=purple]').then((swatch) => swatch.click())
+      await choose('select[name=vision]', 'red-green')
+      await waitFor(async () => (await root('data-theme')) === 'dark' && (await root('data-vision')) === 'red-green', {
+        message: 'the appearance of the options page',
+      })
+      assert.equal(await root('data-accent'), 'purple')
+
+      // The board, open in another tab, follows without a reload: dark, and a shape on each column.
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => (await root('data-theme')) === 'dark', { message: 'the board in the dark theme' })
+      assert.equal(await root('data-accent'), 'purple')
+      const shapes = await texts('.column h2 .shape')
+      assert.equal(shapes.length, 6)
+      assert.equal(new Set(shapes).size, 6)
+      const [red] = (await driver.executeScript('return getComputedStyle(document.body).backgroundColor')).match(/\d+/)
+      assert.ok(Number(red) < 80, 'the background is dark')
+
+      // Back to the defaults, for the tests that follow.
+      await driver.switchTo().window(await driver.getAllWindowHandles().then((handles) => handles[handles.length - 1]))
+      await choose('select[name=theme]', 'auto')
+      await css('button[data-accent-choice=slate]').then((swatch) => swatch.click())
+      await choose('select[name=vision]', 'standard')
+      await waitFor(async () => (await root('data-vision')) === 'standard', { message: 'the standard appearance' })
+    })
+
+    test('a column is renamed, and the board shows its new name', async () => {
+      const optionsTab = await open('options', 'input[name^=label-]')
+      const boardTab = await open('board', '.column')
+
+      await driver.switchTo().window(optionsTab)
+      await type('input[name^=label-]', 'Backlog')
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => /Backlog/.test(await text('.column:first-child h2')), {
+        message: 'the new name on the board',
+      })
+
+      // An empty name is not kept: the column keeps the last one.
+      await driver.switchTo().window(optionsTab)
+      await type('input[name^=label-]', 'To apply')
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => /To apply/.test(await text('.column:first-child h2')), { message: 'the old name back' })
+    })
+
     test('a column is added, and removed when it is empty', async () => {
       await open('options', '.status-list li')
 
@@ -152,8 +205,9 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       assert.match(await text('.note-body'), /friend's advice/)
 
       await type('textarea[name=newNote]', 'Call back on Monday')
-      const addNote = (await all('.drawer-content form button[type=submit]'))[1]
-      await addNote.click()
+      await driver.executeScript(
+        `document.querySelector('textarea[name=newNote]').closest('form').querySelector('button[type=submit]').click()`
+      )
       await waitFor(async () => (await all('.note-body')).length === 2, { message: 'the second note' })
 
       const applied = await driver.executeScript(
@@ -167,12 +221,432 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
     test('everything is still there after a reload', async () => {
       await driver.switchTo().window(boardTab)
+      // The change of column is written before the page is reloaded, as a user who goes away right after would do.
+      await waitFor(
+        async () => {
+          const activities = await driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:activities', (items) => done(items['jat:activities'] || []));
+          `)
+          return activities.some((activity) => 'status_changed' === activity.type)
+        },
+        { message: 'the move to be stored' }
+      )
       await driver.navigate().refresh()
       await waitFor(async () => (await all('.application-card')).length === 1, { message: 'the card after the reload' })
 
       assert.match(await text('.column:nth-child(2) h2'), /Applied\s*1/)
       assert.match(await text('.column:nth-child(2) .application-card'), /Backend developer/)
       assert.match(await text('.column:first-child h2'), /To apply\s*0/)
+    })
+
+    test('a salary in a foreign currency shows on the card, and in the home currency once a rate is given', async () => {
+      // The home currency and the rate are set in the options, in the language of the page.
+      const optionsTab = await open('options', 'select[name=homeCurrency]')
+      await choose('select[name=homeCurrency]', 'EUR')
+
+      await driver.switchTo().window(boardTab)
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('input[name=salaryMin]')).length > 0, { message: 'the salary fields' })
+      await type('input[name=salaryMin]', '4000')
+      await type('input[name=salaryMax]', '5000')
+      await choose('select[name=salaryCurrency]', 'USD')
+      await choose('select[name=salaryPeriod]', 'month')
+      await choose('select[name=salaryKind]', 'gross')
+      await driver.executeScript(
+        `document.querySelector('input[name=salaryMin]').closest('form').querySelector('button[type=submit]').click()`
+      )
+
+      // The card shows the range, the period and the kind, with the dollar as the language writes it.
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+      await waitFor(
+        async () =>
+          (await texts('.application-card .salary-line')).some((line) => /4,000.*5,000.*month.*gross/.test(line)),
+        {
+          message: 'the salary on the card',
+        }
+      )
+
+      // With a rate of 0.9 EUR for 1 USD, the middle of 4 000 - 5 000 a month is 4 500 x 12 x 0.9 = 48 600 EUR a year.
+      await driver.switchTo().window(optionsTab)
+      await waitFor(async () => (await all('input[name=rate-USD]')).length > 0, { message: 'the rate of the dollar' })
+      await type('input[name=rate-USD]', '0.9')
+      await driver.switchTo().window(boardTab)
+      await waitFor(
+        async () =>
+          /48,600/.test((await css('.application-card .salary-line').then((line) => line.getAttribute('title'))) ?? ''),
+        {
+          message: 'the salary in the home currency',
+        }
+      )
+
+      // Back to no home currency, for the tests that follow.
+      await driver.switchTo().window(optionsTab)
+      await choose('select[name=homeCurrency]', '')
+    })
+
+    test('a contact is saved with its phone in the international format', async () => {
+      await driver.switchTo().window(boardTab)
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('input[name=firstName]')).length > 0, { message: 'the contact form' })
+
+      await type('input[name=firstName]', 'Ada')
+      await type('input[name=lastName]', 'Lovelace')
+      await type('input[name=email]', 'ADA@Example.com')
+      // A number typed the way it is written at home, read in the country chosen.
+      await type('input[name=phone]', '06 12 34 56 78')
+      await choose('select[name=contactCountry]', 'FR')
+      await driver.executeScript(
+        `document.querySelector('input[name=firstName]').closest('form').querySelector('button[type=submit]').click()`
+      )
+
+      const line = await waitFor(
+        async () => (await texts('.drawer-content .contact')).find((entry) => entry.includes('Ada')),
+        {
+          message: 'the contact in the list',
+        }
+      )
+      assert.match(line, /\+33 6 12 34 56 78/)
+      assert.match(line, /ada@example\.com/)
+      assert.match(line, /France/)
+
+      // The number is stored in E.164 and the email in lower case, each as a way to reach the person.
+      const methods = await waitFor(
+        async () => {
+          const stored = await driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:contactMethods', (items) => done(items['jat:contactMethods'] || []));
+          `)
+          return stored.length >= 2 && stored
+        },
+        { message: 'the ways to reach the contact to be stored' }
+      )
+      assert.deepEqual(methods.map((method) => [method.type, method.value, method.isPrimary]).sort(), [
+        ['email', 'ada@example.com', true],
+        ['phone', '+33612345678', true],
+      ])
+
+      // A second email: it is kept, and the first stays the main one until the user changes it.
+      await type('input[name=methodValue]', 'Ada@Home.example')
+      await type('input[name=methodLabel]', 'home')
+      await driver.executeScript(
+        `document.querySelector('input[name=methodValue]').closest('form').querySelector('button[type=submit]').click()`
+      )
+      await waitFor(async () => /ada@home\.example/.test(await text('.drawer-content .contact')), {
+        message: 'the second email',
+      })
+      assert.match(await text('.drawer-content .contact'), /\(home\)/)
+      assert.equal((await all('.drawer-content .contact .primary-mark')).length, 2)
+
+      // The second email becomes the main one: its "Make main" button is the one of its line.
+      await driver.executeScript(`
+        const line = [...document.querySelectorAll('.drawer-content .method')].find((item) => item.textContent.includes('ada@home.example'));
+        [...line.querySelectorAll('button')].find((button) => button.textContent.trim() === 'Make main').click();
+      `)
+      await waitFor(
+        async () =>
+          driver.executeScript(
+            `return [...document.querySelectorAll('.drawer-content .method')].find((item) => item.textContent.includes('ada@home.example'))?.querySelector('.primary-mark') !== undefined`
+          ),
+        { message: 'the second email to be the main one' }
+      )
+
+      // The drawer is closed for the tests that follow.
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
+
+    test('an exchange with a contact is saved in UTC, listed, and shown in the timeline', async () => {
+      const optionsTab = await open('options', 'select[name=timeZone]')
+      await choose('select[name=timeZone]', 'Pacific/Kiritimati')
+
+      await driver.switchTo().window(boardTab)
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('input[name=interactionSubject]')).length > 0, {
+        message: 'the exchange form',
+      })
+
+      await driver.executeScript(`
+        const select = document.querySelector('select[name=interactionContact]');
+        select.value = [...select.options].find((option) => option.textContent.includes('Ada')).value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        const when = document.querySelector('input[name=interactionWhen]');
+        when.value = '2026-12-24T09:00';
+        when.dispatchEvent(new Event('input', { bubbles: true }));
+      `)
+      await type('input[name=interactionSubject]', 'Interview on Monday')
+      await type('textarea[name=interactionBody]', 'Are you free at 10?')
+      await driver.executeScript(
+        `document.querySelector('input[name=interactionSubject]').closest('form').querySelector('button[type=submit]').click()`
+      )
+
+      const line = await waitFor(
+        async () => (await texts('.drawer-content .exchange')).find((entry) => entry.includes('Interview')),
+        {
+          message: 'the exchange in the list',
+        }
+      )
+      assert.match(line, /Email/)
+      assert.match(line, /Received/)
+      assert.match(line, /Ada Lovelace/)
+
+      const stored = await waitFor(
+        async () => {
+          const exchanges = await driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:interactions', (items) => done(items['jat:interactions'] || []));
+          `)
+          return exchanges.length > 0 && exchanges
+        },
+        { message: 'the exchange to be stored' }
+      )
+      // 09:00 on the 24th in Kiritimati (UTC+14) is 19:00 on the 23rd in UTC.
+      assert.equal(stored[0].occurredAt, '2026-12-23T19:00:00.000Z')
+      assert.equal(stored[0].body, 'Are you free at 10?')
+
+      // The timeline has it too, with the activities.
+      const timeline = await texts('.drawer-content section:last-child li')
+      assert.ok(
+        timeline.some((entry) => entry.includes('Interview on Monday')),
+        timeline.join(' | ')
+      )
+
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+      await driver.switchTo().window(optionsTab)
+      await choose('select[name=timeZone]', 'auto')
+    })
+
+    test('an email pasted as text, and a CSV file, are imported once each, after a preview', async () => {
+      await driver.switchTo().window(boardTab)
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('details.import')).length > 0, { message: 'the import section' })
+      await driver.executeScript(`document.querySelector('details.import').open = true`)
+
+      const stored = () =>
+        driver.executeAsyncScript(`
+          const done = arguments[arguments.length - 1];
+          chrome.storage.local.get('jat:interactions', (items) => done(items['jat:interactions'] || []));
+        `)
+      const before = (await stored()).length
+
+      // An email that was pasted: it is read as one, with its date in UTC.
+      const eml = [
+        'From: Grace Hopper <grace@example.com>',
+        'To: Me <me@example.com>',
+        'Subject: Second interview',
+        'Date: Mon, 12 Oct 2026 16:30:00 +0200',
+        'Message-ID: <import-1@example.com>',
+        '',
+        'Can we meet on Friday?',
+      ].join('\n')
+      const paste = async () => {
+        await driver.executeScript(
+          `const text = document.querySelector('textarea[name=importText]');
+           text.value = arguments[0];
+           text.dispatchEvent(new Event('input', { bubbles: true }));
+           text.closest('form').querySelector('button[type=submit]').click();`,
+          eml
+        )
+        await waitFor(async () => (await all('.import-row')).length > 0, { message: 'the preview' })
+      }
+      await paste()
+      assert.match(await text('.import-row'), /Second interview/)
+      assert.match(await text('.import-row'), /Grace Hopper/)
+      await driver.executeScript(
+        `[...document.querySelectorAll('details.import button')].find((b) => /Import 1/.test(b.textContent)).click()`
+      )
+      await waitFor(async () => /1 added/.test(await text('details.import [role=status]')), { message: 'the result' })
+
+      const saved = await waitFor(async () => (await stored()).length > before && (await stored()), {
+        message: 'the exchange to be stored',
+      })
+      const imported = saved.find((exchange) => '<import-1@example.com>' === exchange.externalRef)
+      assert.equal(imported.occurredAt, '2026-10-12T14:30:00.000Z')
+      assert.equal(imported.origin, 'paste')
+
+      // The same email a second time is not added again.
+      await paste()
+      await driver.executeScript(
+        `[...document.querySelectorAll('details.import button')].find((b) => /Import 1/.test(b.textContent)).click()`
+      )
+      await waitFor(async () => /1 already there/.test(await text('details.import [role=status]')), {
+        message: 'the duplicate to be seen',
+      })
+
+      // A CSV file: one good row, and one without a date, which is shown with its problem and cannot be chosen.
+      await driver.executeScript(`document.querySelector('input[name=importMode][value=files]').click()`)
+      await waitFor(async () => (await all('input[name=importFiles]')).length > 0, { message: 'the file field' })
+      const file = path.join(os.tmpdir(), `exchanges-${Date.now()}.csv`)
+      fs.writeFileSync(
+        file,
+        'channel,direction,date,subject,text\nphone,sent,2026-10-13T08:00:00Z,Call with Grace,25 minutes\nsms,received,,No date,Hello\n'
+      )
+      await css('input[name=importFiles]').then((input) => input.sendKeys(file))
+      await waitFor(async () => (await all('.import-row')).length === 2, { message: 'the two rows of the file' })
+      assert.match(await text('details.import'), /The date is missing/)
+      assert.equal(
+        await driver.executeScript(
+          `return document.querySelectorAll('.import-row input[type=checkbox]:disabled').length`
+        ),
+        1
+      )
+      await driver.executeScript(
+        `[...document.querySelectorAll('details.import button')].find((b) => /Import 1/.test(b.textContent)).click()`
+      )
+      await waitFor(async () => /1 added/.test(await text('details.import [role=status]')), {
+        message: 'the result of the file',
+      })
+      fs.rmSync(file)
+
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
+
+    test('a tag, a favourite and a priority show on the card, and a tag is renamed from the options', async () => {
+      await driver.switchTo().window(boardTab)
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('input[name=tagName]')).length > 0, { message: 'the labels section' })
+
+      await type('input[name=tagName]', 'remote')
+      await driver.executeScript(
+        `document.querySelector('input[name=tagName]').closest('form').querySelector('button[type=submit]').click()`
+      )
+      await css('button[name=favorite]').then((button) => button.click())
+      await choose('select[name=priority]', '3')
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      await waitFor(async () => /remote/.test(await text('.application-card .tag-chip')), {
+        message: 'the tag on the card',
+      })
+      assert.equal((await all('.application-card .card-star')).length, 1)
+      assert.match(await text('.application-card'), /High/)
+
+      // The tag is renamed in the options, and the card follows.
+      const optionsTab = await open('options', 'input[name^=tag-]')
+      await type('input[name^=tag-]', 'télétravail')
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => /télétravail/.test(await text('.application-card .tag-chip')), {
+        message: 'the new name of the tag',
+      })
+
+      // The links are stored once, whatever the tag is called.
+      const links = await driver.executeAsyncScript(`
+        const done = arguments[arguments.length - 1];
+        chrome.storage.local.get(['jat:taggables', 'jat:tags'], (items) => done([items['jat:taggables'] || [], items['jat:tags'] || []]));
+      `)
+      assert.equal(links[0].length, 1)
+      assert.equal(links[1][0].name, 'télétravail')
+
+      await driver.switchTo().window(optionsTab)
+    })
+
+    test('the board is searched, filtered and sorted, and keeps the view it was left in', async () => {
+      // Two more applications, in the first column.
+      for (const [title, company] of [
+        ['Zebra engineer', 'Globex'],
+        ['Alpha engineer', 'Initech'],
+      ]) {
+        await open('popup', 'form')
+        await type('input[name=title]', title)
+        await type('input[name=company]', company)
+        await css('form button[type=submit]').then((button) => button.click())
+        await waitFor(async () => (await all('.success')).length > 0, { message: `${title} to be saved` })
+      }
+
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => (await all('.application-card')).length === 3, { message: 'the three cards' })
+      assert.match(await text('.filter-summary'), /3 of 3/)
+
+      // A search ignores the case and the accents, and the summary says how many are shown.
+      await type('input[name=search]', 'INITECH')
+      await waitFor(async () => (await all('.application-card')).length === 1, {
+        message: 'the search to narrow the board',
+      })
+      assert.match(await text('.application-card'), /Alpha engineer/)
+      assert.match(await text('.filter-summary'), /1 of 3/)
+      await driver.executeScript(
+        `[...document.querySelectorAll('.filter-summary button')].find((b) => /Clear/.test(b.textContent)).click()`
+      )
+      await waitFor(async () => (await all('.application-card')).length === 3, { message: 'the filters to be cleared' })
+
+      // The favourites: the first application was starred earlier.
+      await driver.executeScript(`document.querySelector('details.filter-panel').open = true`)
+      await driver.executeScript(`document.querySelector('input[name=filterFavorites]').click()`)
+      await waitFor(async () => (await all('.application-card')).length === 1, { message: 'the favourites' })
+      assert.match(await text('.application-card'), /Backend developer/)
+      await driver.executeScript(`document.querySelector('input[name=filterFavorites]').click()`)
+
+      // A sort by the job title, from A to Z then from Z to A, in the column of the new applications.
+      const order = async () => texts('.column:first-child .application-card h3')
+      await choose('select[name=sort]', 'title')
+      await waitFor(async () => /Alpha/.test((await order())[0] ?? ''), { message: 'A to Z' })
+      await css('button[name=direction]').then((button) => button.click())
+      await waitFor(async () => /Zebra/.test((await order())[0] ?? ''), { message: 'Z to A' })
+
+      // The view is kept: the board opens with the sort that was chosen.
+      await waitFor(
+        async () =>
+          'title' ===
+          (await driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:view', (items) => done((items['jat:view'] || {}).sort));
+          `)),
+        { message: 'the view to be stored' }
+      )
+      await driver.navigate().refresh()
+      await waitFor(async () => (await all('.application-card')).length === 3, {
+        message: 'the board after the reload',
+      })
+      await waitFor(
+        async () =>
+          (await driver.executeScript(`return document.querySelector('select[name=sort]').value`)) === 'title',
+        {
+          message: 'the sort to be kept',
+        }
+      )
+
+      await choose('select[name=sort]', 'manual')
+    })
+
+    test('a reminder typed in the time zone of the settings is stored in UTC and shown in that zone', async () => {
+      // Kiritimati is UTC+14: 09:00 on the 24th there is 19:00 on the 23rd in UTC.
+      const optionsTab = await open('options', 'select[name=timeZone]')
+      await choose('select[name=timeZone]', 'Pacific/Kiritimati')
+
+      await driver.switchTo().window(boardTab)
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('input[name=reminderDue]')).length > 0, { message: 'the reminder form' })
+
+      await type('input[name=reminderTitle]', 'Follow up')
+      await driver.executeScript(`
+        const due = document.querySelector('input[name=reminderDue]');
+        due.value = '2026-12-24T09:00';
+        due.dispatchEvent(new Event('input', { bubbles: true }));
+        due.closest('form').querySelector('button[type=submit]').click();
+      `)
+
+      const reminders = await waitFor(
+        async () => {
+          const stored = await driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:reminders', (items) => done(items['jat:reminders'] || []));
+          `)
+          return stored.length > 0 && stored
+        },
+        { message: 'the reminder to be stored' }
+      )
+      assert.equal(reminders[0].dueAt, '2026-12-23T19:00:00.000Z')
+
+      // It is shown again in the zone it was typed in: the 24th, at 9.
+      const shown = await waitFor(
+        async () => (await texts('.drawer-content li')).find((line) => line.includes('Follow up')),
+        {
+          message: 'the reminder in the list',
+        }
+      )
+      assert.match(shown, /24/)
+      assert.match(shown, /9:00/)
+
+      await driver.switchTo().window(optionsTab)
+      await choose('select[name=timeZone]', 'auto')
     })
   })
 })

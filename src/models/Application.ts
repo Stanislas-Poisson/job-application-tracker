@@ -2,10 +2,13 @@ import { Model } from 'pinia-orm'
 import Activity from './Activity'
 import ApplicationContact from './ApplicationContact'
 import Contact from './Contact'
+import Interaction from './Interaction'
 import JobOffer from './JobOffer'
 import Note from './Note'
 import Reminder from './Reminder'
 import Status from './Status'
+import Tag from './Tag'
+import Taggable from './Taggable'
 
 // The follow-up of one candidacy to one offer: where it stands and everything that happened.
 export default class Application extends Model {
@@ -18,6 +21,9 @@ export default class Application extends Model {
   declare position: number
   declare appliedAt: string | null
   declare archived: boolean
+  // A mark to find it again, and how much it matters: 0 none, 1 low, 2 medium, 3 high.
+  declare isFavorite: boolean
+  declare priority: number
   declare createdAt: string
   declare updatedAt: string
 
@@ -26,7 +32,9 @@ export default class Application extends Model {
   declare contacts: Contact[]
   declare notes: Note[]
   declare activities: Activity[]
+  declare interactions: Interaction[]
   declare reminders: Reminder[]
+  declare tags: Tag[]
 
   static fields() {
     return {
@@ -36,6 +44,8 @@ export default class Application extends Model {
       position: this.number(0),
       appliedAt: this.string(null),
       archived: this.boolean(false),
+      isFavorite: this.boolean(false),
+      priority: this.number(0),
       createdAt: this.string(() => new Date().toISOString()),
       updatedAt: this.string(() => new Date().toISOString()),
       jobOffer: this.belongsTo(JobOffer, 'jobOfferId'),
@@ -43,7 +53,9 @@ export default class Application extends Model {
       contacts: this.belongsToMany(Contact, ApplicationContact, 'applicationId', 'contactId'),
       notes: this.morphMany(Note, 'noteableId', 'noteableType'),
       activities: this.hasMany(Activity, 'applicationId'),
+      interactions: this.hasMany(Interaction, 'applicationId'),
       reminders: this.hasMany(Reminder, 'applicationId'),
+      tags: this.morphToMany(Tag, Taggable, 'tagId', 'taggableId', 'taggableType'),
     }
   }
 }

@@ -1,3 +1,4 @@
+@use "sass:list";
 @use "@zairakai/mithril-scss/components";
 
 // The styles of the components come from mithril-scss, with its light and dark tokens. What follows is the layout
@@ -179,6 +180,170 @@ button {
 .card h2 {
   margin: 0 0 0.75rem;
   font-size: 1rem;
+}
+
+// The look: an accent colour, and the modes for people who cannot rely on colour or need more contrast.
+// The page answers to three attributes of the root element, written by applyAppearance(): data-theme (light or
+// dark, absent to follow the system), data-accent and data-vision.
+@mixin for-light($extra: "") {
+  :root#{$extra} {
+    @content;
+  }
+}
+
+@mixin for-dark($extra: "") {
+  :root[data-theme="dark"]#{$extra} {
+    @content;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"])#{$extra} {
+      @content;
+    }
+  }
+}
+
+// name: (colour on light, text on it, colour on dark, text on it)
+$accents: (
+  slate: (
+    #475569,
+    #fff,
+    #94a3b8,
+    #0f172a,
+  ),
+  blue: (
+    #2563eb,
+    #fff,
+    #60a5fa,
+    #0b1220,
+  ),
+  teal: (
+    #0d9488,
+    #fff,
+    #2dd4bf,
+    #042f2e,
+  ),
+  green: (
+    #15803d,
+    #fff,
+    #4ade80,
+    #052e16,
+  ),
+  purple: (
+    #7c3aed,
+    #fff,
+    #a78bfa,
+    #1e1b4b,
+  ),
+  pink: (
+    #be185d,
+    #fff,
+    #f472b6,
+    #500724,
+  ),
+  orange: (
+    #c2410c,
+    #fff,
+    #fb923c,
+    #431407,
+  ),
+);
+
+@each $name, $c in $accents {
+  @include for-light("[data-accent='#{$name}']") {
+    --primary: #{list.nth($c, 1)};
+    --on-primary: #{list.nth($c, 2)};
+  }
+
+  @include for-dark("[data-accent='#{$name}']") {
+    --primary: #{list.nth($c, 3)};
+    --on-primary: #{list.nth($c, 4)};
+  }
+}
+
+// Colour blindness: the success, warning and error colours are taken from the palette of Okabe and Ito, which stays
+// readable with the usual kinds of colour blindness. The columns also get a shape (see statusShape()).
+@include for-light("[data-vision='red-green']") {
+  --zk-success: #0072b2;
+  --zk-warning: #e69f00;
+  --error: #d55e00;
+  --zk-info: #56b4e9;
+}
+
+@include for-dark("[data-vision='red-green']") {
+  --zk-success: #56b4e9;
+  --zk-warning: #f0e442;
+  --error: #e69f00;
+  --zk-info: #0072b2;
+}
+
+@include for-light("[data-vision='blue-yellow']") {
+  --zk-success: #009e73;
+  --zk-warning: #cc79a7;
+  --error: #d55e00;
+  --zk-info: #000;
+}
+
+@include for-dark("[data-vision='blue-yellow']") {
+  --zk-success: #009e73;
+  --zk-warning: #cc79a7;
+  --error: #e69f00;
+  --zk-info: #fff;
+}
+
+// High contrast: black on white or white on black, strong lines, underlined links.
+@include for-light("[data-vision='high-contrast']") {
+  --background: #fff;
+  --on-background: #000;
+  --surface: #fff;
+  --on-surface: #000;
+  --primary: #03c;
+  --on-primary: #fff;
+  --error: #b00020;
+  --zk-border: #000;
+  --zk-border-strong: #000;
+  --zk-muted: #000;
+}
+
+@include for-dark("[data-vision='high-contrast']") {
+  --background: #000;
+  --on-background: #fff;
+  --surface: #000;
+  --on-surface: #fff;
+  --primary: #66b3ff;
+  --on-primary: #000;
+  --error: #ff8a80;
+  --zk-border: #fff;
+  --zk-border-strong: #fff;
+  --zk-muted: #fff;
+}
+
+:root[data-vision="high-contrast"] {
+  a {
+    text-decoration: underline;
+  }
+
+  button,
+  input,
+  select,
+  textarea,
+  .card,
+  .application-card {
+    border-width: 2px;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+  }
+}
+
+.shape {
+  display: inline-block;
+  min-width: 1em;
+  font-size: 0.9em;
+  line-height: 1;
+  color: var(--status);
 }
 
 // The footer, as in the other extensions.
