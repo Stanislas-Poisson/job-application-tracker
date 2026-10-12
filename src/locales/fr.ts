@@ -161,6 +161,12 @@ const fr: TranslationObject = {
       code: 'Code (USD, EUR)',
       name: 'Nom (dollars des États-Unis)',
     },
+    auto: 'Mettre à jour les taux automatiquement',
+    autoHint:
+      "Désactivé : seuls les taux que vous saisissez sont utilisés. Activé : ceux que vous n'avez pas saisis viennent de Frankfurter, un service gratuit qui publie les taux de référence de la Banque centrale européenne. Sans compte, sans clé, sans cookie : la requête ne contient que votre devise de référence. Un taux saisi par vous l'emporte toujours.",
+    autoDate: 'Taux du {date}.',
+    refresh: 'Mettre à jour',
+    autoFailed: "Les taux n'ont pas pu être récupérés. Les derniers restent, et ceux que vous saisissez sont utilisés.",
     rates: 'Taux de change',
     ratesHint:
       "Ce que vaut une unité d'une devise en {home}. Vous les saisissez : l'extension ne les cherche jamais. Ils servent à comparer des salaires de devises différentes.",

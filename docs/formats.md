@@ -31,7 +31,8 @@ The rules, in `src/utils/money.ts`:
 - A salary needs a currency as soon as it has an amount. A lowest amount above the highest is refused.
 - **Comparing** offers turns a salary into an amount per year, then into the home currency:
   - a month is 12, a week is 52, a day is the working days of a year (220 by default), an hour is the hours of a day (7 by default) times that. The user can change both numbers;
-  - the rates are typed by the user, one unit of a currency in the home currency. The extension never looks a rate up, and a currency with no rate is not converted: it is not guessed;
+  - the rates are typed by the user, one unit of a currency in the home currency. A currency with no rate is not converted: it is not guessed;
+  - an option, off by default, fetches the rates the user did not type from Frankfurter (the reference rates of the European Central Bank, no key, no cookie): once a day at most, for the home currency only, with an optional permission asked when the switch goes on. A rate typed by the user always wins, and if the service cannot be reached the last rates stay;
   - a range is compared by its middle, or by its one end when the other is missing.
 - The converted amount is shown as "about", never in place of the amount of the offer.
 
