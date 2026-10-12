@@ -198,6 +198,17 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
     test('everything is still there after a reload', async () => {
       await driver.switchTo().window(boardTab)
+      // The change of column is written before the page is reloaded, as a user who goes away right after would do.
+      await waitFor(
+        async () => {
+          const activities = await driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:activities', (items) => done(items['jat:activities'] || []));
+          `)
+          return activities.some((activity) => 'status_changed' === activity.type)
+        },
+        { message: 'the move to be stored' }
+      )
       await driver.navigate().refresh()
       await waitFor(async () => (await all('.application-card')).length === 1, { message: 'the card after the reload' })
 

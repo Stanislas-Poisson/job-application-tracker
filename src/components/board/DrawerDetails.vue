@@ -9,7 +9,7 @@
   const props = defineProps<{ application: Application }>()
   const emit = defineEmits<{ deleted: [] }>()
 
-  const { t } = useApp()
+  const { t, persistence } = useApp()
 
   const offer = computed(() => props.application.jobOffer)
   const form = reactive({
@@ -65,6 +65,12 @@
       })
   }
 
+  // A move is written at once: closing the tab right after must not lose it.
+  async function move(statusId: string) {
+    moveApplication(props.application.id, statusId)
+    await persistence.flush()
+  }
+
   function remove() {
     if (window.confirm(t('drawer.confirmDelete'))) {
       deleteApplication(props.application.id)
@@ -85,7 +91,7 @@
         name="status"
         :label="t('fields.status')"
         :options="statusOptions"
-        @update:model-value="moveApplication(application.id, String($event))"
+        @update:model-value="move(String($event))"
       />
       <FormInput
         v-model="form.title"
