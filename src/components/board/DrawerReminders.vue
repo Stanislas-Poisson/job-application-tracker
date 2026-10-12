@@ -1,16 +1,20 @@
 <script setup lang="ts">
-  import { dayjs, isPast } from '@zairakai/js-utils/datetime'
+  import { isPast } from '@zairakai/js-utils/datetime'
   import { FormButton, FormInput } from '@zairakai/vue-components/Form'
   import { computed, reactive } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { useFormat } from '../../composables/useFormat'
   import type { Application } from '../../models'
   import { addReminder, setReminderDone } from '../../services/applications'
+  import { inDaysAt, zonedToUtc } from '../../utils/time'
 
   const props = defineProps<{ application: Application }>()
 
   const { t } = useApp()
+  const format = useFormat()
 
-  const form = reactive({ title: '', dueOn: dayjs().add(7, 'day').format('YYYY-MM-DD') })
+  // The time is typed in the time zone of the settings, and stored in UTC.
+  const form = reactive({ title: '', due: inDaysAt(7, 9, format.timeZone.value) })
 
   // What is still to do first, by date, then what is done.
   const reminders = computed(() =>
@@ -20,8 +24,8 @@
   )
 
   function add() {
-    if ('' !== form.title.trim() && '' !== form.dueOn) {
-      addReminder(props.application.id, form.title, dayjs(form.dueOn).toISOString())
+    if ('' !== form.title.trim() && '' !== form.due) {
+      addReminder(props.application.id, form.title, zonedToUtc(form.due, format.timeZone.value))
       form.title = ''
     }
   }
@@ -40,10 +44,11 @@
         :placeholder="t('drawer.reminderPlaceholder')"
       />
       <FormInput
-        v-model="form.dueOn"
+        v-model="form.due"
         name="reminderDue"
-        type="date"
+        type="datetime-local"
       />
+      <p class="muted">{{ t('drawer.timeZoneHint', { zone: format.timeZone.value }) }}</p>
       <FormButton type="submit">{{ t('drawer.addReminder') }}</FormButton>
     </form>
     <ul>
@@ -59,7 +64,7 @@
           @change="setReminderDone(reminder.id, ($event.target as HTMLInputElement).checked)"
         />
         <span :class="{ error: !reminder.doneAt && isPast(reminder.dueAt) }">
-          {{ reminder.title }} - {{ dayjs(reminder.dueAt).format('YYYY-MM-DD') }}
+          {{ reminder.title }} - {{ format.instant(reminder.dueAt) }}
         </span>
       </li>
     </ul>

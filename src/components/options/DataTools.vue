@@ -1,11 +1,13 @@
 <script setup lang="ts">
-  import { dayjs } from '@zairakai/js-utils/datetime'
   import { FormButton } from '@zairakai/vue-components/Form'
   import { ref } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { useFormat } from '../../composables/useFormat'
   import { exportData, importData, wipeData } from '../../services/data'
+  import { todayIn } from '../../utils/time'
 
   const { t } = useApp()
+  const format = useFormat()
 
   const message = ref('')
   const failed = ref(false)
@@ -14,7 +16,7 @@
     const blob = new Blob([JSON.stringify(exportData(), null, 2)], { type: 'application/json' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
-    link.download = `job-application-tracker-${dayjs().format('YYYY-MM-DD')}.json`
+    link.download = `job-application-tracker-${todayIn(format.timeZone.value)}.json`
     link.click()
     URL.revokeObjectURL(link.href)
   }

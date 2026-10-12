@@ -6,6 +6,8 @@
   import { Application } from '../../models'
   import DrawerContacts from './DrawerContacts.vue'
   import DrawerDetails from './DrawerDetails.vue'
+  import DrawerInteractions from './DrawerInteractions.vue'
+  import DrawerLabels from './DrawerLabels.vue'
   import DrawerNotes from './DrawerNotes.vue'
   import DrawerReminders from './DrawerReminders.vue'
   import DrawerTimeline from './DrawerTimeline.vue'
@@ -20,9 +22,11 @@
       ? useRepo(Application)
           .with('jobOffer', (query) => query.with('company').with('source'))
           .with('status')
-          .with('contacts')
+          .with('contacts', (query) => query.with('methods'))
           .with('notes')
           .with('activities')
+          .with('interactions')
+          .with('tags')
           .with('reminders')
           .find(props.applicationId)
       : null
@@ -44,6 +48,8 @@
         :application="application"
         @deleted="emit('close')"
       />
+      <DrawerLabels :application="application" />
+      <DrawerInteractions :application="application" />
       <DrawerNotes :application="application" />
       <DrawerReminders :application="application" />
       <DrawerContacts :application="application" />

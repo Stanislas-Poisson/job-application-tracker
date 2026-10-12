@@ -1,25 +1,19 @@
 <script setup lang="ts">
   import { FormSelect } from '@zairakai/vue-components/Form'
   import { useApp } from '../../composables/useApp'
-  import { browserAdapter } from '../../persistence/adapter'
-  import { type Locale, saveSettings } from '../../settings'
+  import type { Locale } from '../../settings'
 
-  const { t, locale } = useApp()
+  const { t, settings, updateSettings } = useApp()
 
-  const options = { auto: 'Auto', en: 'English', fr: 'Francais' }
-
-  async function change(value: string) {
-    locale.value = value as Locale
-    await saveSettings(browserAdapter, { locale: locale.value })
-  }
+  const options = { auto: 'Auto', en: 'English', fr: 'Français' }
 </script>
 
 <template>
   <h2>{{ t('options.language') }}</h2>
   <FormSelect
-    :model-value="locale.value"
+    :model-value="settings.locale"
     name="language"
     :options="options"
-    @update:model-value="change(String($event))"
+    @update:model-value="updateSettings({ locale: String($event) as Locale })"
   />
 </template>

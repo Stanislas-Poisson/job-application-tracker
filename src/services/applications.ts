@@ -1,3 +1,4 @@
+import type { CountryCode } from 'libphonenumber-js/min'
 import { useRepo } from 'pinia-orm'
 import {
   Activity,
@@ -5,15 +6,20 @@ import {
   ApplicationContact,
   Company,
   Contact,
+  ContactMethod,
+  Interaction,
   JobOffer,
   Note,
   Reminder,
   Source,
   Status,
+  Taggable,
 } from '../models'
 import type { ActivityType } from '../models/Activity'
 import type { ContactRole } from '../models/ApplicationContact'
 import type { WorkMode } from '../models/JobOffer'
+import { isInstant, isPlainDate } from '../utils/time'
+import { type ContactInput, normalizeContactInput } from './contacts'
 
 export interface CaptureInput {
   title: string
@@ -23,6 +29,8 @@ export interface CaptureInput {
   contractType?: string | null
   workMode?: WorkMode | null
   description?: string | null
+  // The day the offer was published, as a plain date (YYYY-MM-DD).
+  postedOn?: string | null
   // The key of the status the application starts in. The first column when it is missing or unknown.
   statusKey?: string
 }
@@ -71,6 +79,9 @@ export function findOrCreateCompany(name: string): Company {
 
 // Saves an offer the user is looking at and starts following it: the company, the offer, the application.
 export function captureOffer(input: CaptureInput): Application {
+  if (input.postedOn && !isPlainDate(input.postedOn)) {
+    throw new Error(`The publication date must be a plain date (YYYY-MM-DD): ${input.postedOn}`)
+  }
   const statuses = useRepo(Status).all().sort(byOrder)
   const status = statuses.find((candidate) => candidate.key === input.statusKey) ?? statuses[0] ?? null
 
@@ -84,6 +95,7 @@ export function captureOffer(input: CaptureInput): Application {
     contractType: input.contractType ?? null,
     workMode: input.workMode ?? null,
     description: input.description ?? null,
+    postedOn: input.postedOn ?? null,
   })
 
   const position = nextPosition(status?.id ?? null)
@@ -132,7 +144,11 @@ export function addNote(type: Noteable, id: string, body: string) {
   return useRepo(Note).save({ noteableType: type, noteableId: id, body: body.trim() })
 }
 
+// The moment is in UTC: the page turns what the user typed in their time zone into one before it calls this.
 export function addReminder(applicationId: string, title: string, dueAt: string) {
+  if (!isInstant(dueAt)) {
+    throw new Error(`A reminder is due at a moment in UTC (ending with Z): ${dueAt}`)
+  }
   return useRepo(Reminder).save({ applicationId, title: title.trim(), dueAt })
 }
 
@@ -142,22 +158,24 @@ export function setReminderDone(reminderId: string, done: boolean) {
     .update({ doneAt: done ? now() : null })
 }
 
-export interface ContactInput {
-  firstName: string
-  lastName: string
-  role?: string | null
-  email?: string | null
-  phone?: string | null
-  linkedin?: string | null
-}
-
-// Creates a contact in the company of the offer, and links it to the application.
-export function addContact(applicationId: string, input: ContactInput, link: ContactRole = 'other') {
+// Creates a contact in the company of the offer, with its ways to reach it, and links it to the application. The fields
+// are put in their canonical forms first (see normalizeContactInput): an invalid one throws a ContactError and nothing
+// is saved.
+export function addContact(
+  applicationId: string,
+  input: ContactInput,
+  link: ContactRole = 'other',
+  options: { defaultCountry?: CountryCode } = {}
+) {
+  const { fields, methods } = normalizeContactInput(input, options)
   const application = useRepo(Application).with('jobOffer').find(applicationId)
   const contact = useRepo(Contact).save({
-    ...input,
+    ...fields,
     companyId: application?.jobOffer?.companyId ?? null,
   })
+  for (const method of methods) {
+    useRepo(ContactMethod).save({ ...method, contactId: contact.id })
+  }
   useRepo(ApplicationContact).save({ applicationId, contactId: contact.id, role: link })
   return contact
 }
@@ -176,5 +194,12 @@ export function deleteApplication(applicationId: string) {
   useRepo(Reminder).where('applicationId', applicationId).delete()
   useRepo(ApplicationContact).where('applicationId', applicationId).delete()
   useRepo(Note).where('noteableType', 'applications').where('noteableId', applicationId).delete()
+  // The exchanges of the application go with it, and so do the tags that were put on them.
+  const exchanges = useRepo(Interaction).where('applicationId', applicationId).get()
+  exchanges.forEach((exchange) =>
+    useRepo(Taggable).where('taggableType', 'interactions').where('taggableId', exchange.id).delete()
+  )
+  useRepo(Interaction).where('applicationId', applicationId).delete()
+  useRepo(Taggable).where('taggableType', 'applications').where('taggableId', applicationId).delete()
   useRepo(Application).destroy(applicationId)
 }
