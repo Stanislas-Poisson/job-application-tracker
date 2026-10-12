@@ -98,6 +98,37 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await waitFor(async () => (await text('header nav a')) === 'Board', { message: 'the page in English' })
     })
 
+    test('the appearance applies at once, and to a page that is open elsewhere', async () => {
+      const root = (name) => driver.executeScript(`return document.documentElement.getAttribute('${name}')`)
+      const boardTab = await open('board', '.column')
+      await open('options', 'select[name=theme]')
+
+      await choose('select[name=theme]', 'dark')
+      await css('button[data-accent-choice=purple]').then((swatch) => swatch.click())
+      await choose('select[name=vision]', 'red-green')
+      await waitFor(async () => (await root('data-theme')) === 'dark' && (await root('data-vision')) === 'red-green', {
+        message: 'the appearance of the options page',
+      })
+      assert.equal(await root('data-accent'), 'purple')
+
+      // The board, open in another tab, follows without a reload: dark, and a shape on each column.
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => (await root('data-theme')) === 'dark', { message: 'the board in the dark theme' })
+      assert.equal(await root('data-accent'), 'purple')
+      const shapes = await texts('.column h2 .shape')
+      assert.equal(shapes.length, 6)
+      assert.equal(new Set(shapes).size, 6)
+      const [red] = (await driver.executeScript('return getComputedStyle(document.body).backgroundColor')).match(/\d+/)
+      assert.ok(Number(red) < 80, 'the background is dark')
+
+      // Back to the defaults, for the tests that follow.
+      await driver.switchTo().window(await driver.getAllWindowHandles().then((handles) => handles[handles.length - 1]))
+      await choose('select[name=theme]', 'auto')
+      await css('button[data-accent-choice=slate]').then((swatch) => swatch.click())
+      await choose('select[name=vision]', 'standard')
+      await waitFor(async () => (await root('data-vision')) === 'standard', { message: 'the standard appearance' })
+    })
+
     test('a column is added, and removed when it is empty', async () => {
       await open('options', '.status-list li')
 
