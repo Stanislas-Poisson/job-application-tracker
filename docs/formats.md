@@ -39,6 +39,7 @@ The rules, in `src/utils/money.ts`:
 
 | What | Stored as | Shown as |
 | :--- | :--- | :--- |
+| A way to reach a person (an email, a phone number, a LinkedIn page, a website, other) | One record per way: its type, its value in the canonical form of the type, a label ("work"), and whether it is the main one of its type. | Grouped by type, the main one first, as a link (`mailto:`, `tel:`, the address). |
 | A phone number | E.164: `+33612345678` | International (`+33 6 12 34 56 78`) by default, and as a `tel:` link. The national format is kept for later. |
 | An email | Lower case: `ada@example.com` | As it is, as a `mailto:` link. |
 | A LinkedIn page | The canonical address: `https://www.linkedin.com/in/ada-lovelace` | A link. `fr.linkedin.com/in/Ada-Lovelace/?trk=x` and `ada-lovelace` give the same address. |
@@ -51,3 +52,6 @@ The rules, in `src/utils/contact.ts` and `src/services/contacts.ts`:
 - A phone number typed without its country code is read in the country of the person, and when there is none in the **default country** of the options (the country of the language of the browser by default). A number that is not valid for that country is refused, with the message to add the code. Nothing is kept as typed.
 - Every field is checked before anything is saved: one invalid field saves nothing and says which one.
 - The phone numbers are checked with the metadata of libphonenumber (the "min" set), so a number that looks right but does not exist for its country is refused.
+
+- A person has as many ways to be reached as needed. **One of each type is the main one**: the first that is added, or the one the user marks. The same value of the same type is kept once. Removing the main one gives its place to the oldest that is left.
+- The email, the phone and the LinkedIn fields of the form are shortcuts: each becomes a way to reach the person, the main one of its type.

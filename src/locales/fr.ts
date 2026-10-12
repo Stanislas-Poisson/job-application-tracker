@@ -54,6 +54,8 @@ const fr: TranslationObject = {
     notSet: 'Non précisé',
     localTime: 'Heure locale là-bas : {time}',
     contactErrors: {
+      website: "Cette adresse de site web n'est pas valide.",
+      method: 'Ce moyen de joindre la personne est vide.',
       name: 'Indiquez un prénom ou un nom.',
       email: "Cette adresse e-mail n'est pas valide.",
       phone: "Ce numéro de téléphone n'est pas valide. Ajoutez l'indicatif du pays (+33) ou choisissez le pays.",
@@ -170,6 +172,16 @@ const fr: TranslationObject = {
     assumptionsHint: 'Sert à comparer un tarif journalier ou horaire avec un salaire annuel.',
     daysPerYear: 'Jours travaillés par an',
     hoursPerDay: 'Heures travaillées par jour',
+  },
+  methods: {
+    type: 'Type',
+    value: 'Adresse ou numéro',
+    label: 'Étiquette (travail, perso)',
+    add: 'Ajouter',
+    main: 'principal',
+    makeMain: 'Rendre principal',
+    remove: 'Retirer',
+    types: { email: 'E-mail', phone: 'Téléphone', linkedin: 'LinkedIn', website: 'Site web', other: 'Autre' },
   },
   options: {
     title: 'Options',

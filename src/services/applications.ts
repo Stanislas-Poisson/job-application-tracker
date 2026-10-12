@@ -6,6 +6,7 @@ import {
   ApplicationContact,
   Company,
   Contact,
+  ContactMethod,
   JobOffer,
   Note,
   Reminder,
@@ -155,20 +156,24 @@ export function setReminderDone(reminderId: string, done: boolean) {
     .update({ doneAt: done ? now() : null })
 }
 
-// Creates a contact in the company of the offer, and links it to the application. The fields are put in their canonical
-// forms first (see normalizeContactInput): an invalid one throws a ContactError and nothing is saved.
+// Creates a contact in the company of the offer, with its ways to reach it, and links it to the application. The fields
+// are put in their canonical forms first (see normalizeContactInput): an invalid one throws a ContactError and nothing
+// is saved.
 export function addContact(
   applicationId: string,
   input: ContactInput,
   link: ContactRole = 'other',
   options: { defaultCountry?: CountryCode } = {}
 ) {
-  const fields = normalizeContactInput(input, options)
+  const { fields, methods } = normalizeContactInput(input, options)
   const application = useRepo(Application).with('jobOffer').find(applicationId)
   const contact = useRepo(Contact).save({
     ...fields,
     companyId: application?.jobOffer?.companyId ?? null,
   })
+  for (const method of methods) {
+    useRepo(ContactMethod).save({ ...method, contactId: contact.id })
+  }
   useRepo(ApplicationContact).save({ applicationId, contactId: contact.id, role: link })
   return contact
 }

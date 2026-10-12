@@ -6,8 +6,9 @@
   import type { Application } from '../../models'
   import { addContact, unlinkContact } from '../../services/applications'
   import { ContactError } from '../../services/contacts'
-  import { countryName, formatPhone, languageName, listCountries, resolveCountry } from '../../utils/contact'
+  import { countryName, languageName, listCountries, resolveCountry } from '../../utils/contact'
   import { formatTimeIn, listTimeZones } from '../../utils/time'
+  import ContactMethods from './ContactMethods.vue'
 
   const props = defineProps<{ application: Application }>()
 
@@ -149,29 +150,6 @@
           </FormButton>
         </div>
         <div class="contact-lines muted">
-          <span v-if="contact.phone">
-            <a
-              :href="`tel:${contact.phone}`"
-              dir="ltr"
-              >{{ formatPhone(contact.phone) }}</a
-            >
-          </span>
-          <span v-if="contact.email">
-            <a
-              :href="`mailto:${contact.email}`"
-              dir="ltr"
-              >{{ contact.email }}</a
-            >
-          </span>
-          <span v-if="contact.linkedin">
-            <a
-              :href="contact.linkedin"
-              target="_blank"
-              rel="noopener"
-              dir="ltr"
-              >LinkedIn</a
-            >
-          </span>
           <span v-if="contact.country">{{ countryName(contact.country, format.locale.value) }}</span>
           <span v-if="contact.timeZone">
             {{ t('drawer.localTime', { time: formatTimeIn(contact.timeZone, format.locale.value) }) }}
@@ -180,6 +158,7 @@
             {{ contact.languages.map((tag) => languageName(tag, format.locale.value)).join(', ') }}
           </span>
         </div>
+        <ContactMethods :contact="contact" />
       </li>
     </ul>
   </section>

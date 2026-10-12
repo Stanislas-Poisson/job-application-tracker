@@ -20,7 +20,7 @@
       ? useRepo(Application)
           .with('jobOffer', (query) => query.with('company').with('source'))
           .with('status')
-          .with('contacts')
+          .with('contacts', (query) => query.with('methods'))
           .with('notes')
           .with('activities')
           .with('reminders')
