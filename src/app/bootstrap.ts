@@ -6,6 +6,7 @@ import '../assets/main.scss'
 import { createTranslator } from '../i18n'
 import { createPersistence } from '../persistence'
 import { browserAdapter } from '../persistence/adapter'
+import { refreshRates } from '../services/rates'
 import { SETTINGS_KEY, type Settings, loadSettings, saveSettings } from '../settings'
 import { CONTEXT_KEY } from './context'
 
@@ -29,16 +30,20 @@ export async function mountApp(root: Component, selector = '#app') {
 
   const app = createApp(root)
   app.use(pinia)
+  const updateSettings = async (changes: Partial<Settings>) => {
+    Object.assign(settings, changes)
+    await saveSettings(browserAdapter, { ...settings })
+  }
   app.provide(CONTEXT_KEY, {
     translator: createTranslator(settings.locale),
     persistence,
     settings,
-    async updateSettings(changes) {
-      Object.assign(settings, changes)
-      await saveSettings(browserAdapter, { ...settings })
-    },
+    updateSettings,
   })
   app.mount(selector)
+
+  // Fresh rates when the switch is on and the last ones are a day old: the page never waits for them.
+  void refreshRates(settings, updateSettings)
 
   // A page that closes can leave a change that is not saved yet.
   window.addEventListener('pagehide', () => void persistence.flush())

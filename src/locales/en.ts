@@ -160,6 +160,12 @@ const en: TranslationObject = {
       code: 'Code (USD, EUR)',
       name: 'Name (US dollars)',
     },
+    auto: 'Update the rates by itself',
+    autoHint:
+      'Off: only the rates you type are used. On: the rates you did not type come from Frankfurter, a free service that publishes the reference rates of the European Central Bank. No account, no key, no cookie: the request only names your home currency. A rate you type always wins.',
+    autoDate: 'Rates of {date}.',
+    refresh: 'Update now',
+    autoFailed: 'The rates could not be fetched. The last ones stay, and the ones you type are used.',
     rates: 'Exchange rates',
     ratesHint:
       'How much one unit of a currency is worth in {home}. You type them: the extension never looks them up. They are used to compare salaries of different currencies.',
