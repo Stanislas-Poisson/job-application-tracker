@@ -1,0 +1,12 @@
+{
+  "extends": ["@stanislas-poisson/js-dev-tools/tsconfig", "./.wxt/tsconfig.json"],
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "declaration": false,
+    "declarationMap": false,
+    "exactOptionalPropertyTypes": false,
+    "experimentalDecorators": false,
+    "noImplicitOverride": false
+  },
+  "include": ["src", "tests", "wxt.config.ts", ".wxt/wxt.d.ts"]
+}

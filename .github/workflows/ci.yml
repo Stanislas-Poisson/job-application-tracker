@@ -1,0 +1,180 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, format and types
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run eslint
+      - run: npm run prettier
+      - run: npm run stylelint
+      - run: npm run markdownlint
+
+  security:
+    name: Dependencies audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - run: npm ci
+      # The high advisory on braces (through stylelint and markdownlint) has no fixed version yet: only a critical one fails.
+      - run: npm audit --audit-level=critical
+
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - run: npm ci
+      - run: npm test
+
+  validate-version:
+    name: Validate Manifest & Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Check package.json version matches CHANGELOG.md
+        run: |
+          PACKAGE_VERSION=$(jq -r '.version' package.json)
+          CHANGELOG_VERSION=$(grep -m 1 -E '^## [0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md | sed -E 's/^## ([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+
+          if [ "$PACKAGE_VERSION" != "$CHANGELOG_VERSION" ]; then
+            echo "Error: package.json version ($PACKAGE_VERSION) does not match CHANGELOG.md version ($CHANGELOG_VERSION)"
+            exit 1
+          fi
+          echo "Version match confirmed: $PACKAGE_VERSION"
+
+  build-check:
+    name: Build Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build the zips
+        run: |
+          npm run zip
+          npm run zip:firefox
+
+      - name: Verify the zips
+        run: |
+          VERSION=$(jq -r '.version' package.json)
+          CHROME=".output/job-application-tracker-${VERSION}-chrome.zip"
+          FIREFOX=".output/job-application-tracker-${VERSION}-firefox.zip"
+
+          for ZIP_FILE in "$CHROME" "$FIREFOX"; do
+            test -f "$ZIP_FILE" || { echo "Error: $ZIP_FILE was not built"; exit 1; }
+            echo "Checking contents of $ZIP_FILE..."
+            for file in manifest.json popup.html options.html board.html; do
+              unzip -l "$ZIP_FILE" | grep -q " $file$" || { echo "Error: missing '$file' in $ZIP_FILE"; exit 1; }
+            done
+            test "$(unzip -p "$ZIP_FILE" manifest.json | jq -r '.version')" = "$VERSION"
+          done
+
+          # Only the Firefox zip carries the add-on id.
+          test "$(unzip -p "$CHROME" manifest.json | jq 'has("browser_specific_settings")')" = "false"
+          test "$(unzip -p "$FIREFOX" manifest.json | jq 'has("browser_specific_settings")')" = "true"
+          echo "All required files present in the zip archives."
+
+      - name: Lint the Firefox package
+        run: |
+          mkdir firefox-package
+          unzip -q .output/job-application-tracker-*-firefox.zip -d firefox-package
+          # The runtime of Vue writes innerHTML for static content, which web-ext flags (UNSAFE_VAR_ASSIGNMENT).
+          # It is not code of this project: that one warning is allowed, any other warning or error fails.
+          npx --yes web-ext@latest lint --source-dir firefox-package --output json > lint.json || true
+          jq -r '(.errors[], .warnings[]) | "\(.code) \(.file)"' lint.json
+          test "$(jq '[.errors[], (.warnings[] | select(.code != "UNSAFE_VAR_ASSIGNMENT"))] | length' lint.json)" = "0"
+
+  # The packages are loaded in the real browsers of the runner and play the flow: an offer is saved in the
+  # popup, seen on the board, noted and moved. See tests/e2e.
+  e2e:
+    name: Browser test (${{ matrix.browser }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chrome, edge, firefox]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - run: npm ci
+
+      - name: Install the test dependencies
+        working-directory: tests/e2e
+        run: npm ci
+
+      - name: Build the package
+        run: npm run ${{ matrix.browser == 'firefox' && 'zip:firefox' || 'zip' }}
+
+      - name: Run the tests in ${{ matrix.browser }}
+        working-directory: tests/e2e
+        env:
+          BROWSER: ${{ matrix.browser }}
+        run: npm test
+
+  # The check that the branch protection requires. It runs even when a job
+  # fails, and fails with it: a skipped job would count as a success.
+  ci:
+    name: ci
+    needs: [quality, security, test, validate-version, build-check, e2e]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Every job passed
+        run: |
+          echo '${{ toJSON(needs) }}'
+          test "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') || contains(needs.*.result, 'skipped') }}" = "false"
