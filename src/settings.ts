@@ -1,4 +1,5 @@
 import type { StorageAdapter } from './persistence/adapter'
+import { CURRENCY_DISPLAYS, type CurrencyDisplay, DEFAULT_ASSUMPTIONS, isCurrency } from './utils/money'
 import { isValidTimeZone } from './utils/time'
 
 export const LOCALES = ['auto', 'en', 'fr'] as const
@@ -19,6 +20,13 @@ export interface Settings {
   vision: Vision
   // "auto" is the time zone of the browser, or a name of the IANA database (Europe/Paris).
   timeZone: string
+  // The currency the salaries are compared in (an ISO 4217 code), or '' for none.
+  homeCurrency: string
+  currencyDisplay: CurrencyDisplay
+  // What one unit of a currency is worth in the home currency. The user types them: nothing is fetched.
+  rates: Record<string, number>
+  workingDaysPerYear: number
+  hoursPerDay: number
 }
 
 export const SETTINGS_KEY = 'jat:settings'
@@ -28,25 +36,48 @@ export const DEFAULT_SETTINGS: Settings = {
   accent: 'slate',
   vision: 'standard',
   timeZone: 'auto',
+  homeCurrency: '',
+  currencyDisplay: 'symbol',
+  rates: {},
+  ...DEFAULT_ASSUMPTIONS,
 }
 
 const oneOf = (values: readonly unknown[]) => (value: unknown) => values.includes(value)
+const inRange = (min: number, max: number) => (value: unknown) =>
+  'number' === typeof value && Number.isFinite(value) && min <= value && value <= max
 
 // What a setting may hold. A stored value that does not pass is replaced by the default.
-const VALID: { [K in keyof Settings]: (value: unknown) => boolean } = {
+const VALID: { [K in Exclude<keyof Settings, 'rates'>]: (value: unknown) => boolean } = {
   locale: oneOf(LOCALES),
   theme: oneOf(THEMES),
   accent: oneOf(ACCENTS),
   vision: oneOf(VISIONS),
   timeZone: (value) => 'auto' === value || isValidTimeZone(value),
+  homeCurrency: (value) => '' === value || isCurrency(value),
+  currencyDisplay: oneOf(CURRENCY_DISPLAYS),
+  workingDaysPerYear: inRange(1, 366),
+  hoursPerDay: inRange(1, 24),
+}
+
+// The rates are a list: an entry that is not a currency, or not a positive number, is dropped and the others stay.
+function normalizeRates(value: unknown): Record<string, number> {
+  const rates: Record<string, number> = {}
+  if ('object' === typeof value && null !== value) {
+    for (const [code, rate] of Object.entries(value)) {
+      if (isCurrency(code) && 'number' === typeof rate && Number.isFinite(rate) && 0 < rate) {
+        rates[code] = rate
+      }
+    }
+  }
+  return rates
 }
 
 // What was stored, with the defaults for what is missing, and the defaults again for a value that is not allowed
 // (a setting removed in a later version, a file edited by hand).
 export function normalizeSettings(stored: unknown): Settings {
   const source = 'object' === typeof stored && null !== stored ? (stored as Record<string, unknown>) : {}
-  const settings = { ...DEFAULT_SETTINGS }
-  for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]) {
+  const settings: Settings = { ...DEFAULT_SETTINGS, rates: normalizeRates(source.rates) }
+  for (const key of Object.keys(VALID) as (keyof typeof VALID)[]) {
     if (VALID[key](source[key])) {
       ;(settings[key] as unknown) = source[key]
     }
@@ -59,6 +90,8 @@ export async function loadSettings(adapter: StorageAdapter): Promise<Settings> {
   return normalizeSettings(stored[SETTINGS_KEY])
 }
 
+// The settings are plain data when they are written: a page holds them as a reactive object, with proxies inside (the
+// rates), and a browser cannot store a proxy.
 export async function saveSettings(adapter: StorageAdapter, settings: Settings) {
-  await adapter.set({ [SETTINGS_KEY]: settings })
+  await adapter.set({ [SETTINGS_KEY]: JSON.parse(JSON.stringify(settings)) as Settings })
 }

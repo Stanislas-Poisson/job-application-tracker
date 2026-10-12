@@ -1,4 +1,5 @@
 import { Model } from 'pinia-orm'
+import type { SalaryKind, SalaryPeriod } from '../utils/money'
 import Application from './Application'
 import Company from './Company'
 import Source from './Source'
@@ -17,9 +18,12 @@ export default class JobOffer extends Model {
   declare location: string | null
   declare contractType: string | null
   declare workMode: WorkMode | null
+  // The salary: a range in minor units (cents), its currency (ISO 4217), its period and whether it is gross or net.
   declare salaryMin: number | null
   declare salaryMax: number | null
-  declare currency: string | null
+  declare salaryCurrency: string | null
+  declare salaryPeriod: SalaryPeriod | null
+  declare salaryKind: SalaryKind | null
   declare description: string | null
   // The day the offer was published, as a plain date (YYYY-MM-DD): it has no hour and never moves.
   declare postedOn: string | null
@@ -41,7 +45,9 @@ export default class JobOffer extends Model {
       workMode: this.string(null),
       salaryMin: this.number(null),
       salaryMax: this.number(null),
-      currency: this.string(null),
+      salaryCurrency: this.string(null),
+      salaryPeriod: this.string(null),
+      salaryKind: this.string(null),
       description: this.string(null),
       postedOn: this.string(null),
       capturedAt: this.string(() => new Date().toISOString()),

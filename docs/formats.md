@@ -16,3 +16,21 @@ The rules, in `src/utils/time.ts`:
 - A time typed in a form (`datetime-local`) is read in the time zone of the settings and turned into UTC.
 - When the clocks go back, an hour happens twice: the first one is taken. When they go forward, an hour does not exist: the time is moved forward by the length of the jump.
 - A page shows a date again when the language or the time zone changes, with no reload.
+
+## Money
+
+| What | Stored as | Shown as |
+| :--- | :--- | :--- |
+| An amount | An integer in the minor units of its currency (cents for the euro, nothing for the yen, three digits for the Kuwaiti dinar). | With the symbol, its place, the separators and the digits of the language: `€45,000`, `45 000 €`, `45.000 €`. |
+| A currency | Its ISO 4217 code: `EUR`, `USD`, `JPY`. | The symbol by default, or the short symbol, the code or the name, as the user chose. The dollars of several countries are told apart where the language needs it (`CA$`, `A$`). |
+| A salary | A range (`salaryMin`, `salaryMax`, either may be missing), a currency, a period (year, month, week, day, hour) and gross or net. | `€45,000 – €55,000 / year (gross)`, `from $90,000 / year`, `up to £400 / day`. |
+
+The rules, in `src/utils/money.ts`:
+
+- Nothing is stored as a decimal. A typed amount is read by its text, so that `1.005` does not become `1.00` through floating point.
+- A salary needs a currency as soon as it has an amount. A lowest amount above the highest is refused.
+- **Comparing** offers turns a salary into an amount per year, then into the home currency:
+  - a month is 12, a week is 52, a day is the working days of a year (220 by default), an hour is the hours of a day (7 by default) times that. The user can change both numbers;
+  - the rates are typed by the user, one unit of a currency in the home currency. The extension never looks a rate up, and a currency with no rate is not converted: it is not guessed;
+  - a range is compared by its middle, or by its one end when the other is missing.
+- The converted amount is shown as "about", never in place of the amount of the offer.
