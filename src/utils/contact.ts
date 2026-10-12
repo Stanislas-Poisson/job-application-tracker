@@ -142,3 +142,22 @@ export function languageName(tag: string, locale: string): string {
     return tag
   }
 }
+
+// A website, as typed: with or without the protocol. The host is put in lower case and the fragment is dropped. Only
+// http and https are taken, and the host must be a real one (it has a dot).
+export function normalizeWebsite(input: string): string | null {
+  const text = input.trim()
+  if ('' === text || /\s/.test(text)) {
+    return null
+  }
+  try {
+    const url = new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(text) ? text : `https://${text}`)
+    if (!['http:', 'https:'].includes(url.protocol) || !url.hostname.includes('.')) {
+      return null
+    }
+    url.hash = ''
+    return 1 === url.pathname.length && '' === url.search ? url.origin : url.toString()
+  } catch {
+    return null
+  }
+}

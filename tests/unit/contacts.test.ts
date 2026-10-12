@@ -1,6 +1,6 @@
 import { useRepo } from 'pinia-orm'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { Contact } from '../../src/models'
+import { Contact, ContactMethod } from '../../src/models'
 import { addContact, captureOffer } from '../../src/services/applications'
 import { ContactError, normalizeContactInput } from '../../src/services/contacts'
 import { freshStore } from './helpers'
@@ -33,37 +33,37 @@ describe('the fields of a contact', () => {
         {}
       )
     ).toEqual({
-      firstName: 'Ada',
-      lastName: 'Lovelace',
-      role: 'Recruiter',
-      email: 'ada@example.com',
-      phone: '+33612345678',
-      linkedin: 'https://www.linkedin.com/in/ada-lovelace',
-      country: 'FR',
-      timeZone: 'Europe/Paris',
-      languages: ['fr-CA', 'en'],
+      fields: {
+        firstName: 'Ada',
+        lastName: 'Lovelace',
+        role: 'Recruiter',
+        country: 'FR',
+        timeZone: 'Europe/Paris',
+        languages: ['fr-CA', 'en'],
+      },
+      methods: [
+        { type: 'email', value: 'ada@example.com', label: null, isPrimary: true },
+        { type: 'phone', value: '+33612345678', label: null, isPrimary: true },
+        { type: 'linkedin', value: 'https://www.linkedin.com/in/ada-lovelace', label: null, isPrimary: true },
+      ],
     })
   })
 
   it('has nothing for what is empty', () => {
-    expect(normalizeContactInput({ ...base, email: '  ', phone: '', linkedin: null }, {})).toMatchObject({
-      role: null,
-      email: null,
-      phone: null,
-      linkedin: null,
-      country: null,
-      timeZone: null,
-      languages: [],
-    })
+    const { fields, methods } = normalizeContactInput({ ...base, email: '  ', phone: '', linkedin: null }, {})
+
+    expect(fields).toMatchObject({ role: null, country: null, timeZone: null, languages: [] })
+    expect(methods).toEqual([])
   })
 
   it('reads a national phone number in the country of the person first, then in the default country', () => {
     expect(
-      normalizeContactInput({ ...base, phone: '020 7946 0958', country: 'GB' }, { defaultCountry: 'FR' }).phone
+      normalizeContactInput({ ...base, phone: '020 7946 0958', country: 'GB' }, { defaultCountry: 'FR' }).methods[0]
+        ?.value
     ).toBe('+442079460958')
-    expect(normalizeContactInput({ ...base, phone: '06 12 34 56 78' }, { defaultCountry: 'FR' }).phone).toBe(
-      '+33612345678'
-    )
+    expect(
+      normalizeContactInput({ ...base, phone: '06 12 34 56 78' }, { defaultCountry: 'FR' }).methods[0]?.value
+    ).toBe('+33612345678')
   })
 
   it('wants a name', () => {
@@ -100,7 +100,11 @@ describe('adding a contact', () => {
       }
     )
 
-    expect(useRepo(Contact).find(contact.id)).toMatchObject({ phone: '+33612345678', email: 'ada@example.com' })
+    const methods = useRepo(ContactMethod).where('contactId', contact.id).get()
+    expect(methods.map((method) => [method.type, method.value, method.isPrimary])).toEqual([
+      ['email', 'ada@example.com', true],
+      ['phone', '+33612345678', true],
+    ])
   })
 
   it('saves nothing when a field is wrong', () => {

@@ -305,20 +305,46 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       assert.match(line, /ada@example\.com/)
       assert.match(line, /France/)
 
-      // The number is stored in E.164 and the email in lower case.
-      const contacts = await waitFor(
+      // The number is stored in E.164 and the email in lower case, each as a way to reach the person.
+      const methods = await waitFor(
         async () => {
           const stored = await driver.executeAsyncScript(`
             const done = arguments[arguments.length - 1];
-            chrome.storage.local.get('jat:contacts', (items) => done(items['jat:contacts'] || []));
+            chrome.storage.local.get('jat:contactMethods', (items) => done(items['jat:contactMethods'] || []));
           `)
-          return stored.length > 0 && stored
+          return stored.length >= 2 && stored
         },
-        { message: 'the contact to be stored' }
+        { message: 'the ways to reach the contact to be stored' }
       )
-      assert.equal(contacts[0].phone, '+33612345678')
-      assert.equal(contacts[0].email, 'ada@example.com')
-      assert.equal(contacts[0].country, 'FR')
+      assert.deepEqual(methods.map((method) => [method.type, method.value, method.isPrimary]).sort(), [
+        ['email', 'ada@example.com', true],
+        ['phone', '+33612345678', true],
+      ])
+
+      // A second email: it is kept, and the first stays the main one until the user changes it.
+      await type('input[name=methodValue]', 'Ada@Home.example')
+      await type('input[name=methodLabel]', 'home')
+      await driver.executeScript(
+        `document.querySelector('input[name=methodValue]').closest('form').querySelector('button[type=submit]').click()`
+      )
+      await waitFor(async () => /ada@home\.example/.test(await text('.drawer-content .contact')), {
+        message: 'the second email',
+      })
+      assert.match(await text('.drawer-content .contact'), /\(home\)/)
+      assert.equal((await all('.drawer-content .contact .primary-mark')).length, 2)
+
+      // The second email becomes the main one: its "Make main" button is the one of its line.
+      await driver.executeScript(`
+        const line = [...document.querySelectorAll('.drawer-content .method')].find((item) => item.textContent.includes('ada@home.example'));
+        [...line.querySelectorAll('button')].find((button) => button.textContent.trim() === 'Make main').click();
+      `)
+      await waitFor(
+        async () =>
+          driver.executeScript(
+            `return [...document.querySelectorAll('.drawer-content .method')].find((item) => item.textContent.includes('ada@home.example'))?.querySelector('.primary-mark') !== undefined`
+          ),
+        { message: 'the second email to be the main one' }
+      )
 
       // The drawer is closed for the tests that follow.
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)

@@ -53,6 +53,8 @@ const en: TranslationObject = {
     notSet: 'Not set',
     localTime: 'Local time there: {time}',
     contactErrors: {
+      website: 'This is not a valid website address.',
+      method: 'This way to reach the person is empty.',
       name: 'Give a first name or a last name.',
       email: 'This email address is not valid.',
       phone: 'This phone number is not valid. Add the country code (+33) or choose the country.',
@@ -169,6 +171,16 @@ const en: TranslationObject = {
     assumptionsHint: 'Used to compare a daily or hourly rate with a yearly salary.',
     daysPerYear: 'Working days per year',
     hoursPerDay: 'Working hours per day',
+  },
+  methods: {
+    type: 'Type',
+    value: 'Address or number',
+    label: 'Label (work, personal)',
+    add: 'Add',
+    main: 'main',
+    makeMain: 'Make main',
+    remove: 'Remove',
+    types: { email: 'Email', phone: 'Phone', linkedin: 'LinkedIn', website: 'Website', other: 'Other' },
   },
   options: {
     title: 'Options',
