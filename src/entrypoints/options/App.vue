@@ -4,6 +4,7 @@
   import AppearanceSetting from '../../components/options/AppearanceSetting.vue'
   import DataTools from '../../components/options/DataTools.vue'
   import LanguageSetting from '../../components/options/LanguageSetting.vue'
+  import RegionalSetting from '../../components/options/RegionalSetting.vue'
   import StatusEditor from '../../components/options/StatusEditor.vue'
   import { useApp } from '../../composables/useApp'
 
@@ -21,6 +22,7 @@
     <div class="stack">
       <section class="card"><LanguageSetting /></section>
       <section class="card"><AppearanceSetting /></section>
+      <section class="card"><RegionalSetting /></section>
       <section class="card"><StatusEditor /></section>
       <section class="card"><DataTools /></section>
     </div>

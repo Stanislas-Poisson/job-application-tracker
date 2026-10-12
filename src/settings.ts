@@ -1,4 +1,5 @@
 import type { StorageAdapter } from './persistence/adapter'
+import { isValidTimeZone } from './utils/time'
 
 export const LOCALES = ['auto', 'en', 'fr'] as const
 export const THEMES = ['auto', 'light', 'dark'] as const
@@ -16,16 +17,28 @@ export interface Settings {
   theme: ThemeMode
   accent: Accent
   vision: Vision
+  // "auto" is the time zone of the browser, or a name of the IANA database (Europe/Paris).
+  timeZone: string
 }
 
 export const SETTINGS_KEY = 'jat:settings'
-export const DEFAULT_SETTINGS: Settings = { locale: 'auto', theme: 'auto', accent: 'slate', vision: 'standard' }
+export const DEFAULT_SETTINGS: Settings = {
+  locale: 'auto',
+  theme: 'auto',
+  accent: 'slate',
+  vision: 'standard',
+  timeZone: 'auto',
+}
 
-const ALLOWED: { [K in keyof Settings]: readonly Settings[K][] } = {
-  locale: LOCALES,
-  theme: THEMES,
-  accent: ACCENTS,
-  vision: VISIONS,
+const oneOf = (values: readonly unknown[]) => (value: unknown) => values.includes(value)
+
+// What a setting may hold. A stored value that does not pass is replaced by the default.
+const VALID: { [K in keyof Settings]: (value: unknown) => boolean } = {
+  locale: oneOf(LOCALES),
+  theme: oneOf(THEMES),
+  accent: oneOf(ACCENTS),
+  vision: oneOf(VISIONS),
+  timeZone: (value) => 'auto' === value || isValidTimeZone(value),
 }
 
 // What was stored, with the defaults for what is missing, and the defaults again for a value that is not allowed
@@ -34,9 +47,8 @@ export function normalizeSettings(stored: unknown): Settings {
   const source = 'object' === typeof stored && null !== stored ? (stored as Record<string, unknown>) : {}
   const settings = { ...DEFAULT_SETTINGS }
   for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]) {
-    const value = source[key]
-    if ((ALLOWED[key] as readonly unknown[]).includes(value)) {
-      ;(settings[key] as unknown) = value
+    if (VALID[key](source[key])) {
+      ;(settings[key] as unknown) = source[key]
     }
   }
   return settings

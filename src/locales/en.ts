@@ -10,6 +10,7 @@ const en: TranslationObject = {
     madeBy: 'Made by Stanislas Poisson (Zairakai)',
   },
   fields: {
+    postedOn: 'Published on',
     title: 'Job title',
     company: 'Company',
     url: 'Address of the offer',
@@ -39,6 +40,7 @@ const en: TranslationObject = {
     overdue: 'Reminder due',
   },
   drawer: {
+    timeZoneHint: 'The time is in {zone}.',
     close: 'Close',
     details: 'Details',
     openOffer: 'Open the offer',
@@ -95,6 +97,12 @@ const en: TranslationObject = {
       'blue-yellow': 'Blue-yellow colour blindness',
       'high-contrast': 'High contrast',
     },
+  },
+  regional: {
+    title: 'Region and formats',
+    timeZone: 'Time zone',
+    timeZoneAuto: 'Automatic ({zone})',
+    timeZoneHint: 'Dates and hours are stored in UTC and shown in this time zone. It is {now} here.',
   },
   options: {
     title: 'Options',

@@ -9,10 +9,18 @@
   const props = defineProps<{ application: Application }>()
   const emit = defineEmits<{ deleted: [] }>()
 
-  const { t } = useApp()
+  const { t, persistence } = useApp()
 
   const offer = computed(() => props.application.jobOffer)
-  const form = reactive({ title: '', company: '', url: '', location: '', contractType: '', description: '' })
+  const form = reactive({
+    title: '',
+    company: '',
+    url: '',
+    location: '',
+    contractType: '',
+    postedOn: '',
+    description: '',
+  })
 
   // The form starts again from the stored values when another application is opened.
   watch(
@@ -24,6 +32,7 @@
         url: offer.value?.url ?? '',
         location: offer.value?.location ?? '',
         contractType: offer.value?.contractType ?? '',
+        postedOn: offer.value?.postedOn ?? '',
         description: offer.value?.description ?? '',
       })
     },
@@ -51,8 +60,15 @@
         url: form.url || null,
         location: form.location || null,
         contractType: form.contractType || null,
+        postedOn: form.postedOn || null,
         description: form.description || null,
       })
+  }
+
+  // A move is written at once: closing the tab right after must not lose it.
+  async function move(statusId: string) {
+    moveApplication(props.application.id, statusId)
+    await persistence.flush()
   }
 
   function remove() {
@@ -75,7 +91,7 @@
         name="status"
         :label="t('fields.status')"
         :options="statusOptions"
-        @update:model-value="moveApplication(application.id, String($event))"
+        @update:model-value="move(String($event))"
       />
       <FormInput
         v-model="form.title"
@@ -110,6 +126,12 @@
         v-model="form.contractType"
         name="contractType"
         :label="t('fields.contractType')"
+      />
+      <FormInput
+        v-model="form.postedOn"
+        name="postedOn"
+        type="date"
+        :label="t('fields.postedOn')"
       />
       <FormTextarea
         v-model="form.description"

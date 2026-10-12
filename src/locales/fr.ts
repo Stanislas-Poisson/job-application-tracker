@@ -10,6 +10,7 @@ const fr: TranslationObject = {
     madeBy: 'Made by Stanislas Poisson (Zairakai)',
   },
   fields: {
+    postedOn: 'Publiée le',
     title: 'Intitulé du poste',
     company: 'Entreprise',
     url: "Adresse de l'offre",
@@ -40,6 +41,7 @@ const fr: TranslationObject = {
     overdue: 'Rappel à faire',
   },
   drawer: {
+    timeZoneHint: "L'heure est celle du fuseau {zone}.",
     close: 'Fermer',
     details: 'Détails',
     openOffer: "Ouvrir l'offre",
@@ -96,6 +98,12 @@ const fr: TranslationObject = {
       'blue-yellow': 'Daltonisme bleu-jaune',
       'high-contrast': 'Contraste élevé',
     },
+  },
+  regional: {
+    title: 'Région et formats',
+    timeZone: 'Fuseau horaire',
+    timeZoneAuto: 'Automatique ({zone})',
+    timeZoneHint: 'Les dates et les heures sont enregistrées en UTC et affichées dans ce fuseau. Il est {now} ici.',
   },
   options: {
     title: 'Options',
