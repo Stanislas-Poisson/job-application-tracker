@@ -55,3 +55,18 @@ The rules, in `src/utils/contact.ts` and `src/services/contacts.ts`:
 
 - A person has as many ways to be reached as needed. **One of each type is the main one**: the first that is added, or the one the user marks. The same value of the same type is kept once. Removing the main one gives its place to the oldest that is left.
 - The email, the phone and the LinkedIn fields of the form are shortcuts: each becomes a way to reach the person, the main one of its type.
+
+## Exchanges
+
+An exchange is what was said with someone, kept as it was.
+
+| What | Stored as |
+| :--- | :--- |
+| The channel | `email`, `linkedin`, `phone`, `sms`, `whatsapp`, `video`, `in_person` or `other`. |
+| The direction | `inbound` (received) or `outbound` (sent). |
+| When | A moment in UTC. The page reads what the user types in their time zone and converts it. |
+| What | A subject, a text, or both: one of them is needed. The text is not rewritten. |
+| With whom | A contact when the person is known, else the name or the address as the message gave it (`counterpart`). |
+| Its identity | An external reference when the exchange comes from somewhere (the `Message-ID` of an email): an exchange that comes twice is kept once. |
+
+The timeline of an application is the activities the extension recorded and the exchanges, in one list, the most recent first.

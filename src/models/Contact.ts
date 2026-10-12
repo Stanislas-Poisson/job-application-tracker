@@ -3,6 +3,7 @@ import Application from './Application'
 import ApplicationContact from './ApplicationContact'
 import Company from './Company'
 import ContactMethod from './ContactMethod'
+import Interaction from './Interaction'
 import Note from './Note'
 
 // A person met during the search: a recruiter, a manager, a referral.
@@ -22,6 +23,7 @@ export default class Contact extends Model {
 
   declare company: Company | null
   declare methods: ContactMethod[]
+  declare interactions: Interaction[]
   declare applications: Application[]
   declare notes: Note[]
 
@@ -38,6 +40,7 @@ export default class Contact extends Model {
       createdAt: this.string(() => new Date().toISOString()),
       company: this.belongsTo(Company, 'companyId'),
       methods: this.hasMany(ContactMethod, 'contactId'),
+      interactions: this.hasMany(Interaction, 'contactId'),
       applications: this.belongsToMany(Application, ApplicationContact, 'contactId', 'applicationId'),
       notes: this.morphMany(Note, 'noteableId', 'noteableType'),
     }

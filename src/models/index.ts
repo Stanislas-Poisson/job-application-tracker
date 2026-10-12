@@ -5,6 +5,7 @@ import ApplicationContact from './ApplicationContact'
 import Company from './Company'
 import Contact from './Contact'
 import ContactMethod from './ContactMethod'
+import Interaction from './Interaction'
 import JobOffer from './JobOffer'
 import Note from './Note'
 import Reminder from './Reminder'
@@ -18,6 +19,7 @@ export {
   Company,
   Contact,
   ContactMethod,
+  Interaction,
   JobOffer,
   Note,
   Reminder,
@@ -37,5 +39,6 @@ export const MODELS: (typeof Model)[] = [
   ApplicationContact,
   Note,
   Activity,
+  Interaction,
   Reminder,
 ]

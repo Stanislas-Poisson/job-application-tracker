@@ -201,8 +201,9 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       assert.match(await text('.note-body'), /friend's advice/)
 
       await type('textarea[name=newNote]', 'Call back on Monday')
-      const addNote = (await all('.drawer-content form button[type=submit]'))[1]
-      await addNote.click()
+      await driver.executeScript(
+        `document.querySelector('textarea[name=newNote]').closest('form').querySelector('button[type=submit]').click()`
+      )
       await waitFor(async () => (await all('.note-body')).length === 2, { message: 'the second note' })
 
       const applied = await driver.executeScript(
@@ -348,6 +349,66 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       // The drawer is closed for the tests that follow.
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
+
+    test('an exchange with a contact is saved in UTC, listed, and shown in the timeline', async () => {
+      const optionsTab = await open('options', 'select[name=timeZone]')
+      await choose('select[name=timeZone]', 'Pacific/Kiritimati')
+
+      await driver.switchTo().window(boardTab)
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('input[name=interactionSubject]')).length > 0, {
+        message: 'the exchange form',
+      })
+
+      await driver.executeScript(`
+        const select = document.querySelector('select[name=interactionContact]');
+        select.value = [...select.options].find((option) => option.textContent.includes('Ada')).value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        const when = document.querySelector('input[name=interactionWhen]');
+        when.value = '2026-12-24T09:00';
+        when.dispatchEvent(new Event('input', { bubbles: true }));
+      `)
+      await type('input[name=interactionSubject]', 'Interview on Monday')
+      await type('textarea[name=interactionBody]', 'Are you free at 10?')
+      await driver.executeScript(
+        `document.querySelector('input[name=interactionSubject]').closest('form').querySelector('button[type=submit]').click()`
+      )
+
+      const line = await waitFor(
+        async () => (await texts('.drawer-content .exchange')).find((entry) => entry.includes('Interview')),
+        {
+          message: 'the exchange in the list',
+        }
+      )
+      assert.match(line, /Email/)
+      assert.match(line, /Received/)
+      assert.match(line, /Ada Lovelace/)
+
+      const stored = await waitFor(
+        async () => {
+          const exchanges = await driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:interactions', (items) => done(items['jat:interactions'] || []));
+          `)
+          return exchanges.length > 0 && exchanges
+        },
+        { message: 'the exchange to be stored' }
+      )
+      // 09:00 on the 24th in Kiritimati (UTC+14) is 19:00 on the 23rd in UTC.
+      assert.equal(stored[0].occurredAt, '2026-12-23T19:00:00.000Z')
+      assert.equal(stored[0].body, 'Are you free at 10?')
+
+      // The timeline has it too, with the activities.
+      const timeline = await texts('.drawer-content section:last-child li')
+      assert.ok(
+        timeline.some((entry) => entry.includes('Interview on Monday')),
+        timeline.join(' | ')
+      )
+
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+      await driver.switchTo().window(optionsTab)
+      await choose('select[name=timeZone]', 'auto')
     })
 
     test('a reminder typed in the time zone of the settings is stored in UTC and shown in that zone', async () => {
