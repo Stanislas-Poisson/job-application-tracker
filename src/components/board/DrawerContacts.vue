@@ -1,26 +1,64 @@
 <script setup lang="ts">
-  import { FormButton, FormInput } from '@zairakai/vue-components/Form'
-  import { reactive } from 'vue'
+  import { FormButton, FormInput, FormSelect } from '@zairakai/vue-components/Form'
+  import { computed, reactive, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { useFormat } from '../../composables/useFormat'
   import type { Application } from '../../models'
   import { addContact, unlinkContact } from '../../services/applications'
+  import { ContactError } from '../../services/contacts'
+  import { countryName, formatPhone, languageName, listCountries, resolveCountry } from '../../utils/contact'
+  import { formatTimeIn, listTimeZones } from '../../utils/time'
 
   const props = defineProps<{ application: Application }>()
 
-  const { t } = useApp()
+  const { t, settings } = useApp()
+  const format = useFormat()
 
-  const form = reactive({ firstName: '', lastName: '', role: '', email: '' })
+  const empty = () => ({
+    firstName: '',
+    lastName: '',
+    role: '',
+    email: '',
+    phone: '',
+    linkedin: '',
+    country: '',
+    timeZone: '',
+    languages: '',
+  })
+  const form = reactive(empty())
+  const problem = ref('')
+
+  // The countries by their name in the language of the page, in the order of that language.
+  const countryOptions = computed(() => {
+    const collator = new Intl.Collator(format.locale.value)
+    const names = listCountries().map((code) => [code, countryName(code, format.locale.value)] as const)
+    return Object.fromEntries([['', t('drawer.notSet')], ...names.sort((a, b) => collator.compare(a[1], b[1]))])
+  })
+  const zoneOptions = computed(() => ({
+    '': t('drawer.notSet'),
+    ...Object.fromEntries(listTimeZones().map((zone) => [zone, zone.replace(/_/g, ' ')])),
+  }))
 
   function add() {
-    if ('' !== form.firstName.trim() || '' !== form.lastName.trim()) {
-      addContact(props.application.id, {
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        role: form.role || null,
-        email: form.email || null,
-      })
-      Object.assign(form, { firstName: '', lastName: '', role: '', email: '' })
+    problem.value = ''
+    try {
+      addContact(
+        props.application.id,
+        {
+          ...form,
+          languages: form.languages.split(/[,;\s]+/).filter(Boolean),
+        },
+        'other',
+        { defaultCountry: resolveCountry(settings.defaultCountry, navigator.language) }
+      )
+    } catch (error) {
+      if (error instanceof ContactError) {
+        problem.value = t(`drawer.contactErrors.${error.code}`)
+        return
+      }
+      throw error
     }
+    Object.assign(form, empty())
   }
 </script>
 
@@ -54,31 +92,105 @@
         type="email"
         :placeholder="t('fields.email')"
       />
+      <FormInput
+        v-model="form.phone"
+        name="phone"
+        type="tel"
+        :placeholder="t('fields.phone')"
+      />
+      <FormInput
+        v-model="form.linkedin"
+        name="linkedin"
+        :placeholder="t('fields.linkedin')"
+      />
+      <FormSelect
+        v-model="form.country"
+        name="contactCountry"
+        :label="t('fields.country')"
+        :options="countryOptions"
+      />
+      <FormSelect
+        v-model="form.timeZone"
+        name="contactTimeZone"
+        :label="t('fields.timeZone')"
+        :options="zoneOptions"
+      />
+      <FormInput
+        v-model="form.languages"
+        name="languages"
+        :placeholder="t('fields.languages')"
+      />
+      <p
+        v-if="problem"
+        class="error"
+      >
+        {{ problem }}
+      </p>
       <FormButton type="submit">{{ t('drawer.addContact') }}</FormButton>
     </form>
     <ul>
       <li
         v-for="contact in application.contacts"
         :key="contact.id"
-        class="row"
+        class="contact"
       >
-        <span>
-          {{ contact.firstName }} {{ contact.lastName }}
+        <div class="row">
+          <strong>{{ contact.firstName }} {{ contact.lastName }}</strong>
           <small
             v-if="contact.role"
             class="muted"
             >({{ contact.role }})</small
           >
-          <small v-if="contact.email">
-            <a :href="`mailto:${contact.email}`">{{ contact.email }}</a></small
+          <FormButton
+            type="button"
+            @click="unlinkContact(application.id, contact.id)"
           >
-        </span>
-        <FormButton
-          type="button"
-          @click="unlinkContact(application.id, contact.id)"
-          >{{ t('drawer.unlink') }}</FormButton
-        >
+            {{ t('drawer.unlink') }}
+          </FormButton>
+        </div>
+        <div class="contact-lines muted">
+          <span v-if="contact.phone">
+            <a
+              :href="`tel:${contact.phone}`"
+              dir="ltr"
+              >{{ formatPhone(contact.phone) }}</a
+            >
+          </span>
+          <span v-if="contact.email">
+            <a
+              :href="`mailto:${contact.email}`"
+              dir="ltr"
+              >{{ contact.email }}</a
+            >
+          </span>
+          <span v-if="contact.linkedin">
+            <a
+              :href="contact.linkedin"
+              target="_blank"
+              rel="noopener"
+              dir="ltr"
+              >LinkedIn</a
+            >
+          </span>
+          <span v-if="contact.country">{{ countryName(contact.country, format.locale.value) }}</span>
+          <span v-if="contact.timeZone">
+            {{ t('drawer.localTime', { time: formatTimeIn(contact.timeZone, format.locale.value) }) }}
+          </span>
+          <span v-if="contact.languages?.length">
+            {{ contact.languages.map((tag) => languageName(tag, format.locale.value)).join(', ') }}
+          </span>
+        </div>
       </li>
     </ul>
   </section>
 </template>
+
+<style lang="scss">
+  .contact-lines {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin-block-start: 0.25rem;
+    font-size: 0.82rem;
+  }
+</style>

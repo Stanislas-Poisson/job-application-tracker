@@ -280,6 +280,50 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await choose('select[name=homeCurrency]', '')
     })
 
+    test('a contact is saved with its phone in the international format', async () => {
+      await driver.switchTo().window(boardTab)
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('input[name=firstName]')).length > 0, { message: 'the contact form' })
+
+      await type('input[name=firstName]', 'Ada')
+      await type('input[name=lastName]', 'Lovelace')
+      await type('input[name=email]', 'ADA@Example.com')
+      // A number typed the way it is written at home, read in the country chosen.
+      await type('input[name=phone]', '06 12 34 56 78')
+      await choose('select[name=contactCountry]', 'FR')
+      await driver.executeScript(
+        `document.querySelector('input[name=firstName]').closest('form').querySelector('button[type=submit]').click()`
+      )
+
+      const line = await waitFor(
+        async () => (await texts('.drawer-content .contact')).find((entry) => entry.includes('Ada')),
+        {
+          message: 'the contact in the list',
+        }
+      )
+      assert.match(line, /\+33 6 12 34 56 78/)
+      assert.match(line, /ada@example\.com/)
+      assert.match(line, /France/)
+
+      // The number is stored in E.164 and the email in lower case.
+      const contacts = await waitFor(
+        async () => {
+          const stored = await driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:contacts', (items) => done(items['jat:contacts'] || []));
+          `)
+          return stored.length > 0 && stored
+        },
+        { message: 'the contact to be stored' }
+      )
+      assert.equal(contacts[0].phone, '+33612345678')
+      assert.equal(contacts[0].email, 'ada@example.com')
+      assert.equal(contacts[0].country, 'FR')
+
+      // The drawer is closed for the tests that follow.
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
+
     test('a reminder typed in the time zone of the settings is stored in UTC and shown in that zone', async () => {
       // Kiritimati is UTC+14: 09:00 on the 24th there is 19:00 on the 23rd in UTC.
       const optionsTab = await open('options', 'select[name=timeZone]')

@@ -7,6 +7,7 @@
   import { type Application, JobOffer, Status } from '../../models'
   import { deleteApplication, findOrCreateCompany, moveApplication, setArchived } from '../../services/applications'
   import { SalaryError, salaryFromForm } from '../../services/salary'
+  import { countryName, listCountries } from '../../utils/contact'
   import { SALARY_KINDS, SALARY_PERIODS, currencyName, listCurrencies, minorToInput } from '../../utils/money'
 
   const props = defineProps<{ application: Application }>()
@@ -23,6 +24,7 @@
     company: '',
     url: '',
     location: '',
+    country: '',
     contractType: '',
     postedOn: '',
     salaryMin: '',
@@ -42,6 +44,7 @@
         company: offer.value?.company?.name ?? '',
         url: offer.value?.url ?? '',
         location: offer.value?.location ?? '',
+        country: offer.value?.country ?? '',
         contractType: offer.value?.contractType ?? '',
         postedOn: offer.value?.postedOn ?? '',
         salaryMin: minorToInput(offer.value?.salaryMin ?? null, offer.value?.salaryCurrency ?? null),
@@ -63,6 +66,12 @@
         .map((status) => [status.id, status.label])
     )
   )
+
+  const countryOptions = computed(() => {
+    const collator = new Intl.Collator(format.locale.value)
+    const names = listCountries().map((code) => [code, countryName(code, format.locale.value)] as const)
+    return Object.fromEntries([['', t('drawer.notSet')], ...names.sort((a, b) => collator.compare(a[1], b[1]))])
+  })
 
   const currencyOptions = computed(() => ({
     '': t('drawer.noCurrency'),
@@ -107,6 +116,7 @@
         companyId: '' === form.company.trim() ? null : findOrCreateCompany(form.company).id,
         url: form.url || null,
         location: form.location || null,
+        country: form.country || null,
         contractType: form.contractType || null,
         postedOn: form.postedOn || null,
         ...salary,
@@ -170,6 +180,12 @@
         v-model="form.location"
         name="location"
         :label="t('fields.location')"
+      />
+      <FormSelect
+        v-model="form.country"
+        name="country"
+        :label="t('fields.country')"
+        :options="countryOptions"
       />
       <FormInput
         v-model="form.contractType"

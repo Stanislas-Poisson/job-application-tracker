@@ -34,3 +34,20 @@ The rules, in `src/utils/money.ts`:
   - the rates are typed by the user, one unit of a currency in the home currency. The extension never looks a rate up, and a currency with no rate is not converted: it is not guessed;
   - a range is compared by its middle, or by its one end when the other is missing.
 - The converted amount is shown as "about", never in place of the amount of the offer.
+
+## People
+
+| What | Stored as | Shown as |
+| :--- | :--- | :--- |
+| A phone number | E.164: `+33612345678` | International (`+33 6 12 34 56 78`) by default, and as a `tel:` link. The national format is kept for later. |
+| An email | Lower case: `ada@example.com` | As it is, as a `mailto:` link. |
+| A LinkedIn page | The canonical address: `https://www.linkedin.com/in/ada-lovelace` | A link. `fr.linkedin.com/in/Ada-Lovelace/?trk=x` and `ada-lovelace` give the same address. |
+| A country | ISO 3166-1 alpha-2: `FR` | Its name in the language of the user: France, Allemagne, Germany. |
+| A time zone | IANA: `Europe/Paris` | "Local time there: 14:35 UTC+2". |
+| A language | BCP 47: `fr-CA` | Its name in the language of the user. |
+
+The rules, in `src/utils/contact.ts` and `src/services/contacts.ts`:
+
+- A phone number typed without its country code is read in the country of the person, and when there is none in the **default country** of the options (the country of the language of the browser by default). A number that is not valid for that country is refused, with the message to add the code. Nothing is kept as typed.
+- Every field is checked before anything is saved: one invalid field saves nothing and says which one.
+- The phone numbers are checked with the metadata of libphonenumber (the "min" set), so a number that looks right but does not exist for its country is refused.

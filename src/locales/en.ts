@@ -10,6 +10,11 @@ const en: TranslationObject = {
     madeBy: 'Made by Stanislas Poisson (Zairakai)',
   },
   fields: {
+    phone: 'Phone',
+    linkedin: 'LinkedIn page',
+    country: 'Country',
+    timeZone: 'Time zone',
+    languages: 'Languages (fr, en-GB)',
     salaryMin: 'Salary from',
     salaryMax: 'Salary up to',
     salaryCurrency: 'Currency',
@@ -45,6 +50,17 @@ const en: TranslationObject = {
     overdue: 'Reminder due',
   },
   drawer: {
+    notSet: 'Not set',
+    localTime: 'Local time there: {time}',
+    contactErrors: {
+      name: 'Give a first name or a last name.',
+      email: 'This email address is not valid.',
+      phone: 'This phone number is not valid. Add the country code (+33) or choose the country.',
+      linkedin: 'This is not a LinkedIn page.',
+      country: 'This country is not known.',
+      timeZone: 'This time zone is not known.',
+      language: 'A language is not valid: write it like fr or en-GB.',
+    },
     salary: 'Salary',
     noCurrency: 'No currency',
     noPeriod: 'No period',
@@ -115,6 +131,10 @@ const en: TranslationObject = {
     },
   },
   regional: {
+    defaultCountry: 'Default country for phone numbers',
+    defaultCountryHint:
+      'A number typed without its country code (+33, +1) is read in this country. Every number is kept in the international format.',
+    countryAuto: 'Automatic ({country})',
     title: 'Region and formats',
     timeZone: 'Time zone',
     timeZoneAuto: 'Automatic ({zone})',
