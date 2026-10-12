@@ -21,7 +21,8 @@ export default class JobOffer extends Model {
   declare salaryMax: number | null
   declare currency: string | null
   declare description: string | null
-  declare postedAt: string | null
+  // The day the offer was published, as a plain date (YYYY-MM-DD): it has no hour and never moves.
+  declare postedOn: string | null
   declare capturedAt: string
 
   declare company: Company | null
@@ -42,7 +43,7 @@ export default class JobOffer extends Model {
       salaryMax: this.number(null),
       currency: this.string(null),
       description: this.string(null),
-      postedAt: this.string(null),
+      postedOn: this.string(null),
       capturedAt: this.string(() => new Date().toISOString()),
       company: this.belongsTo(Company, 'companyId'),
       source: this.belongsTo(Source, 'sourceId'),

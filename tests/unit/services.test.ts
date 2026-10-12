@@ -177,6 +177,22 @@ describe('following an application', () => {
     expect(useRepo(Contact).all()).toHaveLength(1)
   })
 
+  it('only takes a reminder at a moment in UTC', () => {
+    const application = captureOffer({ title: 'One', companyName: 'Acme' })
+
+    expect(() => addReminder(application.id, 'Follow up', '2026-01-01T09:00:00+01:00')).toThrow(/UTC/)
+    expect(() => addReminder(application.id, 'Follow up', '2026-01-01')).toThrow(/UTC/)
+    expect(addReminder(application.id, 'Follow up', '2026-01-01T08:00:00.000Z').dueAt).toBe('2026-01-01T08:00:00.000Z')
+  })
+
+  it('only takes a publication date that is a plain date', () => {
+    expect(captureOffer({ title: 'One', companyName: 'Acme', postedOn: '2026-10-12' }).jobOfferId).not.toBeNull()
+    expect(() => captureOffer({ title: 'Two', companyName: 'Acme', postedOn: '2026-10-12T00:00:00Z' })).toThrow(
+      /plain date/
+    )
+    expect(() => captureOffer({ title: 'Two', companyName: 'Acme', postedOn: '2026-02-30' })).toThrow(/plain date/)
+  })
+
   it('archives and restores', () => {
     const application = captureOffer({ title: 'One', companyName: 'Acme' })
     setArchived(application.id, true)

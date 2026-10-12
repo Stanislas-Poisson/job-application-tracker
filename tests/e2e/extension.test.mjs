@@ -205,5 +205,48 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       assert.match(await text('.column:nth-child(2) .application-card'), /Backend developer/)
       assert.match(await text('.column:first-child h2'), /To apply\s*0/)
     })
+
+    test('a reminder typed in the time zone of the settings is stored in UTC and shown in that zone', async () => {
+      // Kiritimati is UTC+14: 09:00 on the 24th there is 19:00 on the 23rd in UTC.
+      const optionsTab = await open('options', 'select[name=timeZone]')
+      await choose('select[name=timeZone]', 'Pacific/Kiritimati')
+
+      await driver.switchTo().window(boardTab)
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('input[name=reminderDue]')).length > 0, { message: 'the reminder form' })
+
+      await type('input[name=reminderTitle]', 'Follow up')
+      await driver.executeScript(`
+        const due = document.querySelector('input[name=reminderDue]');
+        due.value = '2026-12-24T09:00';
+        due.dispatchEvent(new Event('input', { bubbles: true }));
+        due.closest('form').querySelector('button[type=submit]').click();
+      `)
+
+      const reminders = await waitFor(
+        async () => {
+          const stored = await driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:reminders', (items) => done(items['jat:reminders'] || []));
+          `)
+          return stored.length > 0 && stored
+        },
+        { message: 'the reminder to be stored' }
+      )
+      assert.equal(reminders[0].dueAt, '2026-12-23T19:00:00.000Z')
+
+      // It is shown again in the zone it was typed in: the 24th, at 9.
+      const shown = await waitFor(
+        async () => (await texts('.drawer-content li')).find((line) => line.includes('Follow up')),
+        {
+          message: 'the reminder in the list',
+        }
+      )
+      assert.match(shown, /24/)
+      assert.match(shown, /9:00/)
+
+      await driver.switchTo().window(optionsTab)
+      await choose('select[name=timeZone]', 'auto')
+    })
   })
 })

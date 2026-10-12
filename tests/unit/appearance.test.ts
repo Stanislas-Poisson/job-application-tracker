@@ -36,6 +36,12 @@ describe('settings', () => {
     expect(normalizeSettings('dark')).toEqual(DEFAULT_SETTINGS)
   })
 
+  it('keeps a valid time zone, and falls back on "auto" for one that does not exist', () => {
+    expect(normalizeSettings({ timeZone: 'Europe/Paris' }).timeZone).toBe('Europe/Paris')
+    expect(normalizeSettings({ timeZone: 'Mars/Olympus' }).timeZone).toBe('auto')
+    expect(normalizeSettings({ timeZone: 3 }).timeZone).toBe('auto')
+  })
+
   it('saves and loads back', async () => {
     const adapter = memoryAdapter()
     await saveSettings(adapter, { ...DEFAULT_SETTINGS, theme: 'dark', vision: 'red-green' })

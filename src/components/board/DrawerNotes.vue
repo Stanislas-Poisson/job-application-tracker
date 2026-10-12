@@ -1,14 +1,15 @@
 <script setup lang="ts">
-  import { dayjs } from '@zairakai/js-utils/datetime'
   import { FormButton, FormTextarea } from '@zairakai/vue-components/Form'
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { useFormat } from '../../composables/useFormat'
   import type { Application } from '../../models'
   import { addNote } from '../../services/applications'
 
   const props = defineProps<{ application: Application }>()
 
   const { t } = useApp()
+  const format = useFormat()
 
   const body = ref('')
 
@@ -46,7 +47,7 @@
         :key="note.id"
       >
         <p class="note-body">{{ note.body }}</p>
-        <small class="muted">{{ dayjs(note.createdAt).format('YYYY-MM-DD HH:mm') }}</small>
+        <small class="muted">{{ format.instant(note.createdAt) }}</small>
       </li>
     </ul>
   </section>

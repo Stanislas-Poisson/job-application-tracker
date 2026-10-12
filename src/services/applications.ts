@@ -14,6 +14,7 @@ import {
 import type { ActivityType } from '../models/Activity'
 import type { ContactRole } from '../models/ApplicationContact'
 import type { WorkMode } from '../models/JobOffer'
+import { isInstant, isPlainDate } from '../utils/time'
 
 export interface CaptureInput {
   title: string
@@ -23,6 +24,8 @@ export interface CaptureInput {
   contractType?: string | null
   workMode?: WorkMode | null
   description?: string | null
+  // The day the offer was published, as a plain date (YYYY-MM-DD).
+  postedOn?: string | null
   // The key of the status the application starts in. The first column when it is missing or unknown.
   statusKey?: string
 }
@@ -71,6 +74,9 @@ export function findOrCreateCompany(name: string): Company {
 
 // Saves an offer the user is looking at and starts following it: the company, the offer, the application.
 export function captureOffer(input: CaptureInput): Application {
+  if (input.postedOn && !isPlainDate(input.postedOn)) {
+    throw new Error(`The publication date must be a plain date (YYYY-MM-DD): ${input.postedOn}`)
+  }
   const statuses = useRepo(Status).all().sort(byOrder)
   const status = statuses.find((candidate) => candidate.key === input.statusKey) ?? statuses[0] ?? null
 
@@ -84,6 +90,7 @@ export function captureOffer(input: CaptureInput): Application {
     contractType: input.contractType ?? null,
     workMode: input.workMode ?? null,
     description: input.description ?? null,
+    postedOn: input.postedOn ?? null,
   })
 
   const position = nextPosition(status?.id ?? null)
@@ -132,7 +139,11 @@ export function addNote(type: Noteable, id: string, body: string) {
   return useRepo(Note).save({ noteableType: type, noteableId: id, body: body.trim() })
 }
 
+// The moment is in UTC: the page turns what the user typed in their time zone into one before it calls this.
 export function addReminder(applicationId: string, title: string, dueAt: string) {
+  if (!isInstant(dueAt)) {
+    throw new Error(`A reminder is due at a moment in UTC (ending with Z): ${dueAt}`)
+  }
   return useRepo(Reminder).save({ applicationId, title: title.trim(), dueAt })
 }
 
