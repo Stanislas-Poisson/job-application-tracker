@@ -6,13 +6,15 @@ export interface PageSnapshot {
   jsonLd: string[]
   // The content of the meta tags, by name or property ("og:title", "description").
   meta: Record<string, string>
+  // The main part of the page, only for a site that has an adapter (its content is not in the JSON-LD).
+  body?: string | null
 }
 
 /**
  * Collects the snapshot. It is injected into the page the user is looking at, so it must stand alone: no import, no
  * reference to anything outside of it.
  */
-export function collectSnapshot(): PageSnapshot {
+export function collectSnapshot(withBody = false): PageSnapshot {
   const meta: Record<string, string> = {}
   document.querySelectorAll('meta[content]').forEach((tag) => {
     const key = tag.getAttribute('property') ?? tag.getAttribute('name')
@@ -29,5 +31,6 @@ export function collectSnapshot(): PageSnapshot {
       (script) => script.textContent ?? ''
     ),
     meta,
+    body: withBody ? (document.querySelector('main') ?? document.body).outerHTML : null,
   }
 }
