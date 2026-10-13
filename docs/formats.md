@@ -143,3 +143,21 @@ When the popup opens on a page, the extension reads that page once and fills the
 - The data is found at the root of a script, in a list, or in an `@graph`. A script that is not valid JSON is skipped. The first `JobPosting` of the page is used.
 - Nothing is invented: a piece the page does not give stays empty, and the user can change every field before saving.
 - **Report a reading that broke**: the popup has a link that opens a new issue on GitHub, filled with the host name of the site, the version of the extension, and which pieces were read and which were not. The user reads it and sends it by hand. The same report can be opened as an e-mail for someone with no GitHub account (GitHub cannot turn an e-mail into an issue; `REPORT_EMAIL` in `src/extraction/report.ts` is a placeholder until a dedicated address exists). The extension sends nothing, and the issue holds nothing of the offer (not the address, which may carry a name or a token).
+
+### Sites with an adapter
+
+Some sites publish no `JobPosting` data. For them the extension also takes the main part of the page (`<main>`, only for these sites) and an adapter reads it, in `src/extraction/adapters`. The order is: JobPosting data, then the adapter, then OpenGraph and the page title.
+
+**LinkedIn** (`linkedin.com/jobs/…`, French and English interface). The class names of the site are generated and change, so the adapter relies on what stays:
+
+| What | Read from |
+| :--- | :--- |
+| Title and company | The title of the tab: `Title \| Company \| LinkedIn`. |
+| Place | The first part of the line under the title: `Place · Posted 3 days ago · …`. |
+| Day published | The relative date of that line, counted back from today in the time zone of the user. |
+| Salary | A salary written in the card of the offer only, never in the cards of the other offers around it. |
+| Description | The block under the heading "About the job" / "À propos de l'offre d'emploi". |
+
+- **A relative date is an approximation.** "3 days ago" is the day three days before today; a week is 7 days, a month 30, a year 365. A repost ("Republication") gives the day of the repost. The user can change the date.
+- A salary text such as `40K € par yr - 60K € par yr`, `45 000 € - 55 000 €/an` or `$90,000/yr` is read as a range in minor units with its period. Gross or net is not guessed.
+- Tests use `tests/fixtures`: a French page reduced from a real saved page (same structure, no class names, short text) and an English page written by hand. Saved pages stay out of the repository: they hold the account of the person who saved them.
