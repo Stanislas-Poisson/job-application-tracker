@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { findJobPostings, htmlToText, offerFromJobPosting } from '../../src/extraction/jobPosting'
 import { readOpenGraph, readSnapshot, titleFromPage } from '../../src/extraction/read'
+import { ISSUES_URL, reportUrl } from '../../src/extraction/report'
 import { postedDay } from '../../src/utils/time'
 
 const PARIS = 'Europe/Paris'
@@ -174,5 +175,27 @@ describe('readSnapshot', () => {
 
   it('gives nothing for a page that says nothing', () => {
     expect(readSnapshot({ url: 'https://x.test', title: '', jsonLd: [], meta: {} }, PARIS)).toEqual({})
+  })
+})
+
+describe('reportUrl', () => {
+  const read = { title: 'Dev', postedOn: '2026-10-12' }
+
+  it('names the site, not the address, and what was and was not read', () => {
+    const url = new URL(reportUrl('https://jobs.example.com/offer/12?token=secret', read, '0.1.0'))
+    const body = url.searchParams.get('body') ?? ''
+    expect(url.origin + url.pathname).toBe(ISSUES_URL)
+    expect(url.searchParams.get('title')).toBe('Reading broke on jobs.example.com')
+    expect(body).toContain('Site: jobs.example.com')
+    expect(body).toContain('Read: title, postedOn')
+    expect(body).toContain('Missing: companyName, location, contractType, description, salary')
+    expect(url.toString()).not.toContain('secret')
+    expect(url.toString()).not.toContain('Dev')
+  })
+
+  it('copes with an address that is not one', () => {
+    const url = new URL(reportUrl('not a url', {}, '0.1.0'))
+    expect(url.searchParams.get('body')).toContain('Site: unknown')
+    expect(url.searchParams.get('body')).toContain('Read: nothing')
   })
 })
