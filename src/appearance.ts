@@ -1,3 +1,4 @@
+import { themeCss } from './customTheme'
 import type { Accent, FontFamily, Settings, TextSpacing, Vision } from './settings'
 
 // The colours of an accent are in assets/main.scss. Here is what the pages need to draw their choices.
@@ -66,8 +67,38 @@ export const SPACINGS: Record<TextSpacing, { line: number; letter: number; word:
 
 type Looks = Pick<
   Settings,
-  'theme' | 'accent' | 'vision' | 'fontFamily' | 'fontCustom' | 'textScale' | 'textSpacing' | 'density' | 'motion'
+  | 'theme'
+  | 'accent'
+  | 'vision'
+  | 'customThemes'
+  | 'customThemeId'
+  | 'fontFamily'
+  | 'fontCustom'
+  | 'textScale'
+  | 'textSpacing'
+  | 'density'
+  | 'motion'
 >
+
+// The custom theme in use is a style sheet of its own, last in the head, so that it wins over the accent and the vision modes:
+// a custom theme comes with its own colours.
+export function applyCustomTheme(root: HTMLElement, themes: Settings['customThemes'], id: string) {
+  const theme = themes.find((candidate) => candidate.id === id)
+  const doc = root.ownerDocument
+  let sheet = doc.getElementById('jat-custom-theme')
+  if (!theme) {
+    root.removeAttribute('data-custom-theme')
+    sheet?.remove()
+    return
+  }
+  if (!sheet) {
+    sheet = doc.createElement('style')
+    sheet.id = 'jat-custom-theme'
+    doc.head.append(sheet)
+  }
+  sheet.textContent = themeCss(theme)
+  root.setAttribute('data-custom-theme', theme.id)
+}
 
 // Writes the choices on the root element: the style sheet answers to these attributes and custom properties.
 export function applyAppearance(root: HTMLElement, settings: Looks) {
@@ -78,6 +109,7 @@ export function applyAppearance(root: HTMLElement, settings: Looks) {
   }
   root.setAttribute('data-accent', settings.accent)
   root.setAttribute('data-vision', settings.vision)
+  applyCustomTheme(root, settings.customThemes, settings.customThemeId)
   root.setAttribute('data-density', settings.density)
   root.setAttribute('data-motion', settings.motion)
   // The size is a share of the usual one, on the root: every size in rem follows, on top of the zoom of the browser.

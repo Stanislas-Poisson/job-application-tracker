@@ -20,6 +20,7 @@
     VISIONS,
     type Vision,
   } from '../../settings'
+  import ThemeEditor from './ThemeEditor.vue'
 
   const { t, settings, updateSettings } = useApp()
 
@@ -90,6 +91,8 @@
       @update:model-value="updateSettings({ vision: String($event) as Vision })"
     />
     <p class="muted">{{ t('appearance.visionHint') }}</p>
+
+    <ThemeEditor />
 
     <h3>{{ t('appearance.textTitle') }}</h3>
     <FormSelect
