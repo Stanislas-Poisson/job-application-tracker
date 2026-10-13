@@ -48,6 +48,8 @@ export interface Settings {
   workingDaysPerYear: number
   hoursPerDay: number
   // Remind the user to back up when the last backup is older than this many days. 0 turns the reminder off.
+  // How many days after applying a follow-up reminder is suggested.
+  followUpDays: number
   backupReminderDays: number
   // When the data was last backed up to a file (UTC), or null when it never was.
   lastBackupAt: string | null
@@ -71,6 +73,7 @@ export const DEFAULT_SETTINGS: Settings = {
   autoRates: false,
   autoRatesData: null,
   ownEmails: [],
+  followUpDays: 7,
   backupReminderDays: 30,
   lastBackupAt: null,
   backupProtect: false,
@@ -100,6 +103,7 @@ const VALID: {
   workingDaysPerYear: inRange(1, 366),
   hoursPerDay: inRange(1, 24),
   backupProtect: (value) => 'boolean' === typeof value,
+  followUpDays: (value) => Number.isInteger(value) && inRange(1, 60)(value),
   backupReminderDays: (value) => Number.isInteger(value) && inRange(0, 365)(value),
 }
 
