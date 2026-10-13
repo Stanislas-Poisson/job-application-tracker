@@ -177,6 +177,35 @@ const en: TranslationObject = {
     },
   },
   regional: {
+    datesTitle: 'Dates and hours',
+    dateFormat: 'Date format',
+    dateFormats: {
+      auto: 'Follow the language ({example})',
+      dmy: 'Day/month/year ({example})',
+      mdy: 'Month/day/year ({example})',
+      ymd: 'Year-month-day ({example})',
+      medium: 'Short with the month name ({example})',
+      long: 'With the full month name ({example})',
+      full: 'With the weekday ({example})',
+      custom: 'My own format ({example})',
+    },
+    dateCustom: 'Your own format',
+    dateCustomHint:
+      'YYYY year, MM or M month, MMMM month name, MMM short name, DD or D day, dddd weekday name, ddd short name. Text between [square brackets] is kept as it is. Example: dddd D MMMM YYYY.',
+    dateCustomProblem: 'Write a format of 1 to {max} characters.',
+    timeFormat: 'Hour format',
+    timeFormats: {
+      auto: 'Follow the language ({example})',
+      h24: '24 hours ({example})',
+      h12: '12 hours ({example})',
+    },
+    relative: 'Relative dates',
+    relatives: {
+      off: 'Off: always the date',
+      both: 'The date, and how long ago',
+      recent: 'How long ago when it is within 30 days, the date otherwise',
+    },
+    datePreview: 'Shown like this: {example}',
     defaultCountry: 'Default country for phone numbers',
     defaultCountryHint:
       'A number typed without its country code (+33, +1) is read in this country. Every number is kept in the international format.',

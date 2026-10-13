@@ -183,6 +183,35 @@ const fr: TranslationObject = {
     },
   },
   regional: {
+    datesTitle: 'Dates et heures',
+    dateFormat: 'Format de date',
+    dateFormats: {
+      auto: 'Suivre la langue ({example})',
+      dmy: 'Jour/mois/année ({example})',
+      mdy: 'Mois/jour/année ({example})',
+      ymd: 'Année-mois-jour ({example})',
+      medium: 'Court avec le nom du mois ({example})',
+      long: 'Avec le nom complet du mois ({example})',
+      full: 'Avec le jour de la semaine ({example})',
+      custom: 'Mon propre format ({example})',
+    },
+    dateCustom: 'Votre propre format',
+    dateCustomHint:
+      'YYYY année, MM ou M mois, MMMM nom du mois, MMM nom court, DD ou D jour, dddd nom du jour, ddd nom court. Le texte entre [crochets] est gardé tel quel. Exemple : dddd D MMMM YYYY.',
+    dateCustomProblem: 'Écrivez un format de 1 à {max} caractères.',
+    timeFormat: 'Format de l’heure',
+    timeFormats: {
+      auto: 'Suivre la langue ({example})',
+      h24: '24 heures ({example})',
+      h12: '12 heures ({example})',
+    },
+    relative: 'Dates relatives',
+    relatives: {
+      off: 'Désactivé : toujours la date',
+      both: 'La date, et il y a combien de temps',
+      recent: 'Il y a combien de temps à moins de 30 jours, sinon la date',
+    },
+    datePreview: 'Affiché ainsi : {example}',
     defaultCountry: 'Pays par défaut des numéros de téléphone',
     defaultCountryHint:
       'Un numéro saisi sans son indicatif (+33, +1) est lu dans ce pays. Tous les numéros sont gardés au format international.',
