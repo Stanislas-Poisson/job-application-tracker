@@ -1,6 +1,7 @@
 import { useRepo } from 'pinia-orm'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { Application, JobOffer, Reminder } from '../../src/models'
+import { emptyAddress } from '../../src/services/address'
 import { addContact, addReminder, captureOffer } from '../../src/services/applications'
 import {
   COLUMNS,
@@ -10,6 +11,7 @@ import {
   decimalAmount,
   exportFileName,
 } from '../../src/services/exportBoard'
+import { saveJourney } from '../../src/services/journeys'
 import { setPriority, tagEntityByName, toggleFavorite } from '../../src/services/tags'
 import { UTF8_BOM, parseCsv, plainCell, toCsv } from '../../src/utils/csv'
 import { freshStore } from './helpers'
@@ -21,9 +23,24 @@ const labels: ExportContext['labels'] = {
   priorities: { '0': 'None', '1': 'Low', '2': 'Medium', '3': 'High' },
   periods: { year: 'year', month: 'month', week: 'week', day: 'day', hour: 'hour' },
   kinds: { gross: 'gross', net: 'net' },
+  legModes: {
+    walk: 'On foot',
+    bike: 'Bicycle',
+    car: 'Car',
+    bus: 'Bus',
+    tram: 'Tram',
+    metro: 'Metro',
+    train: 'Train',
+    suburban: 'RER',
+    transit: 'Public transport',
+    ferry: 'Ferry',
+    wait: 'Waiting',
+    other: 'Other',
+  },
 }
 
 const context = (changes: Partial<ExportContext> = {}): ExportContext => ({
+  locale: 'en',
   labels,
   conversion: {
     home: 'EUR',
@@ -41,7 +58,7 @@ const rowsOf = (...applications: Application[]) => boardRows(applications, conte
 const cell = (row: string[], column: (typeof COLUMNS)[number]): string => row[COLUMNS.indexOf(column)] ?? ''
 const everything = () =>
   useRepo(Application)
-    .with('jobOffer', (query) => query.with('company').with('source'))
+    .with('jobOffer', (query) => query.with('company').with('source').with('journeys'))
     .with('reminders')
     .with('tags')
     .with('contacts')
@@ -158,6 +175,68 @@ describe('boardRows', () => {
     const none = boardRows(everything(), context())[1] ?? []
     expect(cell(none, 'netPerYear')).toBe('')
     expect(cell(none, 'netProfile')).toBe('')
+  })
+
+  it('writes the address of the workplace and the journeys to work', () => {
+    const application = captureOffer({
+      title: 'Dev',
+      companyName: 'Acme',
+      address: {
+        ...emptyAddress(),
+        line1: '1 rue X',
+        postalCode: '75001',
+        city: 'Paris',
+        country: 'FR',
+        latitude: 48.86,
+        longitude: 2.34,
+      },
+    })
+    const offerId = application.jobOfferId ?? ''
+    saveJourney({
+      jobOfferId: offerId,
+      direction: 'outbound',
+      legs: [
+        { mode: 'walk', line: '', minutes: 10, meters: 800 },
+        { mode: 'suburban', line: 'RER A', minutes: 40, meters: 24_000 },
+        { mode: 'walk', line: '', minutes: 8, meters: null },
+      ],
+    })
+    saveJourney({
+      jobOfferId: offerId,
+      direction: 'outbound',
+      legs: [{ mode: 'car', line: '', minutes: 70, meters: null }],
+    })
+    saveJourney({
+      jobOfferId: offerId,
+      direction: 'return',
+      legs: [{ mode: 'suburban', line: 'RER A', minutes: 45, meters: null }],
+    })
+
+    const dot = rowsOf(...everything())[1] ?? []
+    expect(cell(dot, 'postalAddress')).toBe('1 rue X, 75001 Paris, France')
+    expect(['postalCode', 'city', 'latitude', 'longitude'].map((column) => cell(dot, column as never))).toEqual([
+      '75001',
+      'Paris',
+      '48.86',
+      '2.34',
+    ])
+    // The first journey of a direction is the preferred one: 58 minutes, 24.8 km, told in words.
+    expect(cell(dot, 'commuteMinutes')).toBe('58')
+    expect(cell(dot, 'commuteKm')).toBe('24.8')
+    expect(cell(dot, 'journey')).toBe('On foot 10 min > RER RER A 40 min > On foot 8 min')
+    expect(cell(dot, 'returnMinutes')).toBe('45')
+    // The decimal mark follows the file, like the amounts.
+    expect(cell(boardRows(everything(), context({ decimal: ',' }))[1] ?? [], 'commuteKm')).toBe('24,8')
+  })
+
+  it('leaves the way there empty when nothing was kept', () => {
+    captureOffer({ title: 'Dev', companyName: 'Acme' })
+    const row = rowsOf(...everything())[1] ?? []
+    expect(
+      ['postalAddress', 'postalCode', 'city', 'latitude', 'commuteKm', 'commuteMinutes', 'commuteMode'].map((column) =>
+        cell(row, column as never)
+      )
+    ).toEqual(['', '', '', '', '', '', ''])
   })
 
   it('writes the final clients of a recruitment firm', () => {

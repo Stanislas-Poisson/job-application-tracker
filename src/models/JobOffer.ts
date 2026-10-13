@@ -2,6 +2,7 @@ import { Model } from 'pinia-orm'
 import type { SalaryKind, SalaryPeriod } from '../utils/money'
 import Application from './Application'
 import Company from './Company'
+import Journey from './Journey'
 import Source from './Source'
 
 export type WorkMode = 'onsite' | 'hybrid' | 'remote'
@@ -20,6 +21,16 @@ export default class JobOffer extends Model {
   // The place as the offer says it, and its ISO 3166-1 country when it is known.
   declare location: string | null
   declare country: string | null
+  // The postal address of the workplace, in fields (the country is the one above). The coordinates are those of the page or
+  // pasted by the user from a map: nothing is looked up.
+  declare addressLine1: string | null
+  declare addressLine2: string | null
+  declare addressLine3: string | null
+  declare postalCode: string | null
+  declare city: string | null
+  declare region: string | null
+  declare latitude: number | null
+  declare longitude: number | null
   declare contractType: string | null
   declare workMode: WorkMode | null
   // The salary: a range in minor units (cents), its currency (ISO 4217), its period and whether it is gross or net.
@@ -36,6 +47,7 @@ export default class JobOffer extends Model {
   declare company: Company | null
   declare source: Source | null
   declare applications: Application[]
+  declare journeys: Journey[]
 
   static fields() {
     return {
@@ -47,6 +59,14 @@ export default class JobOffer extends Model {
       url: this.string(null),
       location: this.string(null),
       country: this.string(null),
+      addressLine1: this.string(null),
+      addressLine2: this.string(null),
+      addressLine3: this.string(null),
+      postalCode: this.string(null),
+      city: this.string(null),
+      region: this.string(null),
+      latitude: this.number(null),
+      longitude: this.number(null),
       contractType: this.string(null),
       workMode: this.string(null),
       salaryMin: this.number(null),
@@ -60,6 +80,7 @@ export default class JobOffer extends Model {
       company: this.belongsTo(Company, 'companyId'),
       source: this.belongsTo(Source, 'sourceId'),
       applications: this.hasMany(Application, 'jobOfferId'),
+      journeys: this.hasMany(Journey, 'jobOfferId'),
     }
   }
 }
