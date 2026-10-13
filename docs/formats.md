@@ -257,3 +257,13 @@ The protected file is still JSON, with a small readable header, so that the way 
 **Every change is written at once**: a creation, a change, a deletion, a move, a setting, the view of the board. There is no "save" to forget and no delay to wait for. The persistence writes at the end of the turn of the event loop in which the change was made, so what one action changes (an application with its offer, its company and its history) goes out in one write, and nothing depends on a timer that a closing page could cut short. A page that is closed also writes whatever is still waiting.
 
 A screen that must say "saved" waits for the write (`persistence.flush()`), but no action needs it to be safe.
+
+### Text that was typed and not saved
+
+Data is written as soon as it changes, so the only thing a closing page can lose is **text typed and never sent**. Forms say when they hold some (`useDirtyGuard`, in `src/composables/useDirty.ts`), and the pages use it:
+
+- **The form of the offer** compares itself with what is stored: it shows "Unsaved changes" and enables "Save" only when there is something to save. After a save it shows what was stored (trimmed, the amounts written back), so it is clean again.
+- **The forms that add something** (a note, a reminder, a tag, a contact, a way to reach one, an exchange, a pasted email) are unsaved while their text field holds something.
+- **The drawer** asks before it is closed (Escape, the close button, a click outside) while any form is unsaved, and stays open if the user declines.
+- **The browser** asks before the board or the options page is closed while any form is unsaved. A popup cannot be asked, so:
+- **The popup keeps a draft** of what is typed (`jat:draft`), as it is typed, and gives it back when it is opened again on **the same page**. A draft of another page is not given back, so that two offers are never mixed, and a draft older than 7 days is dropped. Saving the offer clears it.

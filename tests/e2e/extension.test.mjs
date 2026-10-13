@@ -828,6 +828,85 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       })
     })
 
+    test('unsaved text asks before the drawer is closed, and the offer form says it has changes', async () => {
+      await open('board', '.application-card')
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
+
+      // The form of the offer is not dirty, and its button has nothing to save.
+      const save = await css('.drawer-content form button[type=submit]')
+      assert.equal(await save.isEnabled(), false)
+      assert.equal((await all('#offer-unsaved')).length, 0)
+
+      await type('.drawer-content input[name=location]', 'Somewhere else')
+      await waitFor(async () => (await all('#offer-unsaved')).length > 0, { message: 'the unsaved mark' })
+      assert.equal(await save.isEnabled(), true)
+
+      // Closing asks first. Declining cancels the closing: the drawer stays, with what was typed.
+      const cancelled = await driver.executeScript(`
+        window.__asked = 0;
+        window.confirm = () => { window.__asked++; return false };
+        const event = new Event('cancel', { cancelable: true });
+        document.querySelector('dialog[open]').dispatchEvent(event);
+        return [window.__asked, event.defaultPrevented];
+      `)
+      assert.deepEqual(cancelled, [1, true])
+      assert.equal((await all('dialog[open]')).length, 1)
+      assert.equal(
+        await css('.drawer-content input[name=location]').then((input) => input.getAttribute('value')),
+        'Somewhere else'
+      )
+
+      // Accepting lets it close.
+      const accepted = await driver.executeScript(`
+        window.confirm = () => true;
+        const event = new Event('cancel', { cancelable: true });
+        document.querySelector('dialog[open]').dispatchEvent(event);
+        return event.defaultPrevented;
+      `)
+      assert.equal(accepted, false)
+
+      // Saving makes the form clean again.
+      await save.click()
+      await waitFor(async () => (await all('#offer-unsaved')).length === 0, { message: 'the mark to go' })
+      assert.equal(await save.isEnabled(), false)
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
+
+    test('the popup gives back what was typed and not saved, and forgets it once the offer is saved', async () => {
+      await open('popup', 'form')
+      await type('input[name=title]', 'A draft title')
+      await type('input[name=company]', 'Draft Inc')
+      // Wait for the draft to be written: the popup may be closed at any moment.
+      await waitFor(
+        async () =>
+          driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:draft', (items) => done(Boolean(items['jat:draft'] && items['jat:draft'].title === 'A draft title')));
+          `),
+        { message: 'the draft to be written' }
+      )
+
+      // Opened again, it is back.
+      await open('popup', 'form')
+      await waitFor(
+        async () => (await css('input[name=title]').then((input) => input.getAttribute('value'))) === 'A draft title',
+        {
+          message: 'the draft to come back',
+        }
+      )
+      assert.equal(await css('input[name=company]').then((input) => input.getAttribute('value')), 'Draft Inc')
+
+      // Saved: the draft is gone.
+      await css('form button[type=submit]').then((button) => button.click())
+      await waitFor(async () => (await all('.success')).length > 0, { message: 'the offer to be saved' })
+      const kept = await driver.executeAsyncScript(`
+        const done = arguments[arguments.length - 1];
+        chrome.storage.local.get('jat:draft', (items) => done(items['jat:draft'] ?? null));
+      `)
+      assert.equal(kept, null)
+    })
+
     test('a deleted application goes to the trash, and comes back from it', async () => {
       await open('board', '.application-card')
       const before = (await all('.application-card')).length

@@ -3,6 +3,7 @@ import { createORM } from 'pinia-orm'
 import { type Component, createApp, h, reactive, watchEffect } from 'vue'
 import { applyAppearance } from '../appearance'
 import '../assets/main.scss'
+import { warnBeforeLeaving } from '../composables/useDirty'
 import { createTranslator, resolveLocale } from '../i18n'
 import { createPersistence } from '../persistence'
 import { browserAdapter } from '../persistence/adapter'
@@ -59,6 +60,9 @@ export async function mountApp(root: Component, selector = '#app') {
 
   // Fresh rates when the switch is on and the last ones are a day old: the page never waits for them.
   void refreshRates(settings, updateSettings)
+
+  // The browser asks before a page is closed with text that was typed and not saved.
+  warnBeforeLeaving()
 
   // A page that closes can leave a change that is not saved yet.
   window.addEventListener('pagehide', () => void persistence.flush())

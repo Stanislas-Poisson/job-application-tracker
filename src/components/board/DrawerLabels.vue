@@ -3,6 +3,7 @@
   import { useRepo } from 'pinia-orm'
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { hasText, useDirtyGuard } from '../../composables/useDirty'
   import { type Application, Tag } from '../../models'
   import { PRIORITIES, TagError, setPriority, tagEntityByName, toggleFavorite, untagEntity } from '../../services/tags'
 
@@ -11,6 +12,7 @@
   const { t } = useApp()
 
   const name = ref('')
+  useDirtyGuard(() => hasText(name.value))
   const problem = ref('')
 
   const known = computed(() => useRepo(Tag).orderBy('name').get())

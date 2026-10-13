@@ -1,8 +1,9 @@
 <script setup lang="ts">
   import { FormButton, FormInput, FormSelect, FormTextarea } from '@zairakai/vue-components/Form'
   import { useRepo } from 'pinia-orm'
-  import { computed, reactive, ref, watch } from 'vue'
+  import { computed, nextTick, reactive, ref, watch } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { useDirtyGuard } from '../../composables/useDirty'
   import { useFormat } from '../../composables/useFormat'
   import { type Application, JobOffer, Status } from '../../models'
   import { deleteApplication, findOrCreateCompany, moveApplication, setArchived } from '../../services/applications'
@@ -35,28 +36,37 @@
     description: '',
   })
 
+  // The values the form starts from: what is stored.
+  const stored = computed(() => ({
+    title: offer.value?.title ?? '',
+    company: offer.value?.company?.name ?? '',
+    url: offer.value?.url ?? '',
+    location: offer.value?.location ?? '',
+    country: offer.value?.country ?? '',
+    contractType: offer.value?.contractType ?? '',
+    postedOn: offer.value?.postedOn ?? '',
+    salaryMin: minorToInput(offer.value?.salaryMin ?? null, offer.value?.salaryCurrency ?? null),
+    salaryMax: minorToInput(offer.value?.salaryMax ?? null, offer.value?.salaryCurrency ?? null),
+    salaryCurrency: offer.value?.salaryCurrency ?? '',
+    salaryPeriod: offer.value?.salaryPeriod ?? '',
+    salaryKind: offer.value?.salaryKind ?? '',
+    description: offer.value?.description ?? '',
+  }))
+
   // The form starts again from the stored values when another application is opened.
   watch(
     () => props.application.id,
-    () => {
-      Object.assign(form, {
-        title: offer.value?.title ?? '',
-        company: offer.value?.company?.name ?? '',
-        url: offer.value?.url ?? '',
-        location: offer.value?.location ?? '',
-        country: offer.value?.country ?? '',
-        contractType: offer.value?.contractType ?? '',
-        postedOn: offer.value?.postedOn ?? '',
-        salaryMin: minorToInput(offer.value?.salaryMin ?? null, offer.value?.salaryCurrency ?? null),
-        salaryMax: minorToInput(offer.value?.salaryMax ?? null, offer.value?.salaryCurrency ?? null),
-        salaryCurrency: offer.value?.salaryCurrency ?? '',
-        salaryPeriod: offer.value?.salaryPeriod ?? '',
-        salaryKind: offer.value?.salaryKind ?? '',
-        description: offer.value?.description ?? '',
-      })
-    },
+    () => Object.assign(form, stored.value),
     { immediate: true }
   )
+
+  // The form is unsaved when it differs from what is stored. A number field can hold a number, hence the texts.
+  const dirty = computed(() =>
+    Object.keys(stored.value).some(
+      (key) => String(form[key as keyof typeof form] ?? '') !== String(stored.value[key as keyof typeof stored.value])
+    )
+  )
+  useDirtyGuard(() => dirty.value)
 
   const statusOptions = computed(() =>
     Object.fromEntries(
@@ -88,7 +98,7 @@
     ...Object.fromEntries(SALARY_KINDS.map((kind) => [kind, t(`salary.kind.${kind}`)])),
   }))
 
-  function save() {
+  async function save() {
     if (!offer.value) {
       return
     }
@@ -122,6 +132,10 @@
         ...salary,
         description: form.description || null,
       })
+    // The form shows what was stored (trimmed, the amounts written back), so that it is no longer unsaved. The drawer gets
+    // the new values on its next update: reading them before would put the old ones back.
+    await nextTick()
+    Object.assign(form, stored.value)
   }
 
   // A move is written at once: closing the tab right after must not lose it.
@@ -261,7 +275,18 @@
         {{ problem }}
       </p>
       <div class="row">
-        <FormButton type="submit">{{ t('drawer.save') }}</FormButton>
+        <FormButton
+          type="submit"
+          :disabled="!dirty"
+          >{{ t('drawer.save') }}</FormButton
+        >
+        <span
+          v-if="dirty"
+          id="offer-unsaved"
+          class="muted"
+          role="status"
+          >{{ t('dirty.unsaved') }}</span
+        >
         <FormButton
           type="button"
           @click="setArchived(application.id, !application.archived)"
