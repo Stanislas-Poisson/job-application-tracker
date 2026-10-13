@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { findJobPostings, htmlToText, offerFromJobPosting } from '../../src/extraction/jobPosting'
-import { readSnapshot } from '../../src/extraction/read'
+import { readOpenGraph, readSnapshot, titleFromPage } from '../../src/extraction/read'
 import { postedDay } from '../../src/utils/time'
 
 const PARIS = 'Europe/Paris'
@@ -121,13 +121,58 @@ describe('htmlToText', () => {
   })
 })
 
+describe('titleFromPage', () => {
+  it('drops the name of the site', () => {
+    expect(titleFromPage('Senior developer - Acme | LinkedIn')).toBe('Senior developer - Acme')
+    expect(titleFromPage('  Dev   PHP ')).toBe('Dev PHP')
+    expect(titleFromPage('')).toBeUndefined()
+  })
+})
+
+describe('readOpenGraph', () => {
+  it('takes the title and the description of the tags', () => {
+    const offer = readOpenGraph({
+      url: 'https://x.test',
+      title: 'Ignored | Site',
+      jsonLd: [],
+      meta: { 'og:title': 'Dev PHP', 'og:description': 'Join <b>us</b>', 'og:site_name': 'Jobboard' },
+    })
+    expect(offer).toEqual({ title: 'Dev PHP', companyName: 'Jobboard', description: 'Join us' })
+  })
+
+  it('falls back on the title of the page and on the plain description', () => {
+    const offer = readOpenGraph({
+      url: 'https://x.test',
+      title: 'Dev PHP | Jobboard',
+      jsonLd: [],
+      meta: { description: 'A job' },
+    })
+    expect(offer).toEqual({ title: 'Dev PHP', description: 'A job' })
+  })
+})
+
 describe('readSnapshot', () => {
   it('reads the first posting of the page', () => {
     const snapshot = { url: 'https://x.test/job', title: 'Job', jsonLd: [JSON.stringify(posting)], meta: {} }
     expect(readSnapshot(snapshot, PARIS).title).toBe('Senior developer')
   })
 
-  it('gives nothing for a page with no posting', () => {
-    expect(readSnapshot({ url: 'https://x.test', title: 'Home', jsonLd: [], meta: {} }, PARIS)).toEqual({})
+  it('fills what the posting does not say from OpenGraph, and never the company from the site name', () => {
+    const snapshot = {
+      url: 'https://x.test/job',
+      title: 'Page',
+      jsonLd: [JSON.stringify({ '@type': 'JobPosting', title: 'Dev' })],
+      meta: { 'og:description': 'Nice job', 'og:site_name': 'Jobboard' },
+    }
+    expect(readSnapshot(snapshot, PARIS)).toEqual({ title: 'Dev', description: 'Nice job' })
+  })
+
+  it('falls back on OpenGraph when there is no posting', () => {
+    const snapshot = { url: 'https://x.test', title: 'Home | Site', jsonLd: [], meta: {} }
+    expect(readSnapshot(snapshot, PARIS)).toEqual({ title: 'Home' })
+  })
+
+  it('gives nothing for a page that says nothing', () => {
+    expect(readSnapshot({ url: 'https://x.test', title: '', jsonLd: [], meta: {} }, PARIS)).toEqual({})
   })
 })
