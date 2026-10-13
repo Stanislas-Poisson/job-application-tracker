@@ -4,6 +4,7 @@ import { MODELS } from '../models'
 import { SCHEMA_VERSION } from '../persistence'
 import { type RawData, migrate } from '../persistence/schema'
 import { type Settings, normalizeSettings } from '../settings'
+import { canonicalJson } from '../utils/checksum'
 import { seedDefaults } from './seed'
 
 export const EXPORT_APP = 'job-application-tracker'
@@ -123,21 +124,6 @@ export interface RestorePlan {
   models: ModelDiff[]
 }
 
-// A record as text with its keys in order, to tell whether two are the same.
-const canonical = (record: unknown): string => {
-  const sorted = (value: unknown): unknown =>
-    Array.isArray(value)
-      ? value.map(sorted)
-      : 'object' === typeof value && null !== value
-        ? Object.fromEntries(
-            Object.entries(value)
-              .sort(([a], [b]) => (a < b ? -1 : 1))
-              .map(([key, item]) => [key, sorted(item)])
-          )
-        : value
-  return JSON.stringify(sorted(record))
-}
-
 /**
  * What restoring a backup would change, kind of data by kind of data, before anything is applied. Nothing is written.
  * A record of the backup is read like a stored one (the fields an older backup lacks get their defaults), so that
@@ -174,7 +160,7 @@ export function planRestore(file: unknown, pinia?: Pinia): RestorePlan {
           ([key]) => key in before
         )
       )
-      if (canonical(before) === canonical(fields)) {
+      if (canonicalJson(before) === canonicalJson(fields)) {
         diff.same++
       } else {
         diff.changed++

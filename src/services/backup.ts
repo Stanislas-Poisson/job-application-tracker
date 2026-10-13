@@ -3,6 +3,7 @@ import { useRepo } from 'pinia-orm'
 import { Application, Contact } from '../models'
 import { loadBackupHandle, saveBackupHandle } from '../persistence/fileHandle'
 import type { Settings } from '../settings'
+import { withChecksum } from '../utils/checksum'
 import { exportData } from './data'
 
 export const BACKUP_PREFIX = 'job-application-tracker'
@@ -10,9 +11,9 @@ export const BACKUP_PREFIX = 'job-application-tracker'
 // "job-application-tracker-2026-10-12.json"
 export const backupFileName = (day: string): string => `${BACKUP_PREFIX}-${day}.json`
 
-// The text of the backup: a readable JSON file, the data and the settings.
-export function backupText(settings: Settings, pinia?: Pinia): string {
-  return JSON.stringify(exportData(pinia, settings), null, 2)
+// The text of the backup: a readable JSON file, the data and the settings, with a checksum of its content.
+export async function backupText(settings: Settings, pinia?: Pinia): Promise<string> {
+  return JSON.stringify(await withChecksum(exportData(pinia, settings)), null, 2)
 }
 
 // Whether there is anything worth saving: a backup of nothing is no reason to remind.

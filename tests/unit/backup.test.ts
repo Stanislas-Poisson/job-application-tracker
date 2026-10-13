@@ -63,7 +63,7 @@ describe('what is in a backup', () => {
     expect(hasData()).toBe(true)
   })
 
-  it('holds the settings but neither the cache of the rates nor the date of the last backup', () => {
+  it('holds the settings but neither the cache of the rates nor the date of the last backup', async () => {
     const chosen = settings({
       theme: 'dark',
       homeCurrency: 'EUR',
@@ -72,7 +72,7 @@ describe('what is in a backup', () => {
       lastBackupAt: '2026-10-01T08:00:00.000Z',
       autoRatesData: { home: 'EUR', date: '2026-10-12', fetchedAt: '2026-10-12T08:00:00.000Z', rates: { USD: 0.9 } },
     })
-    const file = JSON.parse(backupText(chosen)) as { settings: Record<string, unknown> }
+    const file = JSON.parse(await backupText(chosen)) as { settings: Record<string, unknown> }
 
     expect(file.settings).toMatchObject({
       theme: 'dark',
@@ -84,9 +84,9 @@ describe('what is in a backup', () => {
     expect(file.settings).not.toHaveProperty('lastBackupAt')
   })
 
-  it('is plain, indented JSON that can be imported back with its settings', () => {
+  it('is plain, indented JSON that can be imported back with its settings', async () => {
     captureOffer({ title: 'One', companyName: 'Acme' })
-    const text = backupText(settings({ accent: 'teal', backupReminderDays: 7 }))
+    const text = await backupText(settings({ accent: 'teal', backupReminderDays: 7 }))
     expect(text).toContain('\n  "app"')
 
     freshStore({ seed: false })

@@ -17,7 +17,11 @@
   async function backup() {
     failed.value = false
     try {
-      const result = await backupToFile(backupText(settings), todayIn(format.timeZone.value), browserEnvironment())
+      const result = await backupToFile(
+        await backupText(settings),
+        todayIn(format.timeZone.value),
+        browserEnvironment()
+      )
       if (result.done) {
         await updateSettings({ lastBackupAt: new Date().toISOString() })
       }
