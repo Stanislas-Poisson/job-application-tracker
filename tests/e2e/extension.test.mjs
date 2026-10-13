@@ -934,6 +934,70 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       assert.equal(await css('input[name=followUpDays]').then((input) => input.getAttribute('value')), '7')
     })
 
+    test('the address of a notification opens the application, and closing it takes the address off', async () => {
+      await open('board', '.application-card')
+      const id = await driver.executeAsyncScript(`
+        const done = arguments[arguments.length - 1];
+        chrome.storage.local.get('jat:applications', (items) => done((items['jat:applications'] || [])[0]?.id ?? null));
+      `)
+      assert.ok(id, 'there is an application')
+
+      // The tab of the board is told the address of the application, as a click on a notification does.
+      await driver.executeScript(`location.hash = 'application=${id}'`)
+      await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer to open' })
+
+      await driver.executeScript(`document.querySelector('dialog[open]').close()`)
+      await waitFor(async () => (await driver.executeScript('return location.hash')) === '', {
+        message: 'the address to go',
+      })
+
+      // An id that is not there opens nothing.
+      await driver.executeScript(`location.hash = 'application=nothing-here'`)
+      await driver.sleep(300)
+      assert.equal((await all('.drawer-content')).length, 0)
+      await driver.executeScript(`history.replaceState(null, '', location.pathname)`)
+    })
+
+    test('the notifications are off to begin with, and the options for the alert show only when they are on', async () => {
+      await open('options', '#notify-reminders')
+      assert.equal(await css('#notify-reminders').then((box) => box.isSelected()), false)
+      assert.equal((await all('#notify-persistent')).length, 0)
+      assert.match(await text('main'), /icon of the extension shows how many reminders are due/)
+    })
+
+    test('the icon of the extension shows how many reminders are due, and goes down when one is done', async () => {
+      await open('board', '.application-card')
+      const badge = async () =>
+        Number(
+          (await driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            (chrome.action || chrome.browserAction).getBadgeText({}, (text) => done(text));
+          `)) || 0
+        )
+      const before = await badge()
+
+      // A reminder that was due long ago.
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
+      await type('input[name=reminderTitle]', 'Overdue for the badge')
+      await driver.executeScript(`
+        const input = document.querySelector('input[name=reminderDue]');
+        input.value = '2020-01-01T09:00';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.closest('form').querySelector('button[type=submit]').click();
+      `)
+      await waitFor(async () => (await badge()) === before + 1, { message: 'the number on the icon to go up' })
+
+      // Done: it is not due any more.
+      await driver.executeScript(`
+        [...document.querySelectorAll('.drawer-content li')]
+          .find((li) => li.textContent.includes('Overdue for the badge'))
+          .querySelector('input[type=checkbox]').click();
+      `)
+      await waitFor(async () => (await badge()) === before, { message: 'the number on the icon to go down' })
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
+
     test('a deleted application goes to the trash, and comes back from it', async () => {
       await open('board', '.application-card')
       const before = (await all('.application-card')).length
