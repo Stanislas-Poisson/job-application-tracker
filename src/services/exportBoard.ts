@@ -2,6 +2,7 @@ import type { Application } from '../models'
 import { UTF8_BOM, plainCell, toCsv } from '../utils/csv'
 import {
   type Conversion,
+  type Salary,
   type SalaryKind,
   type SalaryPeriod,
   comparableSalary,
@@ -28,6 +29,8 @@ export const COLUMNS = [
   'salaryKind',
   'homeCurrency',
   'salaryPerYearHome',
+  'netPerYear',
+  'netProfile',
   'appliedAt',
   'createdAt',
   'updatedAt',
@@ -55,6 +58,8 @@ export interface ExportLabels {
 export interface ExportContext {
   labels: ExportLabels
   conversion: Conversion
+  // The estimate of the net pay of the salary of an offer, per year (the middle of the range), by the profile chosen, or null.
+  netEstimate: (salary: Salary) => { amount: number; currency: string; profile: string } | null
   // The names of the final clients of a company (a recruitment firm hires for them).
   finalClients: (companyId: string) => string[]
   // The label of the column an application is in, by the id of its status.
@@ -97,6 +102,7 @@ export function boardRows(applications: Application[], context: ExportContext): 
       kind: offer?.salaryKind ?? null,
     }
     const perYear = null === currency ? null : comparableSalary(salary, conversion)
+    const net = context.netEstimate(salary)
     const waiting = (application.reminders ?? [])
       .filter((reminder) => null === reminder.doneAt)
       .sort((a, b) => a.dueAt.localeCompare(b.dueAt))
@@ -120,6 +126,8 @@ export function boardRows(applications: Application[], context: ExportContext): 
       salaryKind: salary.kind ? labels.kinds[salary.kind] : '',
       homeCurrency: null === perYear ? '' : conversion.home,
       salaryPerYearHome: decimalAmount(perYear, null === perYear ? null : conversion.home, decimal),
+      netPerYear: net ? decimalAmount(net.amount, net.currency, decimal) : '',
+      netProfile: net?.profile ?? '',
       appliedAt: application.appliedAt ?? '',
       createdAt: application.createdAt,
       updatedAt: application.updatedAt,
