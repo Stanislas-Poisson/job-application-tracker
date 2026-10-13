@@ -1,5 +1,6 @@
 import { useRepo } from 'pinia-orm'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { reactive } from 'vue'
 import { Application, Status } from '../../src/models'
 import { captureOffer } from '../../src/services/applications'
 import { EXPORT_APP, exportData, importData, planRestore, readExport, wipeData } from '../../src/services/data'
@@ -116,5 +117,13 @@ describe('planRestore', () => {
     expect(() => planRestore({ app: EXPORT_APP, schema: 1, data: null })).toThrow(/not an export/)
     expect(() => planRestore({ app: EXPORT_APP, schema: 999, data: {} })).toThrow(/newer version/)
     expect(() => readExport({ app: EXPORT_APP, schema: 1, data: { tags: 'no' } })).toThrow(/not a list/)
+  })
+})
+
+describe('a file held by the interface', () => {
+  it('is read even when its records are reactive objects', () => {
+    const file = reactive({ app: EXPORT_APP, schema: 1, data: { companies: [{ id: 'c1', name: 'Acme' }] } })
+    expect(() => readExport(file)).not.toThrow()
+    expect(readExport(file).data.companies).toHaveLength(1)
   })
 })

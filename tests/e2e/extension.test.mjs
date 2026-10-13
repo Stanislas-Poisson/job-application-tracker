@@ -731,6 +731,52 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       fs.unlinkSync(file)
     })
 
+    test('the data of another computer is previewed, needs the risk of duplicates to be accepted, then is added without removing anything', async () => {
+      const file = path.join(os.tmpdir(), `jat-merge-${Date.now()}.json`)
+      const other = {
+        app: 'job-application-tracker',
+        schema: 8,
+        exportedAt: '2026-10-01T08:00:00.000Z',
+        data: { companies: [{ id: 'company_other_computer', name: 'Other Computer Co' }] },
+      }
+      fs.writeFileSync(file, JSON.stringify(other))
+      await open('options', '#merge-file')
+      await css('#merge-file').then((input) => input.sendKeys(file))
+      await waitFor(async () => (await all('#merge-preview')).length > 0, { message: 'the merge preview' })
+      assert.match(await text('#merge-preview'), /Companies/)
+      assert.match(await text('#merge-preview'), /1 will be added/)
+      // The risk is accepted first.
+      assert.equal(await css('#merge-apply').then((button) => button.isEnabled()), false)
+      await css('#merge-understood').then((box) => box.click())
+      await waitFor(async () => css('#merge-apply').then((button) => button.isEnabled()), {
+        message: 'the button to be enabled',
+      })
+      await css('#merge-apply').then((button) => button.click())
+      try {
+        await waitFor(async () => (await all('#merge-preview')).length === 0, { message: 'the merge to be applied' })
+      } catch (error) {
+        throw new Error(
+          `${error.message} / page says: ${(await all('.error')).length ? await text('.error') : 'nothing'}`
+        )
+      }
+
+      const names = await waitFor(
+        async () => {
+          const companies = await driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get(null, (items) => done(items['jat:companies'] || []));
+          `)
+          return companies.some((company) => company.name === 'Other Computer Co') && companies
+        },
+        { message: 'the company of the other computer to be kept' }
+      )
+      assert.ok(names.length >= 1)
+      // Nothing was removed.
+      await open('board', '.column')
+      assert.ok((await all('.application-card')).length > 0)
+      fs.unlinkSync(file)
+    })
+
     test('the checksum of a backup is checked: a file that was changed needs an explicit yes', async () => {
       const canonical = (value) =>
         JSON.stringify(
