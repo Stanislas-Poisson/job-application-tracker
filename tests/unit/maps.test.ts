@@ -3,7 +3,6 @@ import { emptyAddress } from '../../src/services/address'
 import {
   type MapChoice,
   type Place,
-  formatCommute,
   isValidTemplate,
   placeFrom,
   placeLink,
@@ -171,17 +170,5 @@ describe('isValidTemplate', () => {
     expect(isValidTemplate('javascript:alert({query})')).toBe(false)
     expect(isValidTemplate('https://')).toBe(false)
     expect(isValidTemplate('')).toBe(false)
-  })
-})
-
-describe('formatCommute', () => {
-  it('writes the distance and the time as people say them', () => {
-    expect(formatCommute(12_400, 35)).toBe('12.4 km - 35 min')
-    expect(formatCommute(5_000, 90)).toBe('5 km - 1 h30')
-    expect(formatCommute(800, 5)).toBe('0.8 km - 5 min')
-    expect(formatCommute(null, 45)).toBe('45 min')
-    expect(formatCommute(3_000, null)).toBe('3 km')
-    expect(formatCommute(null, null)).toBe('')
-    expect(formatCommute(100_000, 60)).toBe('100 km - 1 h00')
   })
 })

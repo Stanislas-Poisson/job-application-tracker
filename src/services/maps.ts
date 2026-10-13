@@ -2,7 +2,7 @@ import { type AddressParts, formatAddress, hasCoordinates } from './address'
 
 // Links to a map service. The extension asks nothing of any service: it builds a link, and the browser opens it when the
 // user clicks. The address goes to the service then, and only then. The user searches there and keeps in the offer what
-// they found (see the distance and the time of an offer).
+// they found (see the journeys of an offer).
 
 export const PROVIDERS = ['google', 'osm', 'apple', 'custom'] as const
 export const TRAVEL_MODES = ['car', 'transit', 'bike', 'walk'] as const
@@ -150,18 +150,4 @@ export function routeLink(from: Place, to: Place, choice: MapChoice): string | n
         lon: numberText(to.longitude),
       })
   }
-}
-
-// The way there as people say it: "12.4 km - 35 min by car".
-export function formatCommute(meters: number | null, minutes: number | null): string {
-  const parts: string[] = []
-  if (null !== meters) {
-    parts.push(`${(meters / 1000).toFixed(1).replace(/\.0$/, '')} km`)
-  }
-  if (null !== minutes) {
-    parts.push(
-      60 > minutes ? `${minutes} min` : `${Math.floor(minutes / 60)} h${String(minutes % 60).padStart(2, '0')}`
-    )
-  }
-  return parts.join(' - ')
 }

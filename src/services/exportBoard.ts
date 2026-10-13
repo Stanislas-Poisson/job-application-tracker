@@ -1,4 +1,5 @@
 import type { Application, JobOffer } from '../models'
+import type { LegMode } from '../models/Journey'
 import { UTF8_BOM, plainCell, toCsv } from '../utils/csv'
 import {
   type Conversion,
@@ -10,6 +11,7 @@ import {
   fromMinor,
 } from '../utils/money'
 import { type AddressParts, formatAddress, normalizeAddress } from './address'
+import { describeJourney, preferredOf, totalMeters, totalMinutes } from './journeys'
 
 export const COLUMNS = [
   'status',
@@ -23,9 +25,10 @@ export const COLUMNS = [
   'region',
   'latitude',
   'longitude',
-  'commuteKm',
   'commuteMinutes',
-  'commuteMode',
+  'commuteKm',
+  'journey',
+  'returnMinutes',
   'country',
   'contract',
   'workMode',
@@ -63,7 +66,8 @@ export interface ExportLabels {
   priorities: Record<string, string>
   periods: Record<SalaryPeriod, string>
   kinds: Record<SalaryKind, string>
-  modes: Record<string, string>
+  // The names of the means of a leg of a journey.
+  legModes: Record<LegMode, string>
 }
 
 export interface ExportContext {
@@ -116,6 +120,10 @@ export function boardRows(applications: Application[], context: ExportContext): 
     }
     const perYear = null === currency ? null : comparableSalary(salary, conversion)
     const net = context.netEstimate(salary)
+    // The way there and the way back: the journeys the user marked, or the shortest.
+    const outbound = preferredOf(offer?.journeys ?? [], 'outbound')
+    const back = preferredOf(offer?.journeys ?? [], 'return')
+    const outboundMeters = outbound ? totalMeters(outbound.legs) : null
     const waiting = (application.reminders ?? [])
       .filter((reminder) => null === reminder.doneAt)
       .sort((a, b) => a.dueAt.localeCompare(b.dueAt))
@@ -132,9 +140,10 @@ export function boardRows(applications: Application[], context: ExportContext): 
       region: offer?.region ?? '',
       latitude: null == offer?.latitude ? '' : String(offer.latitude).replace('.', decimal),
       longitude: null == offer?.longitude ? '' : String(offer.longitude).replace('.', decimal),
-      commuteKm: null == offer?.commuteMeters ? '' : String(offer.commuteMeters / 1000).replace('.', decimal),
-      commuteMinutes: null == offer?.commuteMinutes ? '' : String(offer.commuteMinutes),
-      commuteMode: offer?.commuteMode ? (labels.modes[offer.commuteMode] ?? '') : '',
+      commuteMinutes: outbound ? String(totalMinutes(outbound.legs)) : '',
+      commuteKm: null == outboundMeters ? '' : String(outboundMeters / 1000).replace('.', decimal),
+      journey: outbound ? describeJourney(outbound, (mode) => labels.legModes[mode]) : '',
+      returnMinutes: back ? String(totalMinutes(back.legs)) : '',
       country: offer?.country ?? '',
       contract: offer?.contractType ?? '',
       workMode: offer?.workMode ?? '',

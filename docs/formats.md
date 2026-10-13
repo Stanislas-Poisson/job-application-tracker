@@ -200,7 +200,7 @@ A restore is for a loss (a lost profile, a reinstall, a new computer): it **repl
 
 ## Versions of the structure
 
-The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **7** now.
+The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **8** now.
 
 | Version | What changed |
 | :--- | :--- |
@@ -210,6 +210,7 @@ The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/pe
 | 4 | A person can work for several companies (`contactCompanies`). The company a contact had becomes a first link. |
 | 5 | Pay profiles to estimate the net pay (`payProfiles`). |
 | 6 | An offer has the address of its workplace and the way there (`address`, `commuteMeters`, `commuteMinutes`, `commuteMode`). |
+| 8 | The way to work is a list of journeys in legs (`journeys`); the distance, the time and the means kept in an offer become a journey of one leg. |
 | 7 | The address is in fields (lines 1 to 3, postal code, city, region, position). The line that was kept becomes the first line; nothing is guessed from it. |
 
 - **Older data is brought up to date.** A migration turns the data of version N into the data of N + 1, one step at a time. It runs on the storage when a page opens (the result is saved with the new version) and on a backup file when it is read, so an old backup can still be restored. The preview says when a backup is old.
@@ -409,20 +410,12 @@ Address lines 1 to 3, postal code, city, region, country (an ISO code, the same 
 - **OpenStreetMap makes a route only from positions**: with the position of both ends it opens the route (by car, bicycle or on foot); without them it only shows the place, and the page says what is missing. **It has no route for public transport**, and says so. A link of the user's own that has no `{from}` shows the place only.
 - **The start** of a route is the home address of the settings. It stays in the browser with the other settings and the backups, and never goes into the CSV export. How the user usually travels is a setting too, and can be changed for an offer.
 
-### What was found
+### Journeys to work
 
-Kept in the offer: the distance (kept in metres, written in kilometres), the time (whole minutes, at most 24 hours) and how the user travels. The card shows it (`12.4 km - 35 min`) and the CSV has it, with the address in fields and on one line. **No distance is computed by the extension**, because it would need a service to find the way: the user does the search on the map, where they can see the real route.
+An offer keeps any number of **journeys**, each a list of **legs** found by the user on a map: for instance, from Tours to Bussy-Saint-Georges, on foot 10 min, bus 12 25 min, train TER 1 h02, metro 14 20 min, RER A 18 min, on foot 8 min, **2 h23 in all**.
 
-### Several pages on one storage
-
-The popup, the board and the options are open at the same time, each with its own copy of the data, all writing to one storage. A page that replaced what the storage holds by its own copy would erase what another page wrote and it had not seen yet. So a page never does that:
-
-- **A write is a read, a merge and a write.** The storage is read at the moment of the write, and the changes of the page are brought to what it holds, **record by record, by id** (`src/persistence/merge.ts`). Three states are compared: the **base** (what the page and the storage last agreed on), **mine** (the page) and **theirs** (the storage now).
-  - A record that only one side changed (made, changed or removed) keeps that side's version.
-  - A record both changed: the one changed last (`updatedAt`) stands, this page's when they are equal.
-  - A record one side removed and the other changed **stays**: a removal never wins against an edit, nothing is lost.
-- **A read takes in the other pages.** When the storage tells a page that it changed, the page merges what it holds with what it has changed since its last write, and writes the rest when it saves. A write of its own coming back is recognised and ignored.
-- **One queue.** The writes and the reads of a page run one after the other, so that two of them never overlap.
-- **The settings follow the same rule.** Changing a setting writes only that setting into what the storage holds now (`changeSettings`), never the whole copy of the page. The changes that wait for their turn go out together (a field typed letter by letter makes one write, not thirty), and **while a write of the page is under way it does not read the storage back**: the storage tells the page about every write, the older ones included, and reading them would put an old value over what was just typed (`syncSettings`).
-- **The default columns and sources have fixed ids** (`status_applied`, `source_linkedin`…), so that two pages opened together on an empty storage make the same records and not two sets.
-- **What is left.** The storage has no transaction: two writes in the very same instant can still lose one of two changes to the same record. The window is the time between a page reading and writing, a few milliseconds, instead of the whole life of a page as before.
+- A leg has a means (on foot, bicycle, car, bus, tram, metro, train, suburban train such as the RER, public transport, ferry, waiting, other), an optional line or operator (60 characters at most), a **whole number of minutes** (0 to 24 hours) and an optional distance in metres (written in kilometres). **The total is the sum of the legs**, waiting included; the distance in total is the sum of the distances given.
+- A journey is **outbound** or **return**, with an optional name. **Adding the way back** makes the same legs in the reverse order. A journey of more than 24 hours, no leg, an unknown means or a time that is not whole is refused, and nothing is kept.
+- **One journey per direction is the preferred one** (the first one made; the user can change it; when it is deleted the shortest takes its place). The card shows the time of the preferred outbound journey, and the CSV has its time, its distance, the journey in words and the time of the preferred way back.
+- **No time or distance is computed by the extension**: it would need a service to find the way. The user does the search on the map and keeps the result.
+- Stored in `journeys` (`id`, `updatedAt`, `jobOfferId`, `direction`, `name`, `preferred`, `legs`). Before structure version 8 the distance, time and means kept in an offer are turned into a journey of one leg (`jy_<offer id>`), the preferred outbound one.
