@@ -1,4 +1,4 @@
-import { themeCss } from './customTheme'
+import { COLUMN_COUNT, themeCss } from './customTheme'
 import type { Accent, FontFamily, Settings, TextSpacing, Vision } from './settings'
 
 // The colours of an accent are in assets/main.scss. Here is what the pages need to draw their choices.
@@ -28,7 +28,11 @@ export const COLOUR_BLIND_PALETTE = [
 export const SHAPES = ['●', '■', '▲', '◆', '★', '▼', '⬟', '✚']
 
 // The colour of a column. The one the user chose, or one of the palette in a colour-blind mode.
-export function statusColor(chosen: string, index: number, vision: Vision): string {
+export function statusColor(chosen: string, index: number, vision: Vision, customTheme = false): string {
+  // A custom theme has the colours of its own for the columns, in every mode: the shapes still tell them apart.
+  if (customTheme) {
+    return `var(--column-${String(index % COLUMN_COUNT)})`
+  }
   if ('red-green' === vision || 'blue-yellow' === vision) {
     return COLOUR_BLIND_PALETTE[index % COLOUR_BLIND_PALETTE.length] ?? chosen
   }
