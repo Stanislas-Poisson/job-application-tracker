@@ -26,3 +26,4 @@
 - Fixed: the default sources shared their objects between stores.
 - Backups carry a checksum. A restore tells whether the file is as it was saved, and asks for an explicit yes when it is not (a file edited by hand, cut off or damaged). Reformatting the file does not break it.
 - Backups protected by a passphrase: a switch encrypts the backup in the browser (AES-GCM, key from PBKDF2-SHA256 with 600 000 iterations and a random salt) before it is written. The passphrase is typed twice, never kept, and asked again on the next page; a typing mistake is caught by a stored check. Restoring a protected backup asks for the passphrase, and a wrong one, or a file that was changed, fails without changing anything.
+- Every change is written at once (at the end of the turn it was made in) instead of after a delay of a fraction of a second: a creation, a change, a deletion, a move, and the view of the board. Closing a tab right after an action can no longer lose it.

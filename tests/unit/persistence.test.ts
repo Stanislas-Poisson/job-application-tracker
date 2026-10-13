@@ -1,6 +1,6 @@
 import { useRepo } from 'pinia-orm'
 import { describe, expect, it } from 'vitest'
-import { Application, Status } from '../../src/models'
+import { Application, Company, Status } from '../../src/models'
 import { SCHEMA_KEY, SCHEMA_VERSION, createPersistence, keyOf } from '../../src/persistence'
 import { memoryAdapter } from '../../src/persistence/adapter'
 import { captureOffer } from '../../src/services/applications'
@@ -110,5 +110,62 @@ describe('persistence', () => {
     expect(writes).toBe(0)
     pa.stop()
     pb.stop()
+  })
+})
+
+describe('writing at once', () => {
+  it('writes a change without waiting for a flush, as soon as the turn is over', async () => {
+    const adapter = memoryAdapter()
+    const persistence = createPersistence(freshStore({ seed: false }), adapter)
+    await persistence.ready
+
+    captureOffer({ title: 'One', companyName: 'Acme' })
+    // Not yet: the turn of the action is not over.
+    expect((adapter.data[keyOf('applications')] as unknown[] | undefined) ?? []).toHaveLength(0)
+    await new Promise((resolve) => setTimeout(resolve, 5))
+
+    expect((adapter.data[keyOf('applications')] as unknown[]).length).toBe(1)
+    persistence.stop()
+  })
+
+  it('writes what one action changes in one write', async () => {
+    const adapter = memoryAdapter()
+    const set = adapter.set.bind(adapter)
+    let writes = 0
+    adapter.set = async (items) => {
+      writes++
+      return set(items)
+    }
+    const persistence = createPersistence(freshStore({ seed: false }), adapter)
+    await persistence.ready
+    writes = 0
+
+    // An application, its offer, its company and its history, in a single action.
+    captureOffer({ title: 'One', companyName: 'Acme' })
+    await new Promise((resolve) => setTimeout(resolve, 5))
+
+    expect(writes).toBe(1)
+    persistence.stop()
+  })
+
+  it('writes a creation, a change and a deletion, each when it happens', async () => {
+    const adapter = memoryAdapter()
+    const persistence = createPersistence(freshStore({ seed: false }), adapter)
+    await persistence.ready
+    const wait = () => new Promise((resolve) => setTimeout(resolve, 5))
+    const stored = () => adapter.data[keyOf('companies')] as { name: string }[]
+
+    const company = useRepo(Company).save({ name: 'Acme' })
+    await wait()
+    expect(stored().map((record) => record.name)).toEqual(['Acme'])
+
+    useRepo(Company).where('id', company.id).update({ name: 'Acme 2' })
+    await wait()
+    expect(stored().map((record) => record.name)).toEqual(['Acme 2'])
+
+    useRepo(Company).destroy(company.id)
+    await wait()
+    expect(stored()).toEqual([])
+    persistence.stop()
   })
 })
