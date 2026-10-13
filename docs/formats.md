@@ -381,3 +381,7 @@ A helper in the options, for a freelance: from the **income wanted** it finds th
 - **What it shows.** The day and hourly rates, the turnover, the costs and each line of the charges, and what is left, per year and per month.
 - **When it cannot be done.** If the charges take everything above some level (a rate of 100%), no turnover leaves the income, and it says so.
 - **An estimate.** It does not count the VAT, nor the days without a mission. Like the net pay of an employee, it is never a promise.
+
+### The journal of the persistence
+
+Each page keeps in memory the last 80 things its persistence did: what it **wrote** (the kind of data, a short fingerprint of the state, and for the applications their priorities and favourites) and what it **read** back from the storage, with whether it recognised it as its own write or as the write of another page (`FOREIGN`). It holds no data, only counts and fingerprints. It is `window.__jat.events` of a page, and the browser tests print it when two pages disagree, to find out which one put an old state back.
