@@ -518,7 +518,27 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         message: 'the tag on the card',
       })
       assert.equal((await all('.application-card .card-star')).length, 1)
-      assert.match(await text('.application-card'), /High/)
+      // The priority is a separate change from the tag and the favourite: it is waited for, and if it never comes the test
+      // says what the storage holds, to tell a display that is late from a change that was lost.
+      try {
+        await waitFor(async () => /High/.test(await text('.application-card')), { message: 'the priority on the card' })
+      } catch (error) {
+        const stored = await driver.executeAsyncScript(`
+          const done = arguments[arguments.length - 1];
+          chrome.storage.local.get('jat:applications', (items) => done((items['jat:applications'] || []).map((a) => ({ priority: a.priority, isFavorite: a.isFavorite }))));
+        `)
+        // What every open page did with the storage, to see which one put the old priority back.
+        const journals = []
+        for (const handle of await driver.getAllWindowHandles()) {
+          await driver.switchTo().window(handle)
+          const url = await driver.getCurrentUrl()
+          const events = await driver.executeScript('return (window.__jat && window.__jat.events) || null')
+          journals.push({ page: url.split('/').pop(), events })
+        }
+        throw new Error(
+          `${error.message}; stored applications: ${JSON.stringify(stored)}; journals: ${JSON.stringify(journals)}`
+        )
+      }
 
       // The tag is renamed in the options, and the card follows.
       const optionsTab = await open('options', 'input[name^=tag-]')
@@ -905,6 +925,345 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         chrome.storage.local.get('jat:draft', (items) => done(items['jat:draft'] ?? null));
       `)
       assert.equal(kept, null)
+    })
+
+    test('once applied, a follow-up is suggested after the delay of the options, and added only when accepted', async () => {
+      await open('popup', 'form')
+      await type('input[name=title]', 'Follow me')
+      await type('input[name=company]', 'Followers')
+      await choose('select[name=status]', 'applied')
+      await css('form button[type=submit]').then((button) => button.click())
+      await waitFor(async () => (await all('.success')).length > 0, { message: 'the offer to be saved' })
+
+      await open('board', '.application-card')
+      const cards = await all('.application-card')
+      const titles = await Promise.all(cards.map((card) => card.getText()))
+      await cards[titles.findIndex((line) => /Follow me/.test(line))].click()
+      await waitFor(async () => (await all('#follow-up-suggestion')).length > 0, { message: 'the suggestion' })
+      assert.match(await text('#follow-up-suggestion'), /7 days later/)
+
+      // Nothing is added until it is accepted.
+      assert.doesNotMatch(await text('.drawer-content'), /Follow up -/)
+      await css('#follow-up-suggestion button').then((button) => button.click())
+      await waitFor(async () => (await all('#follow-up-suggestion')).length === 0, { message: 'the suggestion to go' })
+      assert.match(await text('.drawer-content'), /Follow up -/)
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      // The delay is a setting.
+      await open('options', 'input[name=followUpDays]')
+      assert.equal(await css('input[name=followUpDays]').then((input) => input.getAttribute('value')), '7')
+    })
+
+    test('the address of a notification opens the application, and closing it takes the address off', async () => {
+      await open('board', '.application-card')
+      const id = await driver.executeAsyncScript(`
+        const done = arguments[arguments.length - 1];
+        chrome.storage.local.get('jat:applications', (items) => done((items['jat:applications'] || [])[0]?.id ?? null));
+      `)
+      assert.ok(id, 'there is an application')
+
+      // The tab of the board is told the address of the application, as a click on a notification does.
+      await driver.executeScript(`location.hash = 'application=${id}'`)
+      await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer to open' })
+
+      await driver.executeScript(`document.querySelector('dialog[open]').close()`)
+      await waitFor(async () => (await driver.executeScript('return location.hash')) === '', {
+        message: 'the address to go',
+      })
+
+      // An id that is not there opens nothing.
+      await driver.executeScript(`location.hash = 'application=nothing-here'`)
+      await driver.sleep(300)
+      assert.equal((await all('.drawer-content')).length, 0)
+      await driver.executeScript(`history.replaceState(null, '', location.pathname)`)
+    })
+
+    test('the notifications are off to begin with, and the options for the alert show only when they are on', async () => {
+      await open('options', '#notify-reminders')
+      assert.equal(await css('#notify-reminders').then((box) => box.isSelected()), false)
+      assert.equal((await all('#notify-persistent')).length, 0)
+      assert.match(await text('main'), /icon of the extension shows how many reminders are due/)
+    })
+
+    test('the icon of the extension shows how many reminders are due, and goes down when one is done', async () => {
+      await open('board', '.application-card')
+      const badge = async () =>
+        Number(
+          (await driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            (chrome.action || chrome.browserAction).getBadgeText({}, (text) => done(text));
+          `)) || 0
+        )
+      const before = await badge()
+
+      // A reminder that was due long ago.
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
+      await type('input[name=reminderTitle]', 'Overdue for the badge')
+      await driver.executeScript(`
+        const input = document.querySelector('input[name=reminderDue]');
+        input.value = '2020-01-01T09:00';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.closest('form').querySelector('button[type=submit]').click();
+      `)
+      await waitFor(async () => (await badge()) === before + 1, { message: 'the number on the icon to go up' })
+
+      // Done: it is not due any more.
+      await driver.executeScript(`
+        [...document.querySelectorAll('.drawer-content li')]
+          .find((li) => li.textContent.includes('Overdue for the badge'))
+          .querySelector('input[type=checkbox]').click();
+      `)
+      await waitFor(async () => (await badge()) === before, { message: 'the number on the icon to go down' })
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
+
+    test('the board is exported as a CSV file for a spreadsheet, with what is shown', async () => {
+      await open('board', '.application-card')
+      const shown = (await all('.application-card')).length
+
+      // The file is kept in the page instead of going to the disk, to be read.
+      await driver.executeScript(`
+        window.__csv = null;
+        URL.createObjectURL = (blob) => { window.__csv = blob; return 'blob:test' };
+        HTMLAnchorElement.prototype.click = function () { window.__download = this.download };
+      `)
+      await css('#export-csv').then((link) => link.click())
+      const file = await waitFor(
+        async () =>
+          driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            if (!window.__csv) return done(null);
+            window.__csv.arrayBuffer().then((buffer) => done({ bytes: Array.from(new Uint8Array(buffer).slice(0, 3)), text: new TextDecoder().decode(buffer) }));
+          `),
+        { message: 'the file' }
+      )
+      // The mark that makes a spreadsheet read it as UTF-8 (a decoder drops it, hence the bytes).
+      assert.deepEqual(file.bytes, [0xef, 0xbb, 0xbf])
+      const csv = file.text
+      const lines = csv.trim().split('\r\n')
+      assert.equal(lines.length, shown + 1, 'a line for each application shown, and the head')
+      assert.match(lines[0], /Status,Job title,Company,Final client,Place/)
+      assert.match(csv, /Backend developer/)
+      assert.match(
+        await driver.executeScript('return window.__download'),
+        /^job-application-tracker-board-\d{4}-\d{2}-\d{2}\.csv$/
+      )
+    })
+
+    test('a recruitment firm is tied to its final client: shown on the card, found by the search, refused when it makes no sense', async () => {
+      await open('board', '.application-card')
+      const cards = await all('.application-card')
+      const cardTexts = await Promise.all(cards.map((card) => card.getText()))
+      await cards[cardTexts.findIndex((line) => /Backend developer/.test(line))].click()
+      await waitFor(async () => (await all('select[name=relationView]')).length > 0, { message: 'the company section' })
+
+      // The firm recruits for Big Client.
+      await choose('select[name=relationView]', 'recruits_for')
+      await type('input[name=relationCompany]', 'Big Client')
+      await driver.executeScript(
+        `document.querySelector('input[name=relationCompany]').closest('form').querySelector('button[type=submit]').click()`
+      )
+      await waitFor(async () => /Big Client/.test(await text('#company-links')), { message: 'the link' })
+      assert.match(await text('#company-links'), /Recruits for\s+Big Client/)
+
+      // A company cannot be tied to itself, nor twice.
+      await type('input[name=relationCompany]', 'acme')
+      await driver.executeScript(
+        `document.querySelector('input[name=relationCompany]').closest('form').querySelector('button[type=submit]').click()`
+      )
+      await waitFor(async () => /itself/.test(await text('.drawer-content .error')), { message: 'the refusal' })
+      await type('input[name=relationCompany]', 'Big Client')
+      await driver.executeScript(
+        `document.querySelector('input[name=relationCompany]').closest('form').querySelector('button[type=submit]').click()`
+      )
+      await waitFor(async () => /already/.test(await text('.drawer-content .error')), { message: 'the second refusal' })
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      // The card tells who the offer is for, and the search finds it by the client.
+      await waitFor(async () => (await texts('.application-card')).some((line) => /Acme → Big Client/.test(line)), {
+        message: 'the client on the card',
+      })
+      await type('input[type=search]', 'big client')
+      await waitFor(async () => (await all('.application-card')).length === 1, { message: 'the search' })
+      assert.match(await text('.application-card'), /Backend developer/)
+      await driver.executeScript(`
+        const input = document.querySelector('input[type=search]');
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      `)
+      await waitFor(async () => (await all('.application-card')).length > 1, { message: 'the search to clear' })
+    })
+
+    test('a person works for several companies and helps with several applications, from either side', async () => {
+      await open('board', '.application-card')
+      const openCard = async (title) => {
+        const cards = await all('.application-card')
+        const lines = await Promise.all(cards.map((card) => card.getText()))
+        await cards[lines.findIndex((line) => line.includes(title))].click()
+        await waitFor(async () => (await all('.drawer-content')).length > 0, { message: `the drawer of ${title}` })
+      }
+      const submit = (selector) =>
+        driver.executeScript(
+          `document.querySelector('${selector}').closest('form').querySelector('button[type=submit]').click()`
+        )
+
+      await openCard('Backend developer')
+      await waitFor(async () => (await all('.drawer-content .contact-companies')).length > 0, {
+        message: 'the companies of Ada',
+      })
+      assert.match(await text('.drawer-content .contact-companies'), /Acme/)
+
+      // A second company, with a title and the first day.
+      await type('input[name=linkCompany]', 'Talent Bureau')
+      await type('input[name=linkTitle]', 'Partner')
+      await driver.executeScript(`
+        const input = document.querySelector('input[name=linkStartedOn]');
+        input.value = '2024-03-01';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      `)
+      await submit('input[name=linkCompany]')
+      await waitFor(async () => /Talent Bureau/.test(await text('.drawer-content .contact-companies')), {
+        message: 'the second company',
+      })
+      const companies = await text('.drawer-content .contact-companies')
+      assert.match(companies, /Partner/)
+      assert.match(companies, /Acme/)
+      // The one that started last comes first.
+      assert.ok(companies.indexOf('Talent Bureau') < companies.indexOf('Acme'))
+
+      // A last day before the first is refused.
+      await type('input[name=linkCompany]', 'Backwards Inc')
+      await driver.executeScript(`
+        for (const [name, value] of [['linkStartedOn', '2024-05-01'], ['linkEndedOn', '2024-04-01']]) {
+          const input = document.querySelector('input[name=' + name + ']');
+          input.value = value;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      `)
+      await submit('input[name=linkCompany]')
+      await waitFor(async () => /cannot come before/.test(await text('.drawer-content .contact .error')), {
+        message: 'the refusal',
+      })
+
+      // The same person helps with another application: linked from the person.
+      const optionValue = await driver.executeScript(`
+        const option = [...document.querySelectorAll('select[name=linkApplication] option')].find((o) => o.textContent.includes('Follow me'));
+        return option ? option.value : null;
+      `)
+      assert.ok(optionValue, 'the other application can be chosen')
+      await choose('select[name=linkApplication]', optionValue)
+      await driver.executeScript(`
+        [...document.querySelectorAll('.drawer-content .contact-links button')].find((b) => b.textContent.trim() === 'Link').click()
+      `)
+      await waitFor(async () => /Follow me/.test(await text('.drawer-content .contact-applications')), {
+        message: 'the other application',
+      })
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      // ... and from the other application, the person is there.
+      await openCard('Follow me')
+      await waitFor(async () => (await texts('.drawer-content .contact')).some((line) => line.includes('Ada')), {
+        message: 'Ada on the other application',
+      })
+      assert.match(await text('.drawer-content .contact-applications'), /Backend developer/)
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
+
+    test('a pay profile estimates the net pay of an offer, and says it is an estimate', async () => {
+      const submit = () => driver.executeScript(`document.querySelector('#pay-profile-form').requestSubmit()`)
+
+      await open('options', '#new-pay-profile')
+      await css('#new-pay-profile').then((button) => button.click())
+      await waitFor(async () => (await all('#pay-profile-form')).length > 0, { message: 'the form of the profile' })
+
+      // A rate out of range is refused, and nothing is saved.
+      await type('input[name=payName]', 'Test US')
+      await type('input[name=payCurrency]', 'USD')
+      await type('input[name=lineLabel0]', 'Tax')
+      await type('input[name=lineRate0]', '500')
+      await submit()
+      await waitFor(async () => /0 to 100/.test(await text('#pay-profile-form .error')), { message: 'the refusal' })
+      assert.equal((await all('#pay-profiles')).length, 0)
+
+      // A good one: 20% of the gross.
+      await type('input[name=lineRate0]', '20')
+      await submit()
+      await waitFor(async () => (await all('#pay-profiles')).length > 0, { message: 'the profile in the list' })
+      assert.match(await text('#pay-profiles'), /Test US/)
+
+      // It is the one used to compare the offers.
+      await driver.executeScript(`
+        [...document.querySelectorAll('#pay-profiles li')].find((li) => li.textContent.includes('Test US')).querySelector('input[type=radio]').click()
+      `)
+
+      // An example can be added, and is named as an illustration.
+      await choose('select[name=payExample]', 'flat')
+      await driver.executeScript(
+        `[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Add this example').click()`
+      )
+      await waitFor(async () => /Flat rate \(example\)/.test(await text('#pay-profiles')), { message: 'the example' })
+
+      // The offer of the board (4 000 - 5 000 USD a month, gross): 48 000 - 60 000 a year, 20% less.
+      await open('board', '.application-card')
+      const cards = await all('.application-card')
+      const lines = await Promise.all(cards.map((card) => card.getText()))
+      await cards[lines.findIndex((line) => /Backend developer/.test(line))].click()
+      await waitFor(async () => (await all('#net-estimate')).length > 0, { message: 'the estimate' })
+      const estimate = await text('#net-estimate')
+      assert.match(estimate, /About \$3,200 - \$4,000 net per month/)
+      assert.match(estimate, /Test US/)
+      assert.match(estimate, /estimate, not a promise/)
+
+      // The calculation can be shown, line by line.
+      await driver.executeScript(`document.querySelector('#net-estimate .link-button').click()`)
+      await waitFor(async () => (await all('#net-estimate table')).length > 0, { message: 'the calculation' })
+      assert.match(await text('#net-estimate table'), /Tax/)
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      // Without a profile there is no estimate.
+      await open('options', '#pay-profiles')
+      await driver.executeScript(`
+        [...document.querySelectorAll('#pay-profiles li')].find((li) => li.textContent.includes('No estimate')).querySelector('input[type=radio]').click()
+      `)
+      await open('board', '.application-card')
+      const again = await all('.application-card')
+      const texts2 = await Promise.all(again.map((card) => card.getText()))
+      await again[texts2.findIndex((line) => /Backend developer/.test(line))].click()
+      await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
+      assert.equal((await all('#net-estimate')).length, 0)
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
+
+    test('the freelance helper finds the day rate for an income, and the income of a day rate', async () => {
+      await open('options', 'input[name=freelanceIncome]')
+      // 36 000 net with 22% of charges on the turnover, 200 days: 36 000 / 0.78 = 46 153.85 a year, 230.77 a day.
+      await waitFor(async () => (await all('#freelance-result')).length > 0, { message: 'the result' })
+      assert.match(await text('#freelance-result'), /230\.77/)
+      assert.match(await text('#freelance-result'), /estimate/i)
+
+      // With the profile of 20% in dollars: 36 000 / 0.8 = 45 000 a year, 225 a day.
+      const option = await driver.executeScript(`
+        const found = [...document.querySelectorAll('select[name=freelanceProfile] option')].find((o) => o.textContent.includes('Test US'));
+        return found ? found.value : null;
+      `)
+      assert.ok(option, 'the profile is there')
+      await choose('select[name=freelanceProfile]', option)
+      await waitFor(async () => /Day rate: \$225\b/.test(await text('#freelance-result')), {
+        message: 'the rate with the profile',
+      })
+
+      // Charges that take everything: no turnover can leave the income.
+      await choose('select[name=freelanceProfile]', '')
+      await type('input[name=freelanceFlat]', '100')
+      await waitFor(async () => (await all('#freelance-impossible')).length > 0, { message: 'the message' })
+
+      // The other way: a day rate of 500 for 200 days with 22% of charges leaves 78 000.
+      await type('input[name=freelanceFlat]', '22')
+      await choose('select[name=freelanceMode]', 'rate')
+      await waitFor(async () => (await all('input[name=freelanceRate]')).length > 0, { message: 'the day rate field' })
+      await type('input[name=freelanceRate]', '500')
+      await waitFor(async () => /78,000/.test(await text('#freelance-result')), { message: 'the income' })
     })
 
     test('a deleted application goes to the trash, and comes back from it', async () => {

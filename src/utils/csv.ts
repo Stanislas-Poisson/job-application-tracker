@@ -66,3 +66,20 @@ export function csvRecords(input: string): Record<string, string>[] {
   )
   return rows.map((cells) => Object.fromEntries(names.map((name, index) => [name, (cells[index] ?? '').trim()])))
 }
+
+// A CSV writer (RFC 4180): a field with the separator, a quote or a line break is put in quotes, a quote is written twice,
+// and the lines end with CRLF, as a spreadsheet expects.
+export function toCsv(rows: string[][], separator = ','): string {
+  const field = (value: string) =>
+    new RegExp(`[${separator}"\\r\\n]`).test(value) ? `"${value.replaceAll('"', '""')}"` : value
+  return `${rows.map((row) => row.map(field).join(separator)).join('\r\n')}\r\n`
+}
+
+// A spreadsheet runs a cell that starts with = + - @ (or a tab or a return) as a formula: a title such as
+// "=HYPERLINK(...)" in an offer would run on the machine of whoever opens the file. A quote in front makes it plain text.
+export function plainCell(value: string): string {
+  return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value
+}
+
+// What goes at the head of a file for a spreadsheet to read it as UTF-8 (accents) and not as the code page of the system.
+export const UTF8_BOM = '﻿'

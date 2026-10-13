@@ -4,6 +4,7 @@ import { Application, Contact } from '../models'
 import { loadBackupHandle, saveBackupHandle } from '../persistence/fileHandle'
 import type { Settings } from '../settings'
 import { withChecksum } from '../utils/checksum'
+import { downloadText } from '../utils/download'
 import { exportData } from './data'
 import { encryptText } from './encryption'
 
@@ -133,14 +134,6 @@ export async function backupToFile(
 // Forgets the remembered file: the next backup asks for one.
 export const forgetBackupFile = (environment: Pick<BackupEnvironment, 'saveHandle'>) => environment.saveHandle(null)
 
-function downloadText(name: string, text: string) {
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
-  link.download = name
-  link.click()
-  URL.revokeObjectURL(link.href)
-}
-
 // The browser the page runs in.
 export function browserEnvironment(): BackupEnvironment {
   const picker = (window as { showSaveFilePicker?: BackupEnvironment['showSaveFilePicker'] }).showSaveFilePicker
@@ -148,6 +141,6 @@ export function browserEnvironment(): BackupEnvironment {
     showSaveFilePicker: picker ? picker.bind(window) : undefined,
     loadHandle: loadBackupHandle,
     saveHandle: saveBackupHandle,
-    download: downloadText,
+    download: (name, text) => downloadText(name, text),
   }
 }

@@ -11,7 +11,10 @@ export default defineConfig({
     homepage_url: 'https://github.com/Stanislas-Poisson/job-application-tracker',
     // storage: the data. activeTab: the page the user is looking at, only when the popup opens on it. scripting: to read
     // that one page (its JobPosting data) at that moment. Nothing is read in the background.
-    permissions: ['storage', 'activeTab', 'scripting'],
+    // alarms: to wake up when a reminder comes due.
+    permissions: ['storage', 'activeTab', 'scripting', 'alarms'],
+    // Asked only when the user turns on the notifications of the reminders, and dropped when they turn them off.
+    optional_permissions: ['notifications'],
     // Asked only when the user turns on the automatic exchange rates, and dropped when it is turned off.
     optional_host_permissions: ['https://api.frankfurter.dev/*'],
     ...('firefox' === browser

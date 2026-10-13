@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { useRepo } from 'pinia-orm'
-  import { computed, ref } from 'vue'
+  import { computed, onMounted, onUnmounted, ref } from 'vue'
   import AppFooter from '../../components/AppFooter.vue'
   import AppHeader from '../../components/AppHeader.vue'
   import ApplicationDrawer from '../../components/board/ApplicationDrawer.vue'
@@ -10,15 +10,40 @@
   import { useApp } from '../../composables/useApp'
   import { useBoardView } from '../../composables/useBoardView'
   import { useFormat } from '../../composables/useFormat'
-  import { Application, Status } from '../../models'
+  import { Application, CompanyRelation, PayProfile, Status } from '../../models'
   import { moveApplication } from '../../services/applications'
   import { queryApplications } from '../../services/boardQuery'
+  import { finalClientsOf, linksOf } from '../../services/companyRelations'
+  import { COLUMNS, boardCsv, exportFileName } from '../../services/exportBoard'
+  import { estimateNet } from '../../services/netEstimate'
+  import { downloadText } from '../../utils/download'
+  import { todayIn } from '../../utils/time'
 
-  const { t, persistence } = useApp()
+  const { t, persistence, settings } = useApp()
   const format = useFormat()
   const { view, clearFilters } = useBoardView()
 
   const openId = ref<string | null>(null)
+
+  // A notification opens the board on the application it is about: #application=<id>. An id that is not there opens nothing.
+  function openFromAddress() {
+    const id = /^#application=(.+)$/.exec(location.hash)?.[1]
+    if (undefined !== id && undefined !== useRepo(Application).find(decodeURIComponent(id))) {
+      openId.value = decodeURIComponent(id)
+    }
+  }
+  // Closing the drawer takes the address off: a reload must not open it again.
+  function close() {
+    openId.value = null
+    if ('' !== location.hash) {
+      history.replaceState(null, '', location.pathname + location.search)
+    }
+  }
+  onMounted(() => {
+    openFromAddress()
+    window.addEventListener('hashchange', openFromAddress)
+  })
+  onUnmounted(() => window.removeEventListener('hashchange', openFromAddress))
 
   const statuses = computed(() => useRepo(Status).orderBy('order').get())
 
@@ -38,6 +63,7 @@
       now: new Date(),
       locale: format.locale.value,
       conversion: format.conversion(),
+      related: (companyId) => (useRepo(CompanyRelation).all(), linksOf(companyId).map((link) => link.other.name)),
     })
   )
 
@@ -53,6 +79,46 @@
     () => everything.value.filter((application) => application.archived === view.showArchived).length
   )
 
+  // The applications that are shown, in the order they are shown, as a file for a spreadsheet. A language that writes numbers
+  // with a decimal comma (and whose spreadsheets want a semicolon) gets a semicolon.
+  function exportCsv() {
+    const names = Object.fromEntries(statuses.value.map((status) => [status.id, status.label]))
+    const text = boardCsv(
+      visible.value,
+      {
+        labels: {
+          columns: Object.fromEntries(COLUMNS.map((column) => [column, t(`export.columns.${column}`)])) as never,
+          yes: t('export.yes'),
+          no: t('export.no'),
+          priorities: Object.fromEntries([0, 1, 2, 3].map((level) => [String(level), t(`labels.priorities.${level}`)])),
+          periods: Object.fromEntries(
+            ['year', 'month', 'week', 'day', 'hour'].map((p) => [p, t(`salary.per.${p}`)])
+          ) as never,
+          kinds: { gross: t('salary.kind.gross'), net: t('salary.kind.net') },
+        },
+        conversion: format.conversion(),
+        netEstimate: (salary) => {
+          const result = estimateNet(
+            salary,
+            '' === settings.payProfileId ? null : useRepo(PayProfile).find(settings.payProfileId),
+            { workingDaysPerYear: settings.workingDaysPerYear, hoursPerDay: settings.hoursPerDay }
+          )
+          return 'string' === typeof result
+            ? null
+            : {
+                amount: Math.round((result.low.net + result.high.net) / 2),
+                currency: result.currency,
+                profile: result.profile,
+              }
+        },
+        finalClients: (companyId) => finalClientsOf(companyId).map((client) => client.name),
+        statusLabel: (statusId) => (statusId ? (names[statusId] ?? '') : ''),
+      },
+      'fr' === format.locale.value ? ';' : ','
+    )
+    downloadText(exportFileName(todayIn(format.timeZone.value)), text, 'text/csv;charset=utf-8')
+  }
+
   async function drop(applicationId: string, statusId: string) {
     moveApplication(applicationId, statusId)
     await persistence.flush()
@@ -62,6 +128,13 @@
 <template>
   <main class="page">
     <AppHeader :title="t('board.title')">
+      <a
+        id="export-csv"
+        href="#"
+        :title="t('export.hint', { count: visible.length })"
+        @click.prevent="exportCsv"
+        >{{ t('export.link') }}</a
+      >
       <a
         href="#"
         @click.prevent="browser.runtime.openOptionsPage()"
@@ -98,7 +171,7 @@
 
     <ApplicationDrawer
       :application-id="openId"
-      @close="openId = null"
+      @close="close"
     />
     <AppFooter />
   </main>

@@ -1,5 +1,5 @@
 import { useRepo } from 'pinia-orm'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Application, Company, Status } from '../../src/models'
 import { SCHEMA_KEY, SCHEMA_VERSION, createPersistence, keyOf } from '../../src/persistence'
 import { memoryAdapter } from '../../src/persistence/adapter'
@@ -122,9 +122,7 @@ describe('writing at once', () => {
     captureOffer({ title: 'One', companyName: 'Acme' })
     // Not yet: the turn of the action is not over.
     expect((adapter.data[keyOf('applications')] as unknown[] | undefined) ?? []).toHaveLength(0)
-    await new Promise((resolve) => setTimeout(resolve, 5))
-
-    expect((adapter.data[keyOf('applications')] as unknown[]).length).toBe(1)
+    await vi.waitFor(() => expect((adapter.data[keyOf('applications')] as unknown[] | undefined)?.length).toBe(1))
     persistence.stop()
   })
 
@@ -152,20 +150,16 @@ describe('writing at once', () => {
     const adapter = memoryAdapter()
     const persistence = createPersistence(freshStore({ seed: false }), adapter)
     await persistence.ready
-    const wait = () => new Promise((resolve) => setTimeout(resolve, 5))
     const stored = () => adapter.data[keyOf('companies')] as { name: string }[]
 
     const company = useRepo(Company).save({ name: 'Acme' })
-    await wait()
-    expect(stored().map((record) => record.name)).toEqual(['Acme'])
+    await vi.waitFor(() => expect(stored().map((record) => record.name)).toEqual(['Acme']))
 
     useRepo(Company).where('id', company.id).update({ name: 'Acme 2' })
-    await wait()
-    expect(stored().map((record) => record.name)).toEqual(['Acme 2'])
+    await vi.waitFor(() => expect(stored().map((record) => record.name)).toEqual(['Acme 2']))
 
     useRepo(Company).destroy(company.id)
-    await wait()
-    expect(stored()).toEqual([])
+    await vi.waitFor(() => expect(stored()).toEqual([]))
     persistence.stop()
   })
 })
@@ -180,9 +174,9 @@ function lateEchoAdapter(echoAfter: number) {
 
 describe('the echo of its own writes', () => {
   it('does not take back a change that was made after the write it answers', async () => {
-    const adapter = lateEchoAdapter(10)
+    const adapter = lateEchoAdapter(30)
     // The second change is still waiting to be written when the echo of the first arrives.
-    const persistence = createPersistence(freshStore({ seed: false }), adapter, { delay: 50 })
+    const persistence = createPersistence(freshStore({ seed: false }), adapter, { delay: 150 })
     await persistence.ready
     await new Promise((resolve) => setTimeout(resolve, 20))
 
@@ -190,7 +184,8 @@ describe('the echo of its own writes', () => {
     await persistence.flush()
     // The storage has told the page about its own write; a change is made before the page has read it back.
     useRepo(Company).save({ name: 'B' })
-    await new Promise((resolve) => setTimeout(resolve, 120))
+    // Long enough for the echo (30 ms) and for the write that was waiting (150 ms) to both have happened.
+    await new Promise((resolve) => setTimeout(resolve, 500))
 
     expect(
       useRepo(Company)
