@@ -32,7 +32,9 @@ export function readSnapshot(snapshot: PageSnapshot, zone: string, now: Date = n
   const fromPosting = posting ? offerFromJobPosting(posting, zone) : {}
   // The site name is not the company of an offer that has no JobPosting: it is left out of the fallback.
   const { companyName: _site, ...fallback } = readOpenGraph(snapshot)
-  const adapter = snapshot.body ? adapterFor(snapshot.url) : null
+  const found = adapterFor(snapshot.url)
+  // An adapter that reads the body needs it; one that reads the title and the tags does not.
+  const adapter = found && (!found.needsBody || snapshot.body) ? found : null
   const fromSite = adapter
     ? adapter.read(new DOMParser().parseFromString(snapshot.body ?? '', 'text/html'), snapshot, zone, now)
     : {}
