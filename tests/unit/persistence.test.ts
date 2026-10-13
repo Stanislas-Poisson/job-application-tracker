@@ -198,7 +198,10 @@ describe('the echo of its own writes', () => {
         .map((company) => company.name)
         .sort()
     ).toEqual(['A', 'B'])
-    expect((adapter.data[keyOf('companies')] as { name: string }[]).map((company) => company.name).sort()).toEqual(['A', 'B'])
+    expect((adapter.data[keyOf('companies')] as { name: string }[]).map((company) => company.name).sort()).toEqual([
+      'A',
+      'B',
+    ])
     persistence.stop()
   })
 
