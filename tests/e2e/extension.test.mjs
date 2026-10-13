@@ -518,7 +518,17 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         message: 'the tag on the card',
       })
       assert.equal((await all('.application-card .card-star')).length, 1)
-      assert.match(await text('.application-card'), /High/)
+      // The priority is a separate change from the tag and the favourite: it is waited for, and if it never comes the test
+      // says what the storage holds, to tell a display that is late from a change that was lost.
+      try {
+        await waitFor(async () => /High/.test(await text('.application-card')), { message: 'the priority on the card' })
+      } catch (error) {
+        const stored = await driver.executeAsyncScript(`
+          const done = arguments[arguments.length - 1];
+          chrome.storage.local.get('jat:applications', (items) => done((items['jat:applications'] || []).map((a) => ({ priority: a.priority, isFavorite: a.isFavorite }))));
+        `)
+        throw new Error(`${error.message}; stored applications: ${JSON.stringify(stored)}`)
+      }
 
       // The tag is renamed in the options, and the card follows.
       const optionsTab = await open('options', 'input[name^=tag-]')
