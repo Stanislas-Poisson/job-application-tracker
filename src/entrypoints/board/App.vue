@@ -182,7 +182,7 @@
 
 <style lang="scss">
   .toolbar {
-    margin-bottom: 1rem;
+    margin-block-end: 1rem;
   }
 
   .board {
@@ -191,6 +191,6 @@
     grid-auto-columns: minmax(15rem, 1fr);
     gap: 0.75rem;
     overflow-x: auto;
-    padding-bottom: 0.5rem;
+    padding-block-end: 0.5rem;
   }
 </style>
