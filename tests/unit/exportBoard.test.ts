@@ -30,6 +30,7 @@ const context = (changes: Partial<ExportContext> = {}): ExportContext => ({
     rates: { USD: 0.9 },
     assumptions: { workingDaysPerYear: 220, hoursPerDay: 7 },
   },
+  finalClients: () => [],
   statusLabel: (id) => (id ? 'Applied' : ''),
   decimal: '.',
   ...changes,
@@ -138,6 +139,19 @@ describe('boardRows', () => {
     expect(cell(row, 'createdAt')).toMatch(/Z$/)
     expect(cell(row, 'updatedAt')).toMatch(/Z$/)
     expect(cell(row, 'archived')).toBe('no')
+  })
+
+  it('writes the final clients of a recruitment firm', () => {
+    captureOffer({ title: 'Dev', companyName: 'Hire Co' })
+    const [loaded] = everything()
+    const firmId = loaded?.jobOffer?.company?.id
+    const row =
+      boardRows(
+        everything(),
+        context({ finalClients: (companyId) => (companyId === firmId ? ['Client A', 'Client B'] : []) })
+      )[1] ?? []
+    expect(cell(row, 'finalClient')).toBe('Client A; Client B')
+    expect(cell(rowsOf(...everything())[1] ?? [], 'finalClient')).toBe('')
   })
 
   it('writes the salary as stated, and per year in the home currency', () => {

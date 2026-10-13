@@ -1033,12 +1033,56 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const csv = file.text
       const lines = csv.trim().split('\r\n')
       assert.equal(lines.length, shown + 1, 'a line for each application shown, and the head')
-      assert.match(lines[0], /Status,Job title,Company,Place/)
+      assert.match(lines[0], /Status,Job title,Company,Final client,Place/)
       assert.match(csv, /Backend developer/)
       assert.match(
         await driver.executeScript('return window.__download'),
         /^job-application-tracker-board-\d{4}-\d{2}-\d{2}\.csv$/
       )
+    })
+
+    test('a recruitment firm is tied to its final client: shown on the card, found by the search, refused when it makes no sense', async () => {
+      await open('board', '.application-card')
+      const cards = await all('.application-card')
+      const cardTexts = await Promise.all(cards.map((card) => card.getText()))
+      await cards[cardTexts.findIndex((line) => /Backend developer/.test(line))].click()
+      await waitFor(async () => (await all('select[name=relationView]')).length > 0, { message: 'the company section' })
+
+      // The firm recruits for Big Client.
+      await choose('select[name=relationView]', 'recruits_for')
+      await type('input[name=relationCompany]', 'Big Client')
+      await driver.executeScript(
+        `document.querySelector('input[name=relationCompany]').closest('form').querySelector('button[type=submit]').click()`
+      )
+      await waitFor(async () => /Big Client/.test(await text('#company-links')), { message: 'the link' })
+      assert.match(await text('#company-links'), /Recruits for\s+Big Client/)
+
+      // A company cannot be tied to itself, nor twice.
+      await type('input[name=relationCompany]', 'acme')
+      await driver.executeScript(
+        `document.querySelector('input[name=relationCompany]').closest('form').querySelector('button[type=submit]').click()`
+      )
+      await waitFor(async () => /itself/.test(await text('.drawer-content .error')), { message: 'the refusal' })
+      await type('input[name=relationCompany]', 'Big Client')
+      await driver.executeScript(
+        `document.querySelector('input[name=relationCompany]').closest('form').querySelector('button[type=submit]').click()`
+      )
+      await waitFor(async () => /already/.test(await text('.drawer-content .error')), { message: 'the second refusal' })
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      // The card tells who the offer is for, and the search finds it by the client.
+      await waitFor(async () => (await texts('.application-card')).some((line) => /Acme → Big Client/.test(line)), {
+        message: 'the client on the card',
+      })
+      await type('input[type=search]', 'big client')
+      await waitFor(async () => (await all('.application-card')).length === 1, { message: 'the search' })
+      assert.match(await text('.application-card'), /Backend developer/)
+      await driver.executeScript(`
+        const input = document.querySelector('input[type=search]');
+        input.value = '';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      `)
+      await waitFor(async () => (await all('.application-card')).length > 1, { message: 'the search to clear' })
     })
 
     test('a deleted application goes to the trash, and comes back from it', async () => {
