@@ -295,3 +295,13 @@ How it keeps to the point:
 - **An alert, if wanted.** By default a notification stays on screen until the user closes it (Chrome and Edge; Firefox does not know the option, so it does not get it). A setting turns that off.
 - **The permission is optional.** `notifications` is asked when the switch goes on, and given back when it goes off. If the browser refuses, the switch stays off and says why. If it is taken back later, the reminders that could not be shown are not marked, and are tried again.
 - Data written by a newer structure than the extension knows is left alone.
+
+## Exporting the board
+
+"Export (CSV)" in the header of the board writes **the applications that are shown**, in the order they are shown (the search, the filters, the sort and the archive switch apply), as a file for a spreadsheet: `job-application-tracker-board-2026-10-13.csv`.
+
+- **One line per application, and a head** in the language of the page. The columns: status, job title, company, place, country, contract, work mode, source, address, the day published, the salary as the offer states it (from, up to, currency, period, gross or net), the home currency and **the salary per year in the home currency**, when the rates allow it, the moments of application, creation and last change, priority, favourite, tags, contacts, how many reminders are waiting and the next one, and archived.
+- **Moments are in UTC**, as they are stored (`2026-10-13T08:00:00.000Z`); the day an offer was published is a plain date. Amounts are plain numbers a spreadsheet can compute with, with the digits of their currency, and no sign or group separator.
+- **The separator follows the language.** A comma, with a decimal point (`45000.50`); in French a semicolon, with a decimal comma (`45000,50`), which is what the spreadsheets of those countries read. The file starts with the mark of UTF-8, so that accents are read as such.
+- **Nothing runs as a formula.** A text that starts with `=`, `+`, `-` or `@` (an offer called `=HYPERLINK(...)`) would be run by a spreadsheet on the machine of whoever opens the file: such a text gets a quote in front and stays text.
+- The file is read back by the CSV reader of the imports.
