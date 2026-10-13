@@ -8,6 +8,9 @@ export interface PageSnapshot {
   meta: Record<string, string>
   // The main part of the page, only for a site that has an adapter (its content is not in the JSON-LD).
   body?: string | null
+  // The content of the open shadow roots of the custom elements of the page (a component keeps its text there, out of reach of
+  // the HTML of the page), only for a site that has an adapter.
+  shadows?: string[]
 }
 
 /**
@@ -32,5 +35,12 @@ export function collectSnapshot(withBody = false): PageSnapshot {
     ),
     meta,
     body: withBody ? (document.querySelector('main') ?? document.body).outerHTML : null,
+    shadows: withBody
+      ? Array.from(document.querySelectorAll('*'))
+          .filter((element) => element.localName.includes('-') && element.shadowRoot)
+          .map((element) => element.shadowRoot?.innerHTML ?? '')
+          .filter((html) => 300_000 > html.length)
+          .slice(0, 20)
+      : [],
   }
 }
