@@ -998,6 +998,39 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
     })
 
+    test('the board is exported as a CSV file for a spreadsheet, with what is shown', async () => {
+      await open('board', '.application-card')
+      const shown = (await all('.application-card')).length
+
+      // The file is kept in the page instead of going to the disk, to be read.
+      await driver.executeScript(`
+        window.__csv = null;
+        URL.createObjectURL = (blob) => { window.__csv = blob; return 'blob:test' };
+        HTMLAnchorElement.prototype.click = function () { window.__download = this.download };
+      `)
+      await css('#export-csv').then((link) => link.click())
+      const file = await waitFor(
+        async () =>
+          driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            if (!window.__csv) return done(null);
+            window.__csv.arrayBuffer().then((buffer) => done({ bytes: Array.from(new Uint8Array(buffer).slice(0, 3)), text: new TextDecoder().decode(buffer) }));
+          `),
+        { message: 'the file' }
+      )
+      // The mark that makes a spreadsheet read it as UTF-8 (a decoder drops it, hence the bytes).
+      assert.deepEqual(file.bytes, [0xef, 0xbb, 0xbf])
+      const csv = file.text
+      const lines = csv.trim().split('\r\n')
+      assert.equal(lines.length, shown + 1, 'a line for each application shown, and the head')
+      assert.match(lines[0], /Status,Job title,Company,Place/)
+      assert.match(csv, /Backend developer/)
+      assert.match(
+        await driver.executeScript('return window.__download'),
+        /^job-application-tracker-board-\d{4}-\d{2}-\d{2}\.csv$/
+      )
+    })
+
     test('a deleted application goes to the trash, and comes back from it', async () => {
       await open('board', '.application-card')
       const before = (await all('.application-card')).length
