@@ -8,7 +8,7 @@
   import { type ReadOffer } from '../../extraction/jobPosting'
   import { collectSnapshot } from '../../extraction/page'
   import { readSnapshot } from '../../extraction/read'
-  import { reportUrl } from '../../extraction/report'
+  import { reportMailto, reportUrl } from '../../extraction/report'
   import { Status } from '../../models'
   import { addNote, captureOffer } from '../../services/applications'
   import { resolveTimeZone } from '../../utils/time'
@@ -27,6 +27,7 @@
   const statuses = computed(() => useRepo(Status).orderBy('order').get())
   const statusOptions = computed(() => Object.fromEntries(statuses.value.map((status) => [status.key, status.label])))
   const report = computed(() => reportUrl(pageUrl.value, read.value, browser.runtime.getManifest().version))
+  const reportMail = computed(() => reportMailto(pageUrl.value, read.value, browser.runtime.getManifest().version))
   const boardUrl = browser.runtime.getURL('/board.html' as never)
 
   // The page the user is looking at fills the title and the address. Both can be changed.
@@ -192,6 +193,12 @@
         rel="noopener"
         class="muted"
         >{{ t('popup.report') }}</a
+      >
+      <a
+        v-if="'' !== pageUrl"
+        :href="reportMail"
+        class="muted"
+        >{{ t('popup.reportMail') }}</a
       >
       <FormButton
         type="submit"

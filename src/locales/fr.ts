@@ -42,6 +42,7 @@ const fr: TranslationObject = {
     another: 'En enregistrer une autre',
     save: "Enregistrer l'offre",
     report: 'Il manque quelque chose ? Signaler une lecture cassée',
+    reportMail: 'Pas de compte GitHub ? Signaler par e-mail',
     found: 'Lu aussi dans la page : {list}.',
     foundKeys: { postedOn: 'date', salary: 'salaire', contractType: 'contrat', description: 'description' },
   },
