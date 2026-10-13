@@ -14,7 +14,7 @@
   const props = defineProps<{ application: Application }>()
   const emit = defineEmits<{ open: [] }>()
 
-  const { t } = useApp()
+  const { t, sourceName } = useApp()
   const format = useFormat()
 
   const offer = computed(() => props.application.jobOffer)
@@ -97,7 +97,7 @@
       <DisplayBadge
         v-if="offer?.source"
         size="small"
-        >{{ offer.source.label }}</DisplayBadge
+        >{{ sourceName(offer.source) }}</DisplayBadge
       >
       <DisplayBadge
         v-if="0 < application.priority"

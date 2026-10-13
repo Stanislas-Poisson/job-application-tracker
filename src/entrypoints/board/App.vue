@@ -20,7 +20,7 @@
   import { downloadText } from '../../utils/download'
   import { todayIn } from '../../utils/time'
 
-  const { t, tn, persistence, settings } = useApp()
+  const { t, tn, persistence, settings, statusName, sourceName } = useApp()
   const format = useFormat()
   const { view, clearFilters } = useBoardView()
 
@@ -83,7 +83,7 @@
   // The applications that are shown, in the order they are shown, as a file for a spreadsheet. A language that writes numbers
   // with a decimal comma (and whose spreadsheets want a semicolon) gets a semicolon.
   function exportCsv() {
-    const names = Object.fromEntries(statuses.value.map((status) => [status.id, status.label]))
+    const names = Object.fromEntries(statuses.value.map((status) => [status.id, statusName(status)]))
     const text = boardCsv(
       visible.value,
       {
@@ -115,6 +115,7 @@
               }
         },
         finalClients: (companyId) => finalClientsOf(companyId).map((client) => client.name),
+        sourceLabel: sourceName,
         statusLabel: (statusId) => (statusId ? (names[statusId] ?? '') : ''),
       },
       'fr' === format.locale.value ? ';' : ','

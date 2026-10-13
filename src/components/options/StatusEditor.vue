@@ -7,7 +7,7 @@
   import { Application, Status } from '../../models'
   import { normalizeSymbol } from '../../services/symbol'
 
-  const { t, persistence } = useApp()
+  const { t, persistence, statusName } = useApp()
 
   const newLabel = ref('')
 
@@ -102,7 +102,7 @@
         @change="setSymbol(status, $event.target as HTMLInputElement)"
       />
       <FormInput
-        :model-value="status.label"
+        :model-value="statusName(status)"
         :name="`label-${status.id}`"
         :field="false"
         @update:model-value="rename(status, String($event))"
