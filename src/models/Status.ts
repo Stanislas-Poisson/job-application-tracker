@@ -12,6 +12,8 @@ export default class Status extends Model {
   declare label: string
   declare order: number
   declare color: string
+  // A symbol of the user's, shown in front of the name (see services/symbol.ts).
+  declare symbol: string | null
   // A final status ends the application: no more reminders are due.
   declare isFinal: boolean
 
@@ -25,6 +27,7 @@ export default class Status extends Model {
       label: this.string(''),
       order: this.number(0),
       color: this.string('#64748b'),
+      symbol: this.string(null),
       isFinal: this.boolean(false),
       applications: this.hasMany(Application, 'statusId'),
     }
