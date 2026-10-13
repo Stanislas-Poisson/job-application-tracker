@@ -139,5 +139,6 @@ When the popup opens on a page, the extension reads that page once and fills the
 | Salary | `baseSalary` | Minor units of the currency, the period from `unitText`. Gross or net is almost never said: it is left empty for the user. A salary without a valid currency is dropped. |
 | Day published | `datePosted` | **A date with no hour is that day. A date with an hour and a time zone (`Z`, `+02:00`) is the day it is in the time zone of the user. A date with an hour and no time zone is read in the time zone of the user: the day written.** |
 
+- When a page has no `JobPosting` data, or leaves a piece out, the OpenGraph tags and the title of the page fill the title (`og:title`, then the page title without the name of the site after a `|`) and the description (`og:description`, then `description`). The name of the site is never taken for the company.
 - The data is found at the root of a script, in a list, or in an `@graph`. A script that is not valid JSON is skipped. The first `JobPosting` of the page is used.
 - Nothing is invented: a piece the page does not give stays empty, and the user can change every field before saving.
