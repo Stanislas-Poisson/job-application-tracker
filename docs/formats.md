@@ -193,3 +193,29 @@ A restore is for a loss (a lost profile, a reinstall, a new computer): it **repl
 - A record of an older backup is read like a stored one (the fields it lacks get their defaults), so that only a real difference counts.
 - The user applies the restore or cancels. Cancelling changes nothing. A file that is not a backup, or that comes from a newer version of the extension, says why and changes nothing.
 - The settings come back with the data when the file has them.
+
+## Versions of the structure
+
+The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **2** now.
+
+| Version | What changed |
+| :--- | :--- |
+| 1 | The first structure. Data written before the version was kept with it is read as version 1. |
+| 2 | Every record has `updatedAt`, the moment of its last change (UTC, null when it was never stamped), and there is a `trash` for deleted records. |
+
+- **Older data is brought up to date.** A migration turns the data of version N into the data of N + 1, one step at a time. It runs on the storage when a page opens (the result is saved with the new version) and on a backup file when it is read, so an old backup can still be restored. The preview says when a backup is old.
+- **Newer data is left alone.** If the storage or a file was written by a newer structure than this version knows, nothing is read, nothing is written and nothing is replaced: a page says so, and a restore is refused. A version that makes no sense (0, a word, none in a file) is refused too.
+- To change the structure: add a function to `MIGRATIONS`, raise `SCHEMA_VERSION`, and test it with data of the old version.
+
+### The moment of the last change
+
+The persistence puts `updatedAt` on a record when it is saved after a change, and on a new one. A record that did not change keeps its moment, and a moment set by the caller is kept (an import brings the moments of its backup).
+
+### The trash
+
+A record that is deleted (an application and what goes with it, a contact, a tag…) is copied to the trash with `deletedAt`, and removed from the data as before: nothing else in the code has to know about it. The trash is kept **30 days** and then purged on its own.
+
+- The options list it, grouped by what was deleted together (an application with its notes comes back together), with "Put back" and "Empty the trash". What comes back is stamped with the moment it comes back.
+- The records a restore removes go to the trash too.
+- "Delete everything" leaves nothing behind, the trash included.
+- It is part of the backup, and tells a merge of two computers (see the merge ticket) a deletion from a record that is missing.

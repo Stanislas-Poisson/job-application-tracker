@@ -6,6 +6,8 @@ export default class Reminder extends Model {
   static entity = 'reminders'
 
   declare id: string
+  // When the record last changed (UTC). Set by the persistence; null for a record that was never stamped.
+  declare updatedAt: string | null
   declare applicationId: string
   declare title: string
   declare dueAt: string
@@ -16,6 +18,7 @@ export default class Reminder extends Model {
   static fields() {
     return {
       id: this.uid(),
+      updatedAt: this.string(null),
       applicationId: this.attr(''),
       title: this.string(''),
       dueAt: this.string(() => new Date().toISOString()),
