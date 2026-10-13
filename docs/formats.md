@@ -168,6 +168,10 @@ Some sites publish no `JobPosting` data. For them the extension also takes the m
 | Description | The block under the heading "About the job" / "À propos de l'offre d'emploi". |
 
 - **A relative date is an approximation.** "3 days ago" is the day three days before today; a week is 7 days, a month 30, a year 365. A repost ("Republication") gives the day of the repost. The user can change the date.
+**Talent.com** (`/view` pages). No JobPosting data, but a title that follows a pattern, so this adapter reads only the title and the tags of the page (the body is not taken): the title and the company from `Title – Company – Job offer …`, and the place from the parentheses of `Company recrute (Place)` in the description. The salary and the date are not read: the page does not give them in a form that stays the same.
+
+**Codeur.com** is not given an adapter: its pages are requests for a quote for a project, with no employer and no job offer; the generic reading (the title and the description) is all there is.
+
 - A salary text such as `40K € par yr - 60K € par yr`, `45 000 € - 55 000 €/an` or `$90,000/yr` is read as a range in minor units with its period. Gross or net is not guessed.
 - Tests use `tests/fixtures`: a French page reduced from a real saved page (same structure, no class names, short text) and an English page written by hand. Saved pages stay out of the repository: they hold the account of the person who saved them.
 
