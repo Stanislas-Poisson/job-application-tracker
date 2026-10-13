@@ -1,9 +1,25 @@
 <script setup lang="ts">
-  import { FormSelect } from '@zairakai/vue-components/Form'
+  import { FormInput, FormSelect } from '@zairakai/vue-components/Form'
   import { computed } from 'vue'
   import { ACCENT_SWATCHES } from '../../appearance'
   import { useApp } from '../../composables/useApp'
-  import { ACCENTS, type Accent, THEMES, type ThemeMode, VISIONS, type Vision } from '../../settings'
+  import {
+    ACCENTS,
+    type Accent,
+    DENSITIES,
+    type Density,
+    FONT_FAMILIES,
+    type FontFamily,
+    MOTIONS,
+    type Motion,
+    TEXT_SCALES,
+    TEXT_SPACINGS,
+    THEMES,
+    type TextSpacing,
+    type ThemeMode,
+    VISIONS,
+    type Vision,
+  } from '../../settings'
 
   const { t, settings, updateSettings } = useApp()
 
@@ -13,6 +29,13 @@
   const visionOptions = computed(() =>
     Object.fromEntries(VISIONS.map((vision) => [vision, t(`appearance.visions.${vision}`)]))
   )
+  const choices = (group: string, values: readonly string[]) =>
+    computed(() => Object.fromEntries(values.map((value) => [value, t(`appearance.${group}.${value}`)])))
+  const fontOptions = choices('fonts', FONT_FAMILIES)
+  const spacingOptions = choices('spacings', TEXT_SPACINGS)
+  const densityOptions = choices('densities', DENSITIES)
+  const motionOptions = choices('motions', MOTIONS)
+  const scaleOptions = Object.fromEntries(TEXT_SCALES.map((scale) => [String(scale), `${String(scale)} %`]))
 </script>
 
 <template>
@@ -67,6 +90,52 @@
       @update:model-value="updateSettings({ vision: String($event) as Vision })"
     />
     <p class="muted">{{ t('appearance.visionHint') }}</p>
+
+    <h3>{{ t('appearance.textTitle') }}</h3>
+    <FormSelect
+      :model-value="settings.fontFamily"
+      name="fontFamily"
+      :label="t('appearance.font')"
+      :options="fontOptions"
+      @update:model-value="updateSettings({ fontFamily: String($event) as FontFamily })"
+    />
+    <FormInput
+      v-if="'custom' === settings.fontFamily"
+      :model-value="settings.fontCustom"
+      name="fontCustom"
+      :label="t('appearance.fontCustom')"
+      :placeholder="t('appearance.fontCustomHint')"
+      @update:model-value="updateSettings({ fontCustom: String($event) })"
+    />
+    <p class="muted">{{ t('appearance.fontHint') }}</p>
+    <FormSelect
+      :model-value="String(settings.textScale)"
+      name="textScale"
+      :label="t('appearance.textScale')"
+      :options="scaleOptions"
+      @update:model-value="updateSettings({ textScale: Number($event) })"
+    />
+    <FormSelect
+      :model-value="settings.textSpacing"
+      name="textSpacing"
+      :label="t('appearance.textSpacing')"
+      :options="spacingOptions"
+      @update:model-value="updateSettings({ textSpacing: String($event) as TextSpacing })"
+    />
+    <FormSelect
+      :model-value="settings.density"
+      name="density"
+      :label="t('appearance.density')"
+      :options="densityOptions"
+      @update:model-value="updateSettings({ density: String($event) as Density })"
+    />
+    <FormSelect
+      :model-value="settings.motion"
+      name="motion"
+      :label="t('appearance.motion')"
+      :options="motionOptions"
+      @update:model-value="updateSettings({ motion: String($event) as Motion })"
+    />
   </div>
 </template>
 

@@ -777,6 +777,39 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       fs.unlinkSync(file)
     })
 
+    test('the text can be as large as 200% with the widest spacing, and the options page still holds', async () => {
+      await open('options', 'select[name=textScale]')
+      await choose('select[name=textScale]', '200')
+      await choose('select[name=textSpacing]', 'widest')
+      await choose('select[name=density]', 'compact')
+      await waitFor(
+        async () =>
+          (await driver.executeScript(`return getComputedStyle(document.documentElement).fontSize`)) === '32px',
+        { message: 'the size to be applied' }
+      )
+      assert.equal(await driver.executeScript(`return document.documentElement.dataset.density`), 'compact')
+      // Nothing sticks out of the page on the side.
+      const overflow = await driver.executeScript(
+        `return document.documentElement.scrollWidth - document.documentElement.clientWidth`
+      )
+      assert.ok(overflow <= 1, `the page is ${overflow}px too wide`)
+
+      // The choice is kept: another page opens with it.
+      await open('board', '.column')
+      assert.equal(await driver.executeScript(`return getComputedStyle(document.documentElement).fontSize`), '32px')
+
+      // And back to the usual look.
+      await open('options', 'select[name=textScale]')
+      await choose('select[name=textScale]', '100')
+      await choose('select[name=textSpacing]', 'default')
+      await choose('select[name=density]', 'comfortable')
+      await waitFor(
+        async () =>
+          (await driver.executeScript(`return getComputedStyle(document.documentElement).fontSize`)) === '16px',
+        { message: 'the usual size to be back' }
+      )
+    })
+
     test('the checksum of a backup is checked: a file that was changed needs an explicit yes', async () => {
       const canonical = (value) =>
         JSON.stringify(
