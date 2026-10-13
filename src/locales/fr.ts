@@ -41,6 +41,8 @@ const fr: TranslationObject = {
     openBoard: 'Ouvrir le tableau',
     another: 'En enregistrer une autre',
     save: "Enregistrer l'offre",
+    found: 'Lu aussi dans la page : {list}.',
+    foundKeys: { postedOn: 'date', salary: 'salaire', contractType: 'contrat', description: 'description' },
   },
   board: {
     title: 'Tableau',

@@ -8,6 +8,8 @@ How the extension stores and shows what it keeps, so that a piece of information
 | :--- | :--- | :--- |
 | A moment (a message, a reminder, when an application was saved) | UTC, an ISO 8601 string that ends with `Z`: `2026-12-23T19:00:00.000Z` | In the time zone of the settings (the one of the browser by default), in the language of the settings. |
 | A calendar date with no hour (the day an offer was published) | A plain date: `2026-12-24` | The same day for everybody. It is never turned into a moment, so no time zone can move it. |
+
+The day an offer was published is read from a page by `postedDay` (see _Reading a page_ below): the **time zone of the user is the default** whenever the page does not say which one it uses.
 | A time zone (of the user, of a contact) | A name of the IANA database: `Europe/Paris` | The name, and the time it is there now. |
 
 The rules, in `src/utils/time.ts`:
@@ -122,3 +124,20 @@ The fields of a JSON record or a CSV column (the names are not case sensitive, a
 | Names | Compared with `Intl.Collator` in the language of the page: accents are not letters apart, and `Dev 2` comes before `Dev 10`. |
 | What cannot be compared | An application without a salary, or whose currency has no rate, goes last whichever the direction. |
 | The view | Kept in the browser, so the board opens as it was left. |
+
+## Reading a page
+
+When the popup opens on a page, the extension reads that page once and fills the form. The reading is in `src/extraction`: `page.ts` takes a snapshot of the page (the JSON-LD scripts, the meta tags, the title) and everything else works on that snapshot, so it is tested without a browser.
+
+| What | Read from | Rule |
+| :--- | :--- | :--- |
+| Title, company | `title` and `hiringOrganization` of the `JobPosting` | The page title is the fallback for the title. |
+| Place, country | `jobLocation.address` | "Locality, region, country". The country is kept only when it is a two-letter ISO code. |
+| Contract | `employmentType` | As written, a list is joined. |
+| Work mode | `jobLocationType` | `TELECOMMUTE` is remote. Nothing else is guessed. |
+| Description | `description` | HTML is turned into text, with a line break where a block ends. |
+| Salary | `baseSalary` | Minor units of the currency, the period from `unitText`. Gross or net is almost never said: it is left empty for the user. A salary without a valid currency is dropped. |
+| Day published | `datePosted` | **A date with no hour is that day. A date with an hour and a time zone (`Z`, `+02:00`) is the day it is in the time zone of the user. A date with an hour and no time zone is read in the time zone of the user: the day written.** |
+
+- The data is found at the root of a script, in a list, or in an `@graph`. A script that is not valid JSON is skipped. The first `JobPosting` of the page is used.
+- Nothing is invented: a piece the page does not give stays empty, and the user can change every field before saving.
