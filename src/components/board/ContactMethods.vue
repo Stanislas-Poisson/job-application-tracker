@@ -2,6 +2,7 @@
   import { FormButton, FormInput, FormSelect } from '@zairakai/vue-components/Form'
   import { computed, reactive, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { hasText, useDirtyGuard } from '../../composables/useDirty'
   import type { Contact } from '../../models'
   import { METHOD_TYPES, type MethodType } from '../../models/ContactMethod'
   import { addContactMethod, removeContactMethod, setPrimaryMethod, sortedMethods } from '../../services/contactMethods'
@@ -13,6 +14,7 @@
   const { t, settings } = useApp()
 
   const form = reactive({ type: 'email' as MethodType, value: '', label: '' })
+  useDirtyGuard(() => hasText(form.value, form.label))
   const problem = ref('')
 
   const methods = computed(() => sortedMethods(props.contact.methods ?? []))

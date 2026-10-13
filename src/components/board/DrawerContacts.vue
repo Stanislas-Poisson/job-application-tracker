@@ -2,6 +2,7 @@
   import { FormButton, FormInput, FormSelect } from '@zairakai/vue-components/Form'
   import { computed, reactive, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { hasText, useDirtyGuard } from '../../composables/useDirty'
   import { useFormat } from '../../composables/useFormat'
   import type { Application } from '../../models'
   import { addContact, unlinkContact } from '../../services/applications'
@@ -28,6 +29,7 @@
     languages: '',
   })
   const form = reactive(empty())
+  useDirtyGuard(() => hasText(form.firstName, form.lastName, form.role, form.email, form.phone, form.linkedin))
   const problem = ref('')
 
   // The countries by their name in the language of the page, in the order of that language.

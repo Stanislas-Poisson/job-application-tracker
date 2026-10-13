@@ -1,7 +1,7 @@
 <script setup lang="ts">
   import { FormButton, FormInput, FormSelect, FormTextarea } from '@zairakai/vue-components/Form'
   import { useRepo } from 'pinia-orm'
-  import { computed, onMounted, reactive, ref } from 'vue'
+  import { computed, onMounted, reactive, ref, watch } from 'vue'
   import AppFooter from '../../components/AppFooter.vue'
   import AppHeader from '../../components/AppHeader.vue'
   import { useApp } from '../../composables/useApp'
@@ -11,7 +11,9 @@
   import { readSnapshot } from '../../extraction/read'
   import { reportMailto, reportUrl } from '../../extraction/report'
   import { Status } from '../../models'
+  import { browserAdapter } from '../../persistence/adapter'
   import { addNote, captureOffer } from '../../services/applications'
+  import { clearDraft, draftFor, loadDraft, saveDraft } from '../../services/draft'
   import { resolveTimeZone } from '../../utils/time'
 
   const { t, persistence, settings } = useApp()
@@ -44,7 +46,33 @@
     } catch {
       // The tab cannot be read (a browser page): the user types the offer.
     }
+    // What was typed here and not saved comes back, for the same page only.
+    const draft = draftFor(await loadDraft(browserAdapter), form.url)
+    if (draft) {
+      Object.assign(form, {
+        title: draft.title,
+        company: draft.company,
+        location: draft.location,
+        note: draft.note,
+        statusKey: statuses.value.some((status) => status.key === draft.statusKey) ? draft.statusKey : form.statusKey,
+      })
+    }
+    drafting.value = true
   })
+
+  // The popup closes on a click elsewhere and cannot warn: what is typed is kept as a draft, as it is typed.
+  const drafting = ref(false)
+  watch(
+    form,
+    () => {
+      if (drafting.value && 'idle' === state.value) {
+        // Nothing typed: no draft (and the one of a saved offer is gone).
+        const typed = [form.title, form.company, form.location, form.note].some((value) => '' !== value.trim())
+        void (typed ? saveDraft(browserAdapter, { ...form }) : clearDraft(browserAdapter))
+      }
+    },
+    { deep: true }
+  )
 
   // Reads the page the user is looking at, once, because the popup was opened on it (activeTab). Nothing is read in the
   // background and nothing leaves the browser.
@@ -95,6 +123,7 @@
     }
     // The popup closes as soon as the user clicks away: the data is written before saying it is saved.
     await persistence.flush()
+    await clearDraft(browserAdapter)
     state.value = 'saved'
   }
 
@@ -102,6 +131,7 @@
     Object.assign(form, { title: '', company: '', url: '', location: '', note: '' })
     read.value = {}
     state.value = 'idle'
+    void clearDraft(browserAdapter)
   }
 </script>
 
