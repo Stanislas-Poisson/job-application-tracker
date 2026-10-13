@@ -24,3 +24,4 @@
 - Restore a backup: choosing a backup file shows what would change (per kind of data: in the backup, new, different, the same, only here) before anything is applied. It replaces the data, as a restore after a loss should; cancelling changes nothing.
 - Versions of the data: the structure of the data now has a version of its own (2), migrations that bring older data and older backups up to date, and a refusal, with nothing overwritten, for data from a newer version. Every record has the moment of its last change, and a deleted record goes to a trash for 30 days, where the options can put it back.
 - Fixed: the default sources shared their objects between stores.
+- Backups carry a checksum. A restore tells whether the file is as it was saved, and asks for an explicit yes when it is not (a file edited by hand, cut off or damaged). Reformatting the file does not break it.

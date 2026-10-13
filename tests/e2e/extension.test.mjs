@@ -10,6 +10,7 @@ import { after, before, describe, test } from 'node:test'
 
 import { By } from 'selenium-webdriver'
 
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -691,6 +692,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       assert.match(preview, /without the settings/)
       assert.match(preview, /will be removed/)
       assert.match(preview, /Applications/)
+      assert.match(preview, /no checksum/)
 
       // Cancel: the preview goes away and the data is still there.
       const buttons = await all('#restore-preview button')
@@ -706,6 +708,50 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await waitFor(async () => (await all('.error')).length > 0, { message: 'the error' })
       assert.match(await text('.error'), /not an export/)
       assert.equal((await all('#restore-preview')).length, 0)
+      fs.unlinkSync(file)
+    })
+
+    test('the checksum of a backup is checked: a file that was changed needs an explicit yes', async () => {
+      const canonical = (value) =>
+        JSON.stringify(
+          (function sort(item) {
+            if (Array.isArray(item)) return item.map(sort)
+            if (item && typeof item === 'object') {
+              return Object.fromEntries(
+                Object.entries(item)
+                  .sort(([a], [b]) => (a < b ? -1 : 1))
+                  .map(([key, inner]) => [key, sort(inner)])
+              )
+            }
+            return item
+          })(value)
+        )
+      const checksum = (file) => `sha256:${crypto.createHash('sha256').update(canonical(file)).digest('hex')}`
+      const file = path.join(os.tmpdir(), `jat-checksum-${Date.now()}.json`)
+      const backup = { app: 'job-application-tracker', schema: 2, exportedAt: '2026-10-01T08:00:00.000Z', data: {} }
+      const pick = async () => {
+        await open('options', 'input[type=file]')
+        await css('input[type=file]').then((input) => input.sendKeys(file))
+        await waitFor(async () => (await all('#restore-preview')).length > 0, { message: 'the preview' })
+      }
+
+      // The checksum computed here (Node) matches the one the extension computes (the browser).
+      fs.writeFileSync(file, JSON.stringify({ ...backup, checksum: checksum(backup) }, null, 4))
+      await pick()
+      assert.match(await text('#restore-checksum'), /checksum matches/)
+      assert.equal((await all('#restore-acknowledge')).length, 0)
+
+      // One character changed after the checksum was written.
+      fs.writeFileSync(
+        file,
+        JSON.stringify({ ...backup, exportedAt: '2026-10-02T08:00:00.000Z', checksum: checksum(backup) })
+      )
+      await pick()
+      assert.match(await text('#restore-checksum'), /does not match/)
+      const apply = await css('#restore-apply')
+      assert.equal(await apply.isEnabled(), false)
+      await css('#restore-acknowledge').then((box) => box.click())
+      assert.equal(await apply.isEnabled(), true)
       fs.unlinkSync(file)
     })
 
