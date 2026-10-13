@@ -124,7 +124,7 @@ function textProblem(text: unknown, allowed: string[], exact: boolean): Problem[
 }
 
 // The languages the extension has: a file cannot take their place.
-export const SHIPPED = ['en', 'fr']
+export const SHIPPED = ['en', 'fr', 'es', 'de', 'it', 'pt', 'nl', 'ar']
 
 function setPath(tree: Messages, path: string, value: unknown) {
   const keys = path.split('.')
@@ -243,7 +243,7 @@ export function languageTemplate(): string {
   return JSON.stringify(
     {
       app: LANGUAGE_FILE,
-      help: 'Fill code (for example es or pt-BR), name (the name of the language in itself) and dir (ltr or rtl), then translate the texts of "messages". Keep every {placeholder} as it is. A text with forms (one, other…) has one text for each form the language needs; "other" is always needed. A text you leave in English stays in English. Do not add keys, markup or links.',
+      help: 'Fill code (for example sv or pt-BR), name (the name of the language in itself) and dir (ltr or rtl), then translate the texts of "messages". Keep every {placeholder} as it is. A text with forms (one, other…) has one text for each form the language needs; "other" is always needed. A text you leave in English stays in English. Do not add keys, markup or links.',
       code: '',
       name: '',
       dir: 'ltr',

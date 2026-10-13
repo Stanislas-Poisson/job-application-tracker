@@ -15,7 +15,7 @@
   import { moveApplication } from '../../services/applications'
   import { queryApplications } from '../../services/boardQuery'
   import { finalClientsOf, linksOf } from '../../services/companyRelations'
-  import { COLUMNS, boardCsv, exportFileName } from '../../services/exportBoard'
+  import { COLUMNS, boardCsv, csvSeparator, exportFileName } from '../../services/exportBoard'
   import { estimateNet } from '../../services/netEstimate'
   import { downloadText } from '../../utils/download'
   import { todayIn } from '../../utils/time'
@@ -118,7 +118,7 @@
         sourceLabel: sourceName,
         statusLabel: (statusId) => (statusId ? (names[statusId] ?? '') : ''),
       },
-      'fr' === format.locale.value ? ';' : ','
+      csvSeparator(format.locale.value)
     )
     downloadText(exportFileName(todayIn(format.timeZone.value)), text, 'text/csv;charset=utf-8')
   }

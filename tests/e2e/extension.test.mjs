@@ -1027,20 +1027,56 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await choose('select[name=theme]', 'auto')
     })
 
+    test('each language the extension comes with holds on the pages, tells its direction, and says when nobody who speaks it checked it', async () => {
+      const expected = {
+        fr: { dir: 'ltr', column: 'À postuler', notice: false },
+        es: { dir: 'ltr', column: 'Por enviar', notice: true },
+        de: { dir: 'ltr', column: 'Zu bewerben', notice: true },
+        ar: { dir: 'rtl', column: 'للتقديم', notice: true },
+        en: { dir: 'ltr', column: 'To apply', notice: false },
+      }
+      for (const [code, want] of Object.entries(expected)) {
+        await open('options', 'select[name=language]')
+        await choose('select[name=language]', code)
+        await waitFor(async () => (await driver.executeScript(`return document.documentElement.lang`)) === code, {
+          message: `lang to be ${code}`,
+        })
+        assert.equal(await driver.executeScript(`return document.documentElement.dir`), want.dir, code)
+        const notices = await all('#language-unreviewed')
+        assert.equal(notices.length > 0, want.notice, `${code}: notice`)
+        if (want.notice) {
+          const link = await driver.executeScript(`return document.querySelector('#language-unreviewed a').href`)
+          assert.match(link, /issues\/new\?template=translation\.yml/, code)
+          assert.match(link, new RegExp(`language=${code}`), code)
+        }
+        const overflow = await driver.executeScript(
+          `return document.documentElement.scrollWidth - document.documentElement.clientWidth`
+        )
+        assert.ok(overflow <= 1, `${code}: options is ${overflow}px too wide`)
+        await open('board', '.column')
+        await loaded()
+        assert.match(await text('.column'), new RegExp(want.column), code)
+        const boardOverflow = await driver.executeScript(
+          `return document.documentElement.scrollWidth - document.documentElement.clientWidth`
+        )
+        assert.ok(boardOverflow <= 1, `${code}: board is ${boardOverflow}px too wide`)
+      }
+    })
+
     test('a language of the user is imported from a file, checked before it is kept, used, and removed', async () => {
       const file = path.join(os.tmpdir(), `jat-language-${Date.now()}.json`)
       fs.writeFileSync(
         file,
         JSON.stringify({
           app: 'job-application-tracker-language',
-          code: 'es',
-          name: 'Español',
+          code: 'sv',
+          name: 'Svenska',
           dir: 'ltr',
           messages: {
-            options: { language: 'Idioma' },
+            options: { language: 'Språk' },
             // Refused: it looks like markup. Refused: it drops the placeholder of the English text.
             nav: { board: '<img src=x onerror=alert(1)>' },
-            trash: { related: { one: '{count} relacionado', other: '{count} {extra}' } },
+            trash: { related: { one: '{count} relaterad', other: '{count} {extra}' } },
             made: { up: 'ignored' },
           },
         })
@@ -1058,7 +1094,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await css('#language-file').then((input) => input.sendKeys(file))
       await waitFor(async () => (await all('#language-preview')).length > 0, { message: 'the preview' })
       const preview = await text('#language-preview')
-      assert.match(preview, /Español/)
+      assert.match(preview, /Svenska/)
       assert.match(preview, /2 texts were refused/)
       assert.match(await text('#language-problems'), /nav\.board/)
       assert.match(await text('#language-problems'), /trash\.related/)
@@ -1068,11 +1104,11 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       await css('#language-keep').then((button) => button.click())
       await waitFor(async () => (await all('#language-installed')).length > 0, { message: 'the language to be kept' })
-      await choose('select[name=language]', 'es')
-      await waitFor(async () => (await driver.executeScript(`return document.documentElement.lang`)) === 'es', {
-        message: 'lang to be es',
+      await choose('select[name=language]', 'sv')
+      await waitFor(async () => (await driver.executeScript(`return document.documentElement.lang`)) === 'sv', {
+        message: 'lang to be sv',
       })
-      await waitFor(async () => /Idioma/.test(await text('main')), { message: 'the translated text' })
+      await waitFor(async () => /Språk/.test(await text('main')), { message: 'the translated text' })
       // A text that was refused is English.
       await open('board', '.column')
       assert.match(await text('header, .header'), /Board/)

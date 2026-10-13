@@ -25,8 +25,8 @@ type Tree = Record<string, unknown>
 // A file as a person would make it from the template: the code, the name and the direction filled, some texts translated.
 const file = (messages: Tree, extra: Tree = {}): Tree => ({
   app: LANGUAGE_FILE,
-  code: 'es',
-  name: 'Español',
+  code: 'sv',
+  name: 'Svenska',
   dir: 'ltr',
   messages,
   ...extra,
@@ -57,7 +57,7 @@ describe('the file to translate', () => {
     const template = JSON.parse(languageTemplate()) as Tree
     expect(template).toMatchObject({ app: LANGUAGE_FILE, code: '', name: '', dir: 'ltr' })
     expect(refused(template)).toBe('code')
-    const filled = ok({ ...template, code: 'es', name: 'Español' })
+    const filled = ok({ ...template, code: 'sv', name: 'Svenska' })
     // Nothing translated yet: every text is the English one, valid, and kept.
     expect(filled.report.translated).toBe(filled.report.total)
     expect(filled.report.problems).toEqual([])
@@ -172,12 +172,12 @@ describe('what leaves one text out, and English is shown instead', () => {
 describe('the stored languages', () => {
   it('are checked again when they are read, and at most as many as can be kept', () => {
     const good = ok(file({ nav: { board: 'Tablero' } })).language
-    const tampered = { ...good, code: 'de', name: '<b>x</b>' }
+    const tampered = { ...good, code: 'da', name: '<b>x</b>' }
     const many = Array.from({ length: MAX_LANGUAGES + 2 }, (_, index) => ({
       ...good,
       code: `a${String.fromCharCode(97 + index)}`,
     }))
-    expect(normalizeStoredLanguages([good, tampered, 3, null, good]).map((language) => language.code)).toEqual(['es'])
+    expect(normalizeStoredLanguages([good, tampered, 3, null, good]).map((language) => language.code)).toEqual(['sv'])
     expect(normalizeStoredLanguages(many)).toHaveLength(MAX_LANGUAGES)
     expect(normalizeStoredLanguages('nope')).toEqual([])
   })
@@ -189,8 +189,8 @@ describe('the stored languages', () => {
     expect(await addCustomLanguage(adapter, { ...spanish, name: 'Español 2' })).toBe(true)
     expect(installed.value.map((language) => language.name)).toEqual(['Español 2'])
     installed.value = []
-    expect((await loadCustomLanguages(adapter)).map((language) => language.code)).toEqual(['es'])
-    await removeCustomLanguage(adapter, 'es')
+    expect((await loadCustomLanguages(adapter)).map((language) => language.code)).toEqual(['sv'])
+    await removeCustomLanguage(adapter, 'sv')
     expect(installed.value).toEqual([])
     expect(adapter.data[LANGUAGES_KEY]).toEqual([])
   })
@@ -208,28 +208,28 @@ describe('the stored languages', () => {
 describe('the language in use', () => {
   it('shows the texts of the file, English for the others, and follows the language of the browser', () => {
     installed.value = [ok(file({ nav: { board: 'Tablero' } })).language]
-    expect(resolveLocale('es', 'en')).toBe('es')
-    expect(resolveLocale('auto', 'es-ES')).toBe('es')
-    expect(resolveLocale('auto', 'de-DE')).toBe('en')
-    const translator = createTranslator('es', 'en')
+    expect(resolveLocale('sv', 'en')).toBe('sv')
+    expect(resolveLocale('auto', 'sv-SE')).toBe('sv')
+    expect(resolveLocale('auto', 'ja-JP')).toBe('en')
+    const translator = createTranslator('sv', 'en')
     expect(translator.__('nav.board')).toBe('Tablero')
     expect(translator.__('nav.options')).toBe(createTranslator('en', 'en').__('nav.options'))
   })
 
   it('is English when the language was removed, and a translator made before gets the texts of one added later', () => {
-    expect(resolveLocale('es', 'en')).toBe('en')
+    expect(resolveLocale('sv', 'en')).toBe('en')
     const early = createTranslator('en', 'en')
     installed.value = [ok(file({ nav: { board: 'Tablero' } })).language]
-    ensureLocale(early, 'es')
-    early.setLocale('es')
+    ensureLocale(early, 'sv')
+    early.setLocale('sv')
     expect(early.__('nav.board')).toBe('Tablero')
   })
 
   it('writes the direction of the language of the file', () => {
-    installed.value = [ok(file({ nav: { board: 'x' } }, { code: 'ar', name: 'العربية', dir: 'rtl' })).language]
+    installed.value = [ok(file({ nav: { board: 'x' } }, { code: 'he', name: 'עברית', dir: 'rtl' })).language]
     const root = document.createElement('html')
-    applyLanguage(root, 'ar')
+    applyLanguage(root, 'he')
     expect(root.getAttribute('dir')).toBe('rtl')
-    expect(root.getAttribute('lang')).toBe('ar')
+    expect(root.getAttribute('lang')).toBe('he')
   })
 })

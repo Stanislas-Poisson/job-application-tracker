@@ -123,7 +123,7 @@ const en: TranslationObject = {
       offer: 'Offer',
       rejected: 'Rejected',
     },
-    sources: { other: 'Other' },
+    sourceOther: 'Other',
   },
   activity: {
     created: 'Saved',
@@ -803,7 +803,7 @@ const en: TranslationObject = {
       'too-big': 'This file is too big to be a language file.',
       json: 'This file is not valid JSON.',
       'not-a-language': 'This file is not a language file of this extension. Download the file to translate first.',
-      code: 'The code of the language is not valid: write it like es or pt-BR.',
+      code: 'The code of the language is not valid: write it like sv or pt-BR.',
       shipped: 'This language is already in the extension and cannot be replaced.',
       name: 'The name of the language is missing, too long, or holds what is not allowed.',
       dir: 'The direction is ltr (left to right) or rtl (right to left).',
@@ -917,6 +917,9 @@ const en: TranslationObject = {
     restore: 'Restore',
     title: 'Options',
     languageAuto: 'Same as the browser',
+    languageUnreviewed:
+      'This translation was not checked by a person who speaks the language. It may contain mistakes.',
+    languageReport: 'Report a mistake in this translation',
     language: 'Language',
     statuses: 'Columns of the board',
     statusesHint: 'A column is a status. Rename them, change their colour or order, or add your own.',
