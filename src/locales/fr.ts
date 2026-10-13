@@ -7,6 +7,7 @@ const fr: TranslationObject = {
     source: 'Code source',
     issues: 'Signaler un problème',
     privacy: 'Politique de confidentialité',
+    support: 'Soutenir le stream',
     madeBy: 'Made by Stanislas Poisson (Zairakai)',
   },
   fields: {
@@ -112,6 +113,18 @@ const fr: TranslationObject = {
     contacts: 'Contacts',
     addContact: 'Ajouter le contact',
     unlink: 'Retirer',
+  },
+  // Les noms des colonnes et des sources fournis avec l'extension. Ils suivent la langue tant qu'on ne les renomme pas.
+  defaults: {
+    statuses: {
+      to_apply: 'À postuler',
+      applied: 'Postulé',
+      follow_up: 'À relancer',
+      interview: 'Entretien',
+      offer: 'Offre',
+      rejected: 'Refusé',
+    },
+    sources: { other: 'Autre' },
   },
   activity: {
     created: 'Enregistrée',
@@ -585,6 +598,7 @@ const fr: TranslationObject = {
     },
   },
   freelance: {
+    flatLine: 'Charges',
     title: 'Tarif freelance',
     hint: 'À partir du revenu voulu, trouvez le tarif journalier à demander ; ou à partir d’un tarif journalier, voyez ce qui reste. Les charges viennent d’un profil de paie, ou d’un taux fixe.',
     mode: 'Je veux connaître',
@@ -812,6 +826,24 @@ const fr: TranslationObject = {
       plural: 'les formes ne sont pas celles de cette langue',
       key: 'une clé non permise',
     },
+  },
+  // Ce qui se passe mal avec un fichier ou les données, dit à l'utilisateur.
+  problems: {
+    notExport: "Ce fichier n'est pas une exportation de Job Application Tracker.",
+    newerExport:
+      "Cette exportation vient d'une version plus récente de l'extension. Mettez l'extension à jour pour la lire.",
+    notList: 'Les données « {name} » de ce fichier ne sont pas une liste.',
+    unknownExport: "La version de cette exportation n'est pas connue.",
+    shortPassphrase: 'La phrase secrète doit faire au moins {min} caractères.',
+    iterations: "Le nombre d'itérations est hors limites.",
+    newerBackup:
+      "Cette sauvegarde a été protégée par une version plus récente de l'extension. Mettez l'extension à jour pour l'ouvrir.",
+    badHeader: "L'en-tête de cette sauvegarde protégée n'est pas valide.",
+    newerData:
+      "Les données viennent d'une version plus récente de l'extension. Mettez l'extension à jour pour les lire.",
+    unknownData: "La version des données n'est pas connue.",
+    noStep: "Il n'y a aucun moyen de mettre à jour des données de la version {version}.",
+    other: "Une erreur s'est produite : {message}",
   },
   options: {
     symbol: 'Symbole',

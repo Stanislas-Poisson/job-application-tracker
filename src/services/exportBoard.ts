@@ -81,6 +81,7 @@ export interface ExportContext {
   finalClients: (companyId: string) => string[]
   // The label of the column an application is in, by the id of its status.
   statusLabel: (statusId: string | null) => string
+  sourceLabel: (source: { key: string; label: string }) => string
   // The mark of a decimal number in the file: "." for a comma-separated file, "," for a semicolon-separated one.
   decimal: '.' | ','
 }
@@ -147,7 +148,7 @@ export function boardRows(applications: Application[], context: ExportContext): 
       country: offer?.country ?? '',
       contract: offer?.contractType ?? '',
       workMode: offer?.workMode ?? '',
-      source: offer?.source?.label ?? '',
+      source: offer?.source ? context.sourceLabel(offer.source) : '',
       url: offer?.url ?? '',
       published: offer?.postedOn ?? '',
       salaryMin: decimalAmount(salary.min, currency, decimal),

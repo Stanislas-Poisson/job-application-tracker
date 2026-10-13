@@ -50,6 +50,7 @@ const context = (changes: Partial<ExportContext> = {}): ExportContext => ({
   netEstimate: () => null,
   finalClients: () => [],
   statusLabel: (id) => (id ? 'Applied' : ''),
+  sourceLabel: (source) => source.label,
   decimal: '.',
   ...changes,
 })
