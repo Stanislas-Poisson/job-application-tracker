@@ -5,6 +5,7 @@
   import AppFooter from '../../components/AppFooter.vue'
   import AppHeader from '../../components/AppHeader.vue'
   import { useApp } from '../../composables/useApp'
+  import { adapterFor } from '../../extraction/adapters'
   import { type ReadOffer } from '../../extraction/jobPosting'
   import { collectSnapshot } from '../../extraction/page'
   import { readSnapshot } from '../../extraction/read'
@@ -51,7 +52,13 @@
     if (undefined === tabId) {
       return
     }
-    const [result] = await browser.scripting.executeScript({ target: { tabId }, func: collectSnapshot })
+    // The body of the page is only taken for a site that has an adapter.
+    const withBody = null !== adapterFor(form.url)
+    const [result] = await browser.scripting.executeScript({
+      target: { tabId },
+      func: collectSnapshot,
+      args: [withBody],
+    })
     if (!result?.result) {
       return
     }

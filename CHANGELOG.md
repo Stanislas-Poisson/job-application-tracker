@@ -18,3 +18,4 @@
 - Reading a page without `JobPosting` data: the OpenGraph tags and the title of the page give the title and the description. The name of the site is never taken for the company.
 - Report a reading that broke: a link in the popup opens a prefilled GitHub issue with the site, the version and what was read. Nothing is sent by the extension.
 - The same report can be opened as an e-mail, for someone with no GitHub account.
+- LinkedIn: the popup reads an offer page of the French or English interface (title, company, place, day published from "3 days ago", salary of the offer, description), even though LinkedIn publishes no structured data. For this site only, the main part of the page is read, on the page you opened the popup on.
