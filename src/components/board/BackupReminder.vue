@@ -2,12 +2,12 @@
   import { FormButton } from '@zairakai/vue-components/Form'
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
-  import { useFormat } from '../../composables/useFormat'
-  import { backupDelay, backupText, backupToFile, browserEnvironment, hasData } from '../../services/backup'
-  import { todayIn } from '../../utils/time'
+  import { useBackup } from '../../composables/useBackup'
+  import { backupDelay, hasData } from '../../services/backup'
+  import PassphraseForm from '../PassphraseForm.vue'
 
-  const { t, settings, updateSettings } = useApp()
-  const format = useFormat()
+  const { t, settings } = useApp()
+  const { needs, backup: backupToFile } = useBackup()
 
   // "Later" hides the reminder for as long as the page is open: it comes back on the next visit, until a backup is made.
   const later = ref(false)
@@ -17,14 +17,7 @@
   async function backup() {
     failed.value = false
     try {
-      const result = await backupToFile(
-        await backupText(settings),
-        todayIn(format.timeZone.value),
-        browserEnvironment()
-      )
-      if (result.done) {
-        await updateSettings({ lastBackupAt: new Date().toISOString() })
-      }
+      await backupToFile()
     } catch {
       failed.value = true
     }
@@ -56,6 +49,10 @@
       @click.prevent="browser.runtime.openOptionsPage()"
       >{{ t('nav.options') }}</a
     >
+    <PassphraseForm
+      v-if="needs"
+      :mode="needs"
+    />
     <p
       v-if="failed"
       class="error"

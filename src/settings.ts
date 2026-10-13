@@ -1,4 +1,5 @@
 import type { StorageAdapter } from './persistence/adapter'
+import { type PassphraseCheck, normalizeCheck } from './services/encryption'
 import { isCountry, normalizeEmail } from './utils/contact'
 import { CURRENCY_DISPLAYS, type CurrencyDisplay, DEFAULT_ASSUMPTIONS, isCurrency } from './utils/money'
 import { isInstant, isValidTimeZone } from './utils/time'
@@ -50,6 +51,10 @@ export interface Settings {
   backupReminderDays: number
   // When the data was last backed up to a file (UTC), or null when it never was.
   lastBackupAt: string | null
+  // Protect the backups with a passphrase. The passphrase itself is never kept: only a check that tells whether a passphrase
+  // typed later is the same one (an encrypted known text), so that a typing mistake does not make a backup nobody can open.
+  backupProtect: boolean
+  backupPassphraseCheck: PassphraseCheck | null
 }
 
 export const SETTINGS_KEY = 'jat:settings'
@@ -68,6 +73,8 @@ export const DEFAULT_SETTINGS: Settings = {
   ownEmails: [],
   backupReminderDays: 30,
   lastBackupAt: null,
+  backupProtect: false,
+  backupPassphraseCheck: null,
   ...DEFAULT_ASSUMPTIONS,
 }
 
@@ -77,7 +84,9 @@ const inRange = (min: number, max: number) => (value: unknown) =>
 
 // What a setting may hold. A stored value that does not pass is replaced by the default.
 const VALID: {
-  [K in Exclude<keyof Settings, 'rates' | 'ownEmails' | 'autoRatesData' | 'lastBackupAt'>]: (value: unknown) => boolean
+  [K in Exclude<keyof Settings, 'rates' | 'ownEmails' | 'autoRatesData' | 'lastBackupAt' | 'backupPassphraseCheck'>]: (
+    value: unknown
+  ) => boolean
 } = {
   locale: oneOf(LOCALES),
   theme: oneOf(THEMES),
@@ -90,6 +99,7 @@ const VALID: {
   autoRates: (value) => 'boolean' === typeof value,
   workingDaysPerYear: inRange(1, 366),
   hoursPerDay: inRange(1, 24),
+  backupProtect: (value) => 'boolean' === typeof value,
   backupReminderDays: (value) => Number.isInteger(value) && inRange(0, 365)(value),
 }
 
@@ -150,6 +160,7 @@ export function normalizeSettings(stored: unknown): Settings {
     autoRatesData: normalizeFetched(source.autoRatesData),
     ownEmails: normalizeEmails(source.ownEmails),
     lastBackupAt: isInstant(source.lastBackupAt) ? source.lastBackupAt : null,
+    backupPassphraseCheck: normalizeCheck(source.backupPassphraseCheck),
   }
   for (const key of Object.keys(VALID) as (keyof typeof VALID)[]) {
     if (VALID[key](source[key])) {
