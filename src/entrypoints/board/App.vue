@@ -13,6 +13,9 @@
   import { Application, Status } from '../../models'
   import { moveApplication } from '../../services/applications'
   import { queryApplications } from '../../services/boardQuery'
+  import { COLUMNS, boardCsv, exportFileName } from '../../services/exportBoard'
+  import { downloadText } from '../../utils/download'
+  import { todayIn } from '../../utils/time'
 
   const { t, persistence } = useApp()
   const format = useFormat()
@@ -73,6 +76,31 @@
     () => everything.value.filter((application) => application.archived === view.showArchived).length
   )
 
+  // The applications that are shown, in the order they are shown, as a file for a spreadsheet. A language that writes numbers
+  // with a decimal comma (and whose spreadsheets want a semicolon) gets a semicolon.
+  function exportCsv() {
+    const names = Object.fromEntries(statuses.value.map((status) => [status.id, status.label]))
+    const text = boardCsv(
+      visible.value,
+      {
+        labels: {
+          columns: Object.fromEntries(COLUMNS.map((column) => [column, t(`export.columns.${column}`)])) as never,
+          yes: t('export.yes'),
+          no: t('export.no'),
+          priorities: Object.fromEntries([0, 1, 2, 3].map((level) => [String(level), t(`labels.priorities.${level}`)])),
+          periods: Object.fromEntries(
+            ['year', 'month', 'week', 'day', 'hour'].map((p) => [p, t(`salary.per.${p}`)])
+          ) as never,
+          kinds: { gross: t('salary.kind.gross'), net: t('salary.kind.net') },
+        },
+        conversion: format.conversion(),
+        statusLabel: (statusId) => (statusId ? (names[statusId] ?? '') : ''),
+      },
+      'fr' === format.locale.value ? ';' : ','
+    )
+    downloadText(exportFileName(todayIn(format.timeZone.value)), text, 'text/csv;charset=utf-8')
+  }
+
   async function drop(applicationId: string, statusId: string) {
     moveApplication(applicationId, statusId)
     await persistence.flush()
@@ -82,6 +110,13 @@
 <template>
   <main class="page">
     <AppHeader :title="t('board.title')">
+      <a
+        id="export-csv"
+        href="#"
+        :title="t('export.hint', { count: visible.length })"
+        @click.prevent="exportCsv"
+        >{{ t('export.link') }}</a
+      >
       <a
         href="#"
         @click.prevent="browser.runtime.openOptionsPage()"
