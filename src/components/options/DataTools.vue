@@ -247,6 +247,7 @@
     <label class="row">
       {{ t('options.import') }}
       <input
+        id="restore-file"
         type="file"
         accept="application/json,.json"
         @change="choose($event, 'restore')"

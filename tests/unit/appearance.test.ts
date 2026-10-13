@@ -58,6 +58,8 @@ describe('settings', () => {
 })
 
 const LOOKS = {
+  customThemes: [] as never[],
+  customThemeId: '',
   fontFamily: 'system',
   fontCustom: '',
   textScale: 100,

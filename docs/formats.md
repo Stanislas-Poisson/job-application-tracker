@@ -457,3 +457,11 @@ The style sheets say sides as start and end, block and inline (`margin-inline-st
 ## Plurals and numbers
 
 A text that depends on a number is an object in the file of texts, with a form for each plural category of the language (`zero`, `one`, `two`, `few`, `many`, `other`), and `other` is always there: `labels.usage.one`, `labels.usage.other`. `tn(path, count)` picks the form with `Intl.PluralRules` of the language (English and French: one and other, Russian: one, few, many, Arabic: all six) and writes `{count}` with `Intl.NumberFormat` of the language, so with its digits. A form a language does not write falls back to `other`. Dates and amounts already use `Intl.DateTimeFormat` and `Intl.NumberFormat`, so a locale that carries a calendar (`-u-ca-islamic`, `-u-ca-buddhist`, `-u-ca-japanese`) or digits (`-u-nu-arab`) is followed.
+
+## Your own themes
+
+Settings `customThemes` (at most 20: `id`, `name` of 60 characters at most, and the colours `light` and `dark`) and `customThemeId` (the one in use, empty for none; an id that is gone is none). A set of colours has `background`, `surface`, `text`, `primary` (the accent), `onPrimary`, `success`, `warning`, `error` and `border`, each of six hexadecimal digits; anything else is the default for that colour, so that nothing but a colour can reach a style sheet.
+
+The theme in use is a style sheet of its own (`#jat-custom-theme`, last in the head), written from the colours: the light set always, the dark set when the page is dark (chosen, or the system's when the theme is left to the system). It wins over the accent and the vision modes, since a custom theme comes with its own colours. The contrast of the pairs that matter is measured as WCAG 2 does (relative luminance): text on background and on surface, text on the accent and the error colour at 4.5 to 1; the accent, the borders, success and warning at 3 to 1. The correction moves a colour toward black or white, keeping its hue, by the smallest step that reaches the ratio.
+
+A theme is exported as a small JSON file (`app: "job-application-tracker-theme"`, the name and the two sets, no id); importing one gives it a new id. The themes are in the settings, so they are in the backups.
