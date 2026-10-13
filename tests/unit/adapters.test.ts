@@ -294,3 +294,61 @@ describe('Glassdoor', () => {
     expect(readGlassdoor(parse('<body><li data-jobid="1">An offer</li></body>'))).toEqual({})
   })
 })
+
+describe('France Travail', () => {
+  const NOW_FT = new Date('2026-10-14T10:00:00Z')
+  const snapshotFt = (extra: Partial<PageSnapshot> = {}): PageSnapshot => ({
+    url: 'https://candidat.francetravail.fr/offres/recherche/detail/214VDDL',
+    title: "Offre d'emploi Lead Développeur Full Stack (H/F) - 16 - ANGOULEME - 214VDDL | France Travail",
+    jsonLd: [],
+    meta: {
+      description:
+        'Offre publiée il y a 8 jours - CDI - 35H/semaine\nTravail en journée - Salaire : Annuel de 35000.0 Euros à 45000.0 Euros - Complémentaire santé - 16 - ANGOULEME - 214VDDL',
+    },
+    body: '<body></body>',
+    ...extra,
+  })
+  const shadow =
+    '<div class="offer-detail"><h3 class="offer-detail-title">Lead Développeur Full Stack (H/F)</h3></div>' +
+    '<div class="offer-detail-description"><div class="offer-detail-description-left"><p class="mb-3">SOLICIS is an ESN.<br>Your missions:<br>Lead the team</p></div>' +
+    '<dl><div data-cy="lieuTravail">ANGOULEME (16)</div><div data-cy="synthese-contrat">CDI - Contrat travail</div>' +
+    '<div data-cy="salaire"><dt>Salaire</dt><dd>Annuel de 35000.0 Euros à 45000.0 Euros</dd></div></dl>' +
+    '<h5 data-cy="nom-etablissement">SOLICIS</h5></div>'
+
+  it('is the adapter of the page of an offer, and of no other page of the site', () => {
+    expect(adapterFor('https://candidat.francetravail.fr/offres/recherche/detail/214VDDL')?.name).toBe('francetravail')
+    expect(adapterFor('https://candidat.francetravail.fr/offres/recherche?motsCles=php')).toBeNull()
+  })
+
+  it('reads the tab and the description tag when the component cannot be read', () => {
+    expect(readSnapshot(snapshotFt(), PARIS, NOW_FT)).toMatchObject({
+      title: 'Lead Développeur Full Stack (H/F)',
+      location: 'ANGOULEME (16)',
+      contractType: 'CDI',
+      postedOn: '2026-10-06',
+      salary: { min: 3_500_000, max: 4_500_000, currency: 'EUR', period: 'year', kind: null },
+    })
+  })
+
+  it('adds the employer and the text of the offer from the component', () => {
+    const offer = readSnapshot(snapshotFt({ shadows: [shadow] }), PARIS, NOW_FT)
+    expect(offer).toMatchObject({ companyName: 'SOLICIS', contractType: 'CDI', location: 'ANGOULEME (16)' })
+    expect(offer.description).toContain('Your missions:')
+    expect(offer.description).toContain('Lead the team')
+  })
+
+  it('reads a salary by month or by hour, with one amount or two', async () => {
+    const { salaryFromFranceTravail } = await import('../../src/extraction/adapters/francetravail')
+    expect(salaryFromFranceTravail('Mensuel de 2500.0 Euros sur 12 mois')).toMatchObject({
+      min: 250_000,
+      max: 250_000,
+      period: 'month',
+    })
+    expect(salaryFromFranceTravail('Horaire de 12.5 Euros à 15.0 Euros')).toMatchObject({
+      min: 1250,
+      max: 1500,
+      period: 'hour',
+    })
+    expect(salaryFromFranceTravail('Salaire à négocier')).toBeNull()
+  })
+})
