@@ -1,3 +1,4 @@
+import { joinAddress } from '../services/maps'
 import { type Salary, type SalaryPeriod, currencyDigits, isCurrency, toMinor } from '../utils/money'
 import { postedDay } from '../utils/time'
 
@@ -6,6 +7,8 @@ export interface ReadOffer {
   title?: string
   companyName?: string
   location?: string
+  // The postal address of the workplace on one line, when the page gives a street.
+  address?: string
   country?: string
   contractType?: string
   workMode?: 'onsite' | 'hybrid' | 'remote'
@@ -107,7 +110,7 @@ function countryCode(value: unknown): string | undefined {
 }
 
 // "Paris, Île-de-France, FR" from the address of the first place of the offer.
-function place(posting: Json): { location?: string; country?: string } {
+function place(posting: Json): { location?: string; country?: string; address?: string } {
   const [first] = asList(posting.jobLocation as Json | Json[])
   const address = isObject(first) ? first.address : undefined
   if (!isObject(address)) {
@@ -124,7 +127,23 @@ function place(posting: Json): { location?: string; country?: string } {
     .filter((part): part is string => undefined !== part)
     // Some sites repeat the city as the region.
     .filter((part, index, all) => part !== all[index - 1])
-  return { location: 0 < parts.length ? parts.join(', ') : undefined, country }
+  return { location: 0 < parts.length ? parts.join(', ') : undefined, country, address: addressOf(address, country) }
+}
+
+// The street address on one line. Some sites put the whole address in the street ("18 Place des Reflets, 92400 Courbevoie"):
+// then it is taken as it is, and the postal code and the city are not added a second time.
+function addressOf(address: Json, country: string | undefined): string | undefined {
+  const street = text(address.streetAddress)
+  if (undefined === street) {
+    return undefined
+  }
+  const postalCode = text(address.postalCode)
+  const city = text(address.addressLocality)
+  const complete = [postalCode, city]
+    .filter((part): part is string => undefined !== part)
+    .some((part) => street.includes(part))
+  const named = isObject(address.addressCountry) ? text(address.addressCountry.name) : text(address.addressCountry)
+  return joinAddress(complete ? { street } : { street, postalCode, city, country: named ?? country })
 }
 
 const PERIODS: Record<string, SalaryPeriod> = {

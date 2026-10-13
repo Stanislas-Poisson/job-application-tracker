@@ -52,6 +52,13 @@ export interface Settings {
   followUpDays: number
   // The pay profile that estimates the net pay of the offers, or '' for none (an id of the profiles).
   payProfileId: string
+  // The address a route starts from (home), and the map service the links open. Nothing is sent by the extension: a link is
+  // built, and the browser opens it when the user clicks.
+  homeAddress: string
+  mapProvider: 'google' | 'osm' | 'apple' | 'custom'
+  // The link of a map service of their own, with {from} and {to} (the addresses) and {query} (a place), for 'custom'.
+  mapCustomTemplate: string
+  travelMode: 'car' | 'transit' | 'bike' | 'walk'
   // Notify when a reminder comes due. Off by default: it needs the permission of the browser, asked when this is turned on.
   notifyReminders: boolean
   // Keep the notification on screen until the user closes it (Chrome and Edge; Firefox does not know the option).
@@ -81,6 +88,10 @@ export const DEFAULT_SETTINGS: Settings = {
   ownEmails: [],
   followUpDays: 7,
   payProfileId: '',
+  homeAddress: '',
+  mapProvider: 'google',
+  mapCustomTemplate: '',
+  travelMode: 'car',
   notifyReminders: false,
   notifyPersistent: true,
   backupReminderDays: 30,
@@ -114,6 +125,10 @@ const VALID: {
   backupProtect: (value) => 'boolean' === typeof value,
   followUpDays: (value) => Number.isInteger(value) && inRange(1, 60)(value),
   payProfileId: (value) => 'string' === typeof value,
+  homeAddress: (value) => 'string' === typeof value && 300 >= value.length,
+  mapProvider: oneOf(['google', 'osm', 'apple', 'custom']),
+  mapCustomTemplate: (value) => 'string' === typeof value && 500 >= value.length,
+  travelMode: oneOf(['car', 'transit', 'bike', 'walk']),
   notifyReminders: (value) => 'boolean' === typeof value,
   notifyPersistent: (value) => 'boolean' === typeof value,
   backupReminderDays: (value) => Number.isInteger(value) && inRange(0, 365)(value),
@@ -198,19 +213,66 @@ export async function saveSettings(adapter: StorageAdapter, settings: Settings) 
 }
 
 let writing: Promise<unknown> = Promise.resolve()
+// The changes that wait for their turn to be written. Those made while they wait join them: a burst of changes (a field typed
+// letter by letter) makes one write, not one for each.
+let waiting: { changes: Partial<Settings>; done: Promise<Settings> } | null = null
 
 /**
  * Changes some settings in the storage without touching the others. The page that asks may hold a copy that is behind (another
  * page changed a setting it has not read yet): writing the whole copy would put the old value back. So the storage is read at
  * the moment of the change, the changed settings are put into what it holds, and the result is written. Changes made by a page
- * wait for one another, so that two of them do not read the same state.
+ * wait for one another, so that two of them do not read the same state, and those that wait are written together.
  */
 export function changeSettings(adapter: StorageAdapter, changes: Partial<Settings>): Promise<Settings> {
-  const run = writing.then(async () => {
-    const next = normalizeSettings({ ...(await loadSettings(adapter)), ...changes })
+  if (waiting) {
+    Object.assign(waiting.changes, changes)
+    return waiting.done
+  }
+  const batch = { changes: { ...changes }, done: Promise.resolve({} as Settings) }
+  waiting = batch
+  batch.done = writing.then(async () => {
+    // From here a new change makes a batch of its own.
+    waiting = null
+    const next = normalizeSettings({ ...(await loadSettings(adapter)), ...batch.changes })
     await saveSettings(adapter, next)
     return next
   })
-  writing = run.catch(() => undefined)
-  return run
+  writing = batch.done.catch(() => undefined)
+  return batch.done
+}
+
+/**
+ * Keeps the settings of a page (an object it shows and edits) and the storage the same, in both ways.
+ *
+ * `update` changes some settings at once in the page and writes them. While a write of this page is under way the storage
+ * tells the page about it (and about the older writes before it): reading that back would put an old value over what was just
+ * typed. So the page reads the storage only when none of its own writes is under way, and then takes in what other pages did.
+ */
+export function syncSettings(adapter: StorageAdapter, settings: Settings) {
+  let inFlight = 0
+  const refresh = async () => {
+    const fresh = await loadSettings(adapter)
+    // A change made while the storage was being read stands: it is in the next write.
+    if (0 === inFlight) {
+      Object.assign(settings, fresh)
+    }
+  }
+  const stop = adapter.onChanged((keys) => {
+    if (keys.includes(SETTINGS_KEY) && 0 === inFlight) {
+      void refresh()
+    }
+  })
+  const update = async (changes: Partial<Settings>) => {
+    Object.assign(settings, changes)
+    inFlight++
+    try {
+      await changeSettings(adapter, changes)
+    } finally {
+      inFlight--
+      if (0 === inFlight) {
+        await refresh()
+      }
+    }
+  }
+  return { update, refresh, stop }
 }

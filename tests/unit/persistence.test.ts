@@ -140,7 +140,9 @@ describe('writing at once', () => {
 
     // An application, its offer, its company and its history, in a single action.
     captureOffer({ title: 'One', companyName: 'Acme' })
-    await new Promise((resolve) => setTimeout(resolve, 5))
+    await vi.waitFor(() => expect(writes).toBeGreaterThan(0))
+    // Let anything that would write a second time have the time to: it must not.
+    await new Promise((resolve) => setTimeout(resolve, 50))
 
     expect(writes).toBe(1)
     persistence.stop()

@@ -44,7 +44,13 @@ const fr: TranslationObject = {
     report: 'Il manque quelque chose ? Signaler une lecture cassée',
     reportMail: 'Pas de compte GitHub ? Signaler par e-mail',
     found: 'Lu aussi dans la page : {list}.',
-    foundKeys: { postedOn: 'date', salary: 'salaire', contractType: 'contrat', description: 'description' },
+    foundKeys: {
+      address: 'adresse',
+      postedOn: 'date',
+      salary: 'salaire',
+      contractType: 'contrat',
+      description: 'description',
+    },
   },
   board: {
     backupLate: 'Votre dernière sauvegarde date de {days} jours.',
@@ -378,6 +384,10 @@ const fr: TranslationObject = {
       company: 'Entreprise',
       finalClient: 'Client final',
       place: 'Lieu',
+      postalAddress: 'Adresse postale',
+      commuteKm: 'Distance jusqu’au travail (km)',
+      commuteMinutes: 'Durée jusqu’au travail (minutes)',
+      commuteMode: 'En',
       country: 'Pays',
       contract: 'Contrat',
       workMode: 'Mode de travail',
@@ -561,6 +571,57 @@ const fr: TranslationObject = {
     never:
       'Une estimation. Les jours facturés sont moins nombreux que les jours travaillés (congés, maladie, recherche de la prochaine mission), et les charges dépendent de votre pays, de votre régime et de l’année. La TVA n’est pas comptée.',
   },
+  place: {
+    title: 'Lieu et trajet',
+    address: 'Adresse postale du lieu de travail',
+    addressHint: '1 rue Exemple, 75001 Paris',
+    show: 'Voir sur la carte',
+    route: 'Itinéraire depuis chez moi',
+    privacy:
+      'Un clic ouvre votre service de cartes avec cette adresse. Rien d’autre n’est envoyé, et rien avant le clic.',
+    found: 'Ce que vous avez trouvé sur la carte',
+    km: 'Distance (km)',
+    minutes: 'Durée (minutes)',
+    mode: 'En',
+    modeNone: '(non précisé)',
+    save: 'Garder',
+    notes: {
+      osm: 'OpenStreetMap ne sait pas faire un itinéraire à partir de deux adresses écrites en texte : il montre seulement le lieu. Choisissez un autre service dans les options pour un itinéraire.',
+      home: 'Indiquez dans les options l’adresse d’où vous partez pour obtenir un itinéraire.',
+    },
+    modes: {
+      car: 'Voiture',
+      transit: 'Transports en commun',
+      bike: 'Vélo',
+      walk: 'À pied',
+    },
+    errors: {
+      number: 'La distance est un nombre, et la durée un nombre entier de minutes.',
+      long: 'Un trajet de plus de 24 heures n’est pas un trajet quotidien.',
+    },
+  },
+  map: {
+    title: 'Cartes',
+    hint: 'Une offre peut garder l’adresse de son lieu de travail, avec un lien pour l’ouvrir dans le service de cartes de votre choix. Vous cherchez là-bas, puis gardez ce que vous avez trouvé (distance, durée) dans l’offre. L’extension construit le lien ; elle ne demande rien au service.',
+    provider: 'Service de cartes',
+    providers: {
+      google: 'Google Maps',
+      osm: 'OpenStreetMap',
+      apple: 'Plans d’Apple',
+      custom: 'Mon propre lien',
+    },
+    osmNote:
+      'OpenStreetMap montre un lieu, mais ne sait pas faire un itinéraire à partir de deux adresses écrites en texte.',
+    custom: 'Votre lien',
+    customHint:
+      'Une adresse qui commence par https://, avec {to} (ou {query}) là où va la destination, et {from} là où va le départ si vous voulez un itinéraire. Exemple : https://example.org/route?a={from}&b={to}',
+    customProblem: 'Ce lien est inutilisable : il doit commencer par https:// et contenir {to} ou {query}.',
+    home: 'L’adresse d’où vous partez',
+    homeHint:
+      'Elle reste dans ce navigateur, avec vos autres réglages et vos sauvegardes. Elle ne va au service de cartes que quand vous cliquez sur un lien d’itinéraire, et jamais dans l’export CSV.',
+    mode: 'Votre mode de déplacement habituel',
+  },
+  cardCommute: 'Trajet',
   options: {
     protectedBackup: 'Cette sauvegarde est protégée par une phrase secrète.',
     openBackup: 'Ouvrir la sauvegarde',

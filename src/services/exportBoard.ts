@@ -16,6 +16,10 @@ export const COLUMNS = [
   'company',
   'finalClient',
   'place',
+  'postalAddress',
+  'commuteKm',
+  'commuteMinutes',
+  'commuteMode',
   'country',
   'contract',
   'workMode',
@@ -53,6 +57,7 @@ export interface ExportLabels {
   priorities: Record<string, string>
   periods: Record<SalaryPeriod, string>
   kinds: Record<SalaryKind, string>
+  modes: Record<string, string>
 }
 
 export interface ExportContext {
@@ -113,6 +118,10 @@ export function boardRows(applications: Application[], context: ExportContext): 
       company: offer?.company?.name ?? '',
       finalClient: offer?.company ? list(context.finalClients(offer.company.id)) : '',
       place: offer?.location ?? '',
+      postalAddress: offer?.address ?? '',
+      commuteKm: null == offer?.commuteMeters ? '' : String(offer.commuteMeters / 1000).replace('.', decimal),
+      commuteMinutes: null == offer?.commuteMinutes ? '' : String(offer.commuteMinutes),
+      commuteMode: offer?.commuteMode ? (labels.modes[offer.commuteMode] ?? '') : '',
       country: offer?.country ?? '',
       contract: offer?.contractType ?? '',
       workMode: offer?.workMode ?? '',

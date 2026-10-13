@@ -12,6 +12,7 @@
   import DrawerLabels from './DrawerLabels.vue'
   import DrawerNetPay from './DrawerNetPay.vue'
   import DrawerNotes from './DrawerNotes.vue'
+  import DrawerPlace from './DrawerPlace.vue'
   import DrawerReminders from './DrawerReminders.vue'
   import DrawerTimeline from './DrawerTimeline.vue'
 
@@ -59,6 +60,7 @@
         :application="application"
         @deleted="emit('close')"
       />
+      <DrawerPlace :application="application" />
       <DrawerNetPay :application="application" />
       <DrawerCompany :application="application" />
       <DrawerLabels :application="application" />
