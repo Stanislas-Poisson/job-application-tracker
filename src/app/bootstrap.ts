@@ -61,6 +61,9 @@ export async function mountApp(root: Component, selector = '#app') {
   // Fresh rates when the switch is on and the last ones are a day old: the page never waits for them.
   void refreshRates(settings, updateSettings)
 
+  // The journal of the persistence, to read from the console or from a test when two pages disagree.
+  ;(window as unknown as { __jat?: { events: readonly string[] } }).__jat = { events: persistence.events }
+
   // The browser asks before a page is closed with text that was typed and not saved.
   warnBeforeLeaving()
 
