@@ -182,6 +182,35 @@ const nl: TranslationObject = {
     },
   },
   regional: {
+    datesTitle: 'Datums en tijden',
+    dateFormat: 'Datumformaat',
+    dateFormats: {
+      auto: 'De taal volgen ({example})',
+      dmy: 'Dag/maand/jaar ({example})',
+      mdy: 'Maand/dag/jaar ({example})',
+      ymd: 'Jaar-maand-dag ({example})',
+      medium: 'Kort met de maandnaam ({example})',
+      long: 'Met de volledige maandnaam ({example})',
+      full: 'Met de weekdag ({example})',
+      custom: 'Mijn eigen formaat ({example})',
+    },
+    dateCustom: 'Je eigen formaat',
+    dateCustomHint:
+      'YYYY jaar, MM of M maand, MMMM maandnaam, MMM korte naam, DD of D dag, dddd weekdag, ddd korte naam. Tekst tussen [rechte haken] blijft zoals hij is. Voorbeeld: dddd D MMMM YYYY.',
+    dateCustomProblem: 'Schrijf een formaat van 1 tot {max} tekens.',
+    timeFormat: 'Tijdformaat',
+    timeFormats: {
+      auto: 'De taal volgen ({example})',
+      h24: '24 uur ({example})',
+      h12: '12 uur ({example})',
+    },
+    relative: 'Relatieve datums',
+    relatives: {
+      off: 'Uit: altijd de datum',
+      both: 'De datum en hoe lang geleden',
+      recent: 'Hoe lang geleden als het binnen 30 dagen is, anders de datum',
+    },
+    datePreview: 'Zo getoond: {example}',
     defaultCountry: 'Standaardland voor telefoonnummers',
     defaultCountryHint:
       'Een nummer zonder landcode (+31, +1) wordt in dit land gelezen. Elk nummer wordt in het internationale formaat bewaard.',

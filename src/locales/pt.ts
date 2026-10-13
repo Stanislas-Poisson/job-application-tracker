@@ -182,6 +182,35 @@ const pt: TranslationObject = {
     },
   },
   regional: {
+    datesTitle: 'Datas e horas',
+    dateFormat: 'Formato da data',
+    dateFormats: {
+      auto: 'Seguir o idioma ({example})',
+      dmy: 'Dia/mês/ano ({example})',
+      mdy: 'Mês/dia/ano ({example})',
+      ymd: 'Ano-mês-dia ({example})',
+      medium: 'Curto com o nome do mês ({example})',
+      long: 'Com o nome completo do mês ({example})',
+      full: 'Com o dia da semana ({example})',
+      custom: 'O meu próprio formato ({example})',
+    },
+    dateCustom: 'O seu próprio formato',
+    dateCustomHint:
+      'YYYY ano, MM ou M mês, MMMM nome do mês, MMM nome curto, DD ou D dia, dddd nome do dia, ddd nome curto. O texto entre [parênteses retos] é mantido tal como está. Exemplo: dddd D MMMM YYYY.',
+    dateCustomProblem: 'Escreva um formato de 1 a {max} caracteres.',
+    timeFormat: 'Formato da hora',
+    timeFormats: {
+      auto: 'Seguir o idioma ({example})',
+      h24: '24 horas ({example})',
+      h12: '12 horas ({example})',
+    },
+    relative: 'Datas relativas',
+    relatives: {
+      off: 'Desativado: sempre a data',
+      both: 'A data e há quanto tempo',
+      recent: 'Há quanto tempo se for de menos de 30 dias, senão a data',
+    },
+    datePreview: 'Mostrado assim: {example}',
     defaultCountry: 'País predefinido dos números de telefone',
     defaultCountryHint:
       'Um número escrito sem o indicativo do país (+351, +1) é lido neste país. Todos os números são guardados no formato internacional.',

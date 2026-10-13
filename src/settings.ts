@@ -3,6 +3,16 @@ import type { StorageAdapter } from './persistence/adapter'
 import { type AddressParts, emptyAddress, normalizeAddress } from './services/address'
 import { type PassphraseCheck, normalizeCheck } from './services/encryption'
 import { isCountry, normalizeEmail } from './utils/contact'
+import {
+  DATE_FORMATS,
+  DEFAULT_PATTERN,
+  type DateFormat,
+  RELATIVE_MODES,
+  type RelativeMode,
+  TIME_FORMATS,
+  type TimeFormat,
+  isPattern,
+} from './utils/dateFormat'
 import { CURRENCY_DISPLAYS, type CurrencyDisplay, DEFAULT_ASSUMPTIONS, isCurrency } from './utils/money'
 import { isInstant, isValidTimeZone } from './utils/time'
 
@@ -57,6 +67,11 @@ export interface Settings {
   motion: Motion
   // "auto" is the time zone of the browser, or a name of the IANA database (Europe/Paris).
   timeZone: string
+  // How dates are written: "auto" follows the language. The pattern is the one of the "custom" format. Relative dates say how long ago.
+  dateFormat: DateFormat
+  timeFormat: TimeFormat
+  dateCustom: string
+  relativeDates: RelativeMode
   // The country a phone number typed without a country code is read in: "auto" is the one of the language of the browser.
   defaultCountry: string
   // The currency the salaries are compared in (an ISO 4217 code), or '' for none.
@@ -113,6 +128,10 @@ export const DEFAULT_SETTINGS: Settings = {
   density: 'comfortable',
   motion: 'auto',
   timeZone: 'auto',
+  dateFormat: 'auto',
+  timeFormat: 'auto',
+  dateCustom: DEFAULT_PATTERN,
+  relativeDates: 'off',
   defaultCountry: 'auto',
   homeCurrency: '',
   currencyDisplay: 'symbol',
@@ -161,6 +180,10 @@ const VALID: {
   density: oneOf(DENSITIES),
   motion: oneOf(MOTIONS),
   timeZone: (value) => 'auto' === value || isValidTimeZone(value),
+  dateFormat: oneOf(DATE_FORMATS),
+  timeFormat: oneOf(TIME_FORMATS),
+  dateCustom: isPattern,
+  relativeDates: oneOf(RELATIVE_MODES),
   defaultCountry: (value) => 'auto' === value || isCountry(value),
   homeCurrency: (value) => '' === value || isCurrency(value),
   currencyDisplay: oneOf(CURRENCY_DISPLAYS),

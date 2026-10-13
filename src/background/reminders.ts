@@ -13,7 +13,8 @@ import {
   pruneNotified,
 } from '../services/reminderDue'
 import { SETTINGS_KEY, normalizeSettings } from '../settings'
-import { formatInstant, resolveTimeZone } from '../utils/time'
+import { formatMoment } from '../utils/dateFormat'
+import { resolveTimeZone } from '../utils/time'
 
 export const NOTIFIED_KEY = 'jat:notified'
 export const ALARM_NEXT = 'jat-reminder-next'
@@ -92,11 +93,21 @@ export async function checkReminders(env: BackgroundEnv): Promise<CheckResult> {
   const locale = resolveLocale(settings.locale, env.language)
   const timeZone = resolveTimeZone(settings.timeZone)
 
+  const style = {
+    locale,
+    timeZone,
+    date: settings.dateFormat,
+    time: settings.timeFormat,
+    custom: settings.dateCustom,
+    relative: settings.relativeDates,
+  }
   const due = dueReminders(data, notified, now)
   const told: string[] = []
   const describe = (reminder: DueReminder) => {
     const about = [reminder.jobTitle, reminder.companyName].filter(Boolean).join(' · ')
-    return [reminder.title, about, formatInstant(reminder.dueAt, { locale, timeZone })].filter(Boolean).join('\n')
+    // How long it has been due, then the date as the user writes it: a notification is read at a glance.
+    const when = formatMoment(reminder.dueAt, { ...style, relative: 'both' }, now)
+    return [reminder.title, about, when].filter(Boolean).join('\n')
   }
   const mark = (reminders: DueReminder[]) => {
     for (const reminder of reminders) {

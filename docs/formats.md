@@ -19,6 +19,18 @@ The rules, in `src/utils/time.ts`:
 - When the clocks go back, an hour happens twice: the first one is taken. When they go forward, an hour does not exist: the time is moved forward by the length of the jump.
 - A page shows a date again when the language or the time zone changes, with no reload.
 
+### How a date is written
+
+Settings `dateFormat`, `timeFormat`, `dateCustom` and `relativeDates`, in `src/utils/dateFormat.ts`. What is stored does not change; only the way it is shown.
+
+- `dateFormat`: `auto` (what the language does: 13/10/2026 in French, 10/13/2026 in English, 13.10.2026 in German, 2026-10-13 in Swedish), `dmy`, `mdy`, `ymd`, `medium`, `long`, `full` (the names of the months and days come from the browser), or `custom`. A choice of the user wins over the language.
+- `dateCustom`, for `custom`: 1 to 40 characters, with the tokens `YYYY YY MMMM MMM MM M dddd ddd DD D`. Text in `[square brackets]` and any other character are kept as they are. The result is text: nothing in it is read as markup.
+- `timeFormat`: `auto` (the language), `h24` or `h12`.
+- `relativeDates`: `off` (the date), `both` (the date and how long ago) or `recent` (how long ago for a moment of the last 30 days, else the date). The words ("5 minutes ago", "yesterday", "in 3 days") come from `Intl.RelativeTimeFormat`, so every language has them. Under an hour: minutes; under a day: hours; then the days of the calendar of the time zone; then months and years.
+- A plain date (the day an offer was published, the dates of a job) is read at midnight UTC and shown as a date only: no hour, no time zone, and relative dates never apply to it.
+- A notification says how long the reminder has been due and writes its date with the format of the user, in absolute form.
+- The CSV file keeps ISO dates in UTC, whatever the format: a spreadsheet reads them back.
+
 ## Money
 
 | What | Stored as | Shown as |
