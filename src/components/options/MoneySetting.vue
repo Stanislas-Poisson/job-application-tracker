@@ -5,7 +5,9 @@
   import { useApp } from '../../composables/useApp'
   import { useFormat } from '../../composables/useFormat'
   import { JobOffer } from '../../models'
+  import { dropRatesAccess, refreshRates, requestRatesAccess } from '../../services/rates'
   import { CURRENCY_DISPLAYS, currencyName, listCurrencies } from '../../utils/money'
+  import { RATES_ORIGIN, effectiveRates } from '../../utils/rates'
 
   const { t, settings, updateSettings } = useApp()
   const format = useFormat()
@@ -44,6 +46,31 @@
     void updateSettings({ rates })
   }
 
+  // The switch asks for the permission first: without it, nothing is fetched and the switch stays off.
+  const problem = ref(false)
+  async function toggleAuto(on: boolean) {
+    problem.value = false
+    if (!on) {
+      await updateSettings({ autoRates: false })
+      await dropRatesAccess(RATES_ORIGIN)
+      return
+    }
+    if (!(await requestRatesAccess(RATES_ORIGIN))) {
+      problem.value = true
+      return
+    }
+    await updateSettings({ autoRates: true })
+    problem.value = !(await refreshRates(settings, updateSettings))
+    problem.value &&= null === settings.autoRatesData
+  }
+
+  async function refreshNow() {
+    problem.value = false
+    problem.value = !(await refreshRates(settings, updateSettings, undefined, new Date(), true))
+  }
+
+  const inUse = computed(() => effectiveRates(settings))
+
   function setNumber(key: 'workingDaysPerYear' | 'hoursPerDay', text: string, min: number, max: number) {
     const value = Number(text.trim().replace(',', '.'))
     if (Number.isFinite(value) && min <= value && value <= max) {
@@ -79,6 +106,36 @@
       >
         {{ t('money.noRates') }}
       </p>
+      <label class="row">
+        <input
+          type="checkbox"
+          name="autoRates"
+          :checked="settings.autoRates"
+          @change="toggleAuto(($event.target as HTMLInputElement).checked)"
+        />
+        <span>{{ t('money.auto') }}</span>
+      </label>
+      <p class="muted">{{ t('money.autoHint') }}</p>
+      <p
+        v-if="settings.autoRates && settings.autoRatesData && settings.autoRatesData.home === settings.homeCurrency"
+        class="muted"
+        data-testid="rates-date"
+      >
+        {{ t('money.autoDate', { date: format.date(settings.autoRatesData.date) }) }}
+        <button
+          type="button"
+          @click="refreshNow"
+        >
+          {{ t('money.refresh') }}
+        </button>
+      </p>
+      <p
+        v-if="problem"
+        class="muted"
+        role="alert"
+      >
+        {{ t('money.autoFailed') }}
+      </p>
       <ul class="rates">
         <li
           v-for="code in rows"
@@ -88,6 +145,9 @@
           <span class="rate-label">1 {{ code }} =</span>
           <FormInput
             :model-value="settings.rates[code] ?? ''"
+            :placeholder="
+              inUse[code] && undefined === settings.rates[code] ? String(Number(inUse[code]!.toPrecision(6))) : ''
+            "
             :name="`rate-${code}`"
             type="number"
             step="any"

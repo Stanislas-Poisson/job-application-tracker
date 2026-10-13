@@ -3,6 +3,7 @@
   import { useRepo } from 'pinia-orm'
   import { computed } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { anyDirty } from '../../composables/useDirty'
   import { Application } from '../../models'
   import DrawerContacts from './DrawerContacts.vue'
   import DrawerDetails from './DrawerDetails.vue'
@@ -16,6 +17,13 @@
   const emit = defineEmits<{ close: [] }>()
 
   const { t } = useApp()
+
+  // Escape, the close button and a click outside ask to close: unsaved text asks the user first, and can keep the drawer.
+  function onCancel(event: Event) {
+    if (anyDirty() && !window.confirm(t('dirty.confirmClose'))) {
+      event.preventDefault()
+    }
+  }
 
   const application = computed(() =>
     props.applicationId
@@ -38,6 +46,7 @@
     :model-value="null !== applicationId"
     :title="application?.jobOffer?.title ?? ''"
     :close-label="t('drawer.close')"
+    @cancel="onCancel"
     @update:model-value="!$event && emit('close')"
   >
     <div

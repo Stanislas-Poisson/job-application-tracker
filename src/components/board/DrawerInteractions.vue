@@ -2,6 +2,7 @@
   import { FormButton, FormInput, FormSelect, FormTextarea } from '@zairakai/vue-components/Form'
   import { computed, reactive, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { hasText, useDirtyGuard } from '../../composables/useDirty'
   import { useFormat } from '../../composables/useFormat'
   import type { Application } from '../../models'
   import { CHANNELS, DIRECTIONS } from '../../models/Interaction'
@@ -25,6 +26,7 @@
     duration: '' as string | number,
   })
   const form = reactive(empty())
+  useDirtyGuard(() => hasText(form.subject, form.body))
   const problem = ref('')
 
   const channelOptions = computed(() =>

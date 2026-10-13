@@ -10,6 +10,7 @@ import { after, before, describe, test } from 'node:test'
 
 import { By } from 'selenium-webdriver'
 
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -647,6 +648,297 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       await driver.switchTo().window(optionsTab)
       await choose('select[name=timeZone]', 'auto')
+    })
+
+    test('the board reminds to back up when there is data and no backup, and "Later" hides the reminder', async () => {
+      const tab = await open('board', '.column')
+
+      await waitFor(async () => (await all('#backup-reminder')).length > 0, { message: 'the backup reminder' })
+      assert.match(await text('#backup-reminder'), /not backed up your data yet/)
+
+      const buttons = await all('#backup-reminder button')
+      assert.equal(buttons.length, 2)
+      await buttons[1].click()
+      await waitFor(async () => (await all('#backup-reminder')).length === 0, { message: 'the reminder to hide' })
+
+      // The options say the same, and offer the number of days of the reminder.
+      await open('options', '#last-backup')
+      assert.match(await text('#last-backup'), /No backup yet/)
+      assert.equal(await css('input[name=backupReminderDays]').then((input) => input.getAttribute('value')), '30')
+
+      // With the reminder turned off, the board stays quiet.
+      await type('input[name=backupReminderDays]', '0')
+      await driver.switchTo().window(tab)
+      await driver.navigate().refresh()
+      await waitFor(async () => (await all('.column')).length > 0, { message: 'the board to reload' })
+      assert.equal((await all('#backup-reminder')).length, 0)
+
+      await driver.switchTo().window(await open('options', '#last-backup'))
+      await type('input[name=backupReminderDays]', '30')
+    })
+
+    test('a backup file is previewed before it replaces the data, and cancelling changes nothing', async () => {
+      const file = path.join(os.tmpdir(), `jat-restore-${Date.now()}.json`)
+      // A backup of an empty extension: every application stored here would be lost by the restore.
+      const empty = { app: 'job-application-tracker', schema: 1, exportedAt: '2026-10-01T08:00:00.000Z', data: {} }
+      fs.writeFileSync(file, JSON.stringify(empty))
+
+      await open('options', 'input[type=file]')
+      await css('input[type=file]').then((input) => input.sendKeys(file))
+      await waitFor(async () => (await all('#restore-preview')).length > 0, { message: 'the preview' })
+
+      const preview = await text('#restore-preview')
+      assert.match(preview, /Backup of/)
+      assert.match(preview, /without the settings/)
+      assert.match(preview, /will be removed/)
+      assert.match(preview, /Applications/)
+      assert.match(preview, /no checksum/)
+
+      // Cancel: the preview goes away and the data is still there.
+      const buttons = await all('#restore-preview button')
+      await buttons[1].click()
+      await waitFor(async () => (await all('#restore-preview')).length === 0, { message: 'the preview to close' })
+      await open('board', '.column')
+      assert.ok((await all('.application-card')).length > 0)
+
+      // A file that is not a backup says so and changes nothing.
+      fs.writeFileSync(file, JSON.stringify({ hello: 'world' }))
+      await open('options', 'input[type=file]')
+      await css('input[type=file]').then((input) => input.sendKeys(file))
+      await waitFor(async () => (await all('.error')).length > 0, { message: 'the error' })
+      assert.match(await text('.error'), /not an export/)
+      assert.equal((await all('#restore-preview')).length, 0)
+      fs.unlinkSync(file)
+    })
+
+    test('the checksum of a backup is checked: a file that was changed needs an explicit yes', async () => {
+      const canonical = (value) =>
+        JSON.stringify(
+          (function sort(item) {
+            if (Array.isArray(item)) return item.map(sort)
+            if (item && typeof item === 'object') {
+              return Object.fromEntries(
+                Object.entries(item)
+                  .sort(([a], [b]) => (a < b ? -1 : 1))
+                  .map(([key, inner]) => [key, sort(inner)])
+              )
+            }
+            return item
+          })(value)
+        )
+      const checksum = (file) => `sha256:${crypto.createHash('sha256').update(canonical(file)).digest('hex')}`
+      const file = path.join(os.tmpdir(), `jat-checksum-${Date.now()}.json`)
+      const backup = { app: 'job-application-tracker', schema: 2, exportedAt: '2026-10-01T08:00:00.000Z', data: {} }
+      const pick = async () => {
+        await open('options', 'input[type=file]')
+        await css('input[type=file]').then((input) => input.sendKeys(file))
+        await waitFor(async () => (await all('#restore-preview')).length > 0, { message: 'the preview' })
+      }
+
+      // The checksum computed here (Node) matches the one the extension computes (the browser).
+      fs.writeFileSync(file, JSON.stringify({ ...backup, checksum: checksum(backup) }, null, 4))
+      await pick()
+      assert.match(await text('#restore-checksum'), /checksum matches/)
+      assert.equal((await all('#restore-acknowledge')).length, 0)
+
+      // One character changed after the checksum was written.
+      fs.writeFileSync(
+        file,
+        JSON.stringify({ ...backup, exportedAt: '2026-10-02T08:00:00.000Z', checksum: checksum(backup) })
+      )
+      await pick()
+      assert.match(await text('#restore-checksum'), /does not match/)
+      const apply = await css('#restore-apply')
+      assert.equal(await apply.isEnabled(), false)
+      await css('#restore-acknowledge').then((box) => box.click())
+      assert.equal(await apply.isEnabled(), true)
+      fs.unlinkSync(file)
+    })
+
+    test('a backup protected by a passphrase hides the data, and is opened with the passphrase only', async () => {
+      const PASSPHRASE = 'correct horse battery'
+      await open('options', '#backup-protect')
+      // The file picker of the system cannot be driven: a fake one keeps what is written.
+      await driver.executeScript(`
+        window.__written = null;
+        window.showSaveFilePicker = async () => ({
+          name: 'backup.json',
+          createWritable: async () => ({ write: async (text) => { window.__written = text }, close: async () => {} }),
+        });
+      `)
+
+      await css('#backup-protect').then((box) => box.click())
+      await waitFor(async () => (await all('.passphrase-setup')).length > 0, { message: 'the form of the passphrase' })
+      assert.match(await text('.passphrase-setup'), /cannot be opened/)
+
+      // Too short, then not the same twice, then good.
+      await type('.passphrase-setup input[name=passphrase]', 'short')
+      await type('.passphrase-setup input[name=passphraseAgain]', 'short')
+      await driver.executeScript(`document.querySelector('.passphrase-setup').requestSubmit()`)
+      await waitFor(async () => (await all('.passphrase-setup .error')).length > 0, { message: 'a message' })
+
+      await type('.passphrase-setup input[name=passphrase]', PASSPHRASE)
+      await type('.passphrase-setup input[name=passphraseAgain]', `${PASSPHRASE}x`)
+      await driver.executeScript(`document.querySelector('.passphrase-setup').requestSubmit()`)
+      await waitFor(async () => /not the same/.test(await text('.passphrase-setup .error')), {
+        message: 'the mismatch',
+      })
+
+      await type('.passphrase-setup input[name=passphraseAgain]', PASSPHRASE)
+      await driver.executeScript(`document.querySelector('.passphrase-setup').requestSubmit()`)
+      await waitFor(async () => (await all('.passphrase-setup')).length === 0, { message: 'the passphrase to be set' })
+
+      // The backup is written encrypted: the offers saved earlier are not readable in it.
+      await css('#backup-now').then((button) => button.click())
+      const written = await waitFor(async () => driver.executeScript('return window.__written'), {
+        message: 'the backup',
+      })
+      const file = JSON.parse(written)
+      assert.equal(file.format, 'encrypted')
+      assert.equal(file.kdf.name, 'PBKDF2')
+      assert.ok(file.kdf.iterations >= 600000)
+      assert.ok(!written.includes('Backend developer'))
+      assert.ok(!written.includes('Acme'))
+
+      // Restoring: the passphrase is asked, a wrong one changes nothing, the right one shows the preview.
+      const protectedFile = path.join(os.tmpdir(), `jat-protected-${Date.now()}.json`)
+      fs.writeFileSync(protectedFile, written)
+      await open('options', 'input[type=file]')
+      await css('input[type=file]').then((input) => input.sendKeys(protectedFile))
+      await waitFor(async () => (await all('#restore-locked')).length > 0, { message: 'the passphrase prompt' })
+
+      await type('#restore-passphrase', 'a wrong passphrase')
+      await driver.executeScript(`document.querySelector('#restore-locked').requestSubmit()`)
+      await waitFor(async () => (await all('.error')).length > 0, { message: 'the error' })
+      assert.match(await text('.error'), /wrong/)
+      assert.equal((await all('#restore-preview')).length, 0)
+
+      await type('#restore-passphrase', PASSPHRASE)
+      await driver.executeScript(`document.querySelector('#restore-locked').requestSubmit()`)
+      await waitFor(async () => (await all('#restore-preview')).length > 0, { message: 'the preview' })
+      assert.match(await text('#restore-checksum'), /checksum matches/)
+      assert.match(await text('#restore-preview'), /Applications/)
+      fs.unlinkSync(protectedFile)
+
+      // Back to plain backups for the rest of the tests.
+      await open('options', '#backup-protect')
+      await css('#backup-protect').then((box) => box.click())
+      await waitFor(async () => !(await css('#backup-protect').then((box) => box.isSelected())), {
+        message: 'the switch to go off',
+      })
+    })
+
+    test('unsaved text asks before the drawer is closed, and the offer form says it has changes', async () => {
+      await open('board', '.application-card')
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
+
+      // The form of the offer is not dirty, and its button has nothing to save.
+      const save = await css('.drawer-content form button[type=submit]')
+      assert.equal(await save.isEnabled(), false)
+      assert.equal((await all('#offer-unsaved')).length, 0)
+
+      await type('.drawer-content input[name=location]', 'Somewhere else')
+      await waitFor(async () => (await all('#offer-unsaved')).length > 0, { message: 'the unsaved mark' })
+      assert.equal(await save.isEnabled(), true)
+
+      // Closing asks first. Declining cancels the closing: the drawer stays, with what was typed.
+      const cancelled = await driver.executeScript(`
+        window.__asked = 0;
+        window.confirm = () => { window.__asked++; return false };
+        const event = new Event('cancel', { cancelable: true });
+        document.querySelector('dialog[open]').dispatchEvent(event);
+        return [window.__asked, event.defaultPrevented];
+      `)
+      assert.deepEqual(cancelled, [1, true])
+      assert.equal((await all('dialog[open]')).length, 1)
+      assert.equal(
+        await css('.drawer-content input[name=location]').then((input) => input.getAttribute('value')),
+        'Somewhere else'
+      )
+
+      // Accepting lets it close.
+      const accepted = await driver.executeScript(`
+        window.confirm = () => true;
+        const event = new Event('cancel', { cancelable: true });
+        document.querySelector('dialog[open]').dispatchEvent(event);
+        return event.defaultPrevented;
+      `)
+      assert.equal(accepted, false)
+
+      // Saving makes the form clean again.
+      await save.click()
+      await waitFor(async () => (await all('#offer-unsaved')).length === 0, { message: 'the mark to go' })
+      assert.equal(await save.isEnabled(), false)
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
+
+    test('the popup gives back what was typed and not saved, and forgets it once the offer is saved', async () => {
+      await open('popup', 'form')
+      await type('input[name=title]', 'A draft title')
+      await type('input[name=company]', 'Draft Inc')
+      // Wait for the draft to be written: the popup may be closed at any moment.
+      await waitFor(
+        async () =>
+          driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:draft', (items) => done(Boolean(items['jat:draft'] && items['jat:draft'].title === 'A draft title')));
+          `),
+        { message: 'the draft to be written' }
+      )
+
+      // Opened again, it is back.
+      await open('popup', 'form')
+      await waitFor(
+        async () => (await css('input[name=title]').then((input) => input.getAttribute('value'))) === 'A draft title',
+        {
+          message: 'the draft to come back',
+        }
+      )
+      assert.equal(await css('input[name=company]').then((input) => input.getAttribute('value')), 'Draft Inc')
+
+      // Saved: the draft is gone.
+      await css('form button[type=submit]').then((button) => button.click())
+      await waitFor(async () => (await all('.success')).length > 0, { message: 'the offer to be saved' })
+      const kept = await driver.executeAsyncScript(`
+        const done = arguments[arguments.length - 1];
+        chrome.storage.local.get('jat:draft', (items) => done(items['jat:draft'] ?? null));
+      `)
+      assert.equal(kept, null)
+    })
+
+    test('a deleted application goes to the trash, and comes back from it', async () => {
+      await open('board', '.application-card')
+      const before = (await all('.application-card')).length
+
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
+      await driver.executeScript('window.confirm = () => true')
+      const buttons = await all('.drawer-content button')
+      const labels = await Promise.all(buttons.map((button) => button.getText()))
+      await buttons[labels.indexOf('Delete')].click()
+      await waitFor(async () => (await all('.application-card')).length === before - 1, { message: 'the card to go' })
+
+      // It is in the trash of the options, with the date it was deleted.
+      await open('options', '#trash-list')
+      await waitFor(async () => /Applications/.test(await text('#trash-list')), {
+        message: 'the application in the trash',
+      })
+      // Other things may be in the trash (the column the options test removed): the row of the application is the one put back.
+      const rows = await all('#trash-list li')
+      const texts = await Promise.all(rows.map((row) => row.getText()))
+      await rows[texts.findIndex((line) => /Applications/.test(line))]
+        .findElement(By.css('button'))
+        .then((button) => button.click())
+      await waitFor(
+        async () => !/Applications/.test((await all('#trash-list')).length > 0 ? await text('#trash-list') : ''),
+        {
+          message: 'the application to leave the trash',
+        }
+      )
+
+      await open('board', '.application-card')
+      assert.equal((await all('.application-card')).length, before)
     })
   })
 })

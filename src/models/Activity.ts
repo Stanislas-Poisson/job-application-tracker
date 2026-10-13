@@ -8,6 +8,8 @@ export default class Activity extends Model {
   static entity = 'activities'
 
   declare id: string
+  // When the record last changed (UTC). Set by the persistence; null for a record that was never stamped.
+  declare updatedAt: string | null
   declare applicationId: string
   declare type: ActivityType
   declare title: string
@@ -20,6 +22,7 @@ export default class Activity extends Model {
   static fields() {
     return {
       id: this.uid(),
+      updatedAt: this.string(null),
       applicationId: this.attr(''),
       type: this.string('other'),
       title: this.string(''),
