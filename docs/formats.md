@@ -183,4 +183,13 @@ Some sites publish no `JobPosting` data. For them the extension also takes the m
 
 - A user who closes the file picker cancels the backup: nothing is written and the date of the last backup does not change.
 - An older file with no `settings` still imports: only the data comes back.
-- Restoring as a merge, and protecting the file with a passphrase, are other tickets.
+- Protecting the file with a passphrase, and merging the data of two computers, are other tickets.
+
+### Restore
+
+A restore is for a loss (a lost profile, a reinstall, a new computer): it **replaces** what is stored by the backup. It does not add to it. Merging the data of two computers is another process, with its own ticket, and it will have to warn about duplicates.
+
+- The file is read and compared with what is stored, **before anything is applied**. For each kind of data the preview says how many records are in the backup, how many are new here, how many differ, how many are the same, and how many are **only here** (the restore removes them).
+- A record of an older backup is read like a stored one (the fields it lacks get their defaults), so that only a real difference counts.
+- The user applies the restore or cancels. Cancelling changes nothing. A file that is not a backup, or that comes from a newer version of the extension, says why and changes nothing.
+- The settings come back with the data when the file has them.
