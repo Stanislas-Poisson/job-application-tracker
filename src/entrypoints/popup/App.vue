@@ -81,7 +81,7 @@
       return
     }
     // The body of the page is only taken for a site that has an adapter.
-    const withBody = null !== adapterFor(form.url)
+    const withBody = adapterFor(form.url)?.needsBody ?? false
     const [result] = await browser.scripting.executeScript({
       target: { tabId },
       func: collectSnapshot,

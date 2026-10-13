@@ -5,10 +5,12 @@
   import { useApp } from '../../composables/useApp'
   import { anyDirty } from '../../composables/useDirty'
   import { Application } from '../../models'
+  import DrawerCompany from './DrawerCompany.vue'
   import DrawerContacts from './DrawerContacts.vue'
   import DrawerDetails from './DrawerDetails.vue'
   import DrawerInteractions from './DrawerInteractions.vue'
   import DrawerLabels from './DrawerLabels.vue'
+  import DrawerNetPay from './DrawerNetPay.vue'
   import DrawerNotes from './DrawerNotes.vue'
   import DrawerReminders from './DrawerReminders.vue'
   import DrawerTimeline from './DrawerTimeline.vue'
@@ -57,6 +59,8 @@
         :application="application"
         @deleted="emit('close')"
       />
+      <DrawerNetPay :application="application" />
+      <DrawerCompany :application="application" />
       <DrawerLabels :application="application" />
       <DrawerInteractions :application="application" />
       <DrawerNotes :application="application" />

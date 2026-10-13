@@ -168,6 +168,10 @@ Some sites publish no `JobPosting` data. For them the extension also takes the m
 | Description | The block under the heading "About the job" / "À propos de l'offre d'emploi". |
 
 - **A relative date is an approximation.** "3 days ago" is the day three days before today; a week is 7 days, a month 30, a year 365. A repost ("Republication") gives the day of the repost. The user can change the date.
+**Talent.com** (`/view` pages). No JobPosting data, but a title that follows a pattern, so this adapter reads only the title and the tags of the page (the body is not taken): the title and the company from `Title – Company – Job offer …`, and the place from the parentheses of `Company recrute (Place)` in the description. The salary and the date are not read: the page does not give them in a form that stays the same.
+
+**Codeur.com** is not given an adapter: its pages are requests for a quote for a project, with no employer and no job offer; the generic reading (the title and the description) is all there is.
+
 - A salary text such as `40K € par yr - 60K € par yr`, `45 000 € - 55 000 €/an` or `$90,000/yr` is read as a range in minor units with its period. Gross or net is not guessed.
 - Tests use `tests/fixtures`: a French page reduced from a real saved page (same structure, no class names, short text) and an English page written by hand. Saved pages stay out of the repository: they hold the account of the person who saved them.
 
@@ -196,12 +200,15 @@ A restore is for a loss (a lost profile, a reinstall, a new computer): it **repl
 
 ## Versions of the structure
 
-The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **2** now.
+The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **5** now.
 
 | Version | What changed |
 | :--- | :--- |
 | 1 | The first structure. Data written before the version was kept with it is read as version 1. |
 | 2 | Every record has `updatedAt`, the moment of its last change (UTC, null when it was never stamped), and there is a `trash` for deleted records. |
+| 3 | Companies can be tied to one another (`companyRelations`). |
+| 4 | A person can work for several companies (`contactCompanies`). The company a contact had becomes a first link. |
+| 5 | Pay profiles to estimate the net pay (`payProfiles`). |
 
 - **Older data is brought up to date.** A migration turns the data of version N into the data of N + 1, one step at a time. It runs on the storage when a page opens (the result is saved with the new version) and on a backup file when it is read, so an old backup can still be restored. The preview says when a backup is old.
 - **Newer data is left alone.** If the storage or a file was written by a newer structure than this version knows, nothing is read, nothing is written and nothing is replaced: a page says so, and a restore is refused. A version that makes no sense (0, a word, none in a file) is refused too.
@@ -267,3 +274,114 @@ Data is written as soon as it changes, so the only thing a closing page can lose
 - **The drawer** asks before it is closed (Escape, the close button, a click outside) while any form is unsaved, and stays open if the user declines.
 - **The browser** asks before the board or the options page is closed while any form is unsaved. A popup cannot be asked, so:
 - **The popup keeps a draft** of what is typed (`jat:draft`), as it is typed, and gives it back when it is opened again on **the same page**. A draft of another page is not given back, so that two offers are never mixed, and a draft older than 7 days is dropped. Saving the offer clears it.
+
+## Reminders
+
+A reminder is a title and a moment (`dueAt`, UTC, typed in the time zone of the settings), done or not (`doneAt`).
+
+### Suggesting a follow-up
+
+Once the user has applied (`appliedAt` is set when an application reaches the "Applied" column), the drawer of the application **suggests a reminder to follow up**: "You applied: follow up 7 days later, on Oct 20, 9:00 AM?", with a button to add it. **Nothing is added until the user accepts.**
+
+- The delay is a setting (`followUpDays`, 7 by default, from 1 to 60). The reminder is set for **9 in the morning in the time zone of the user**, so it follows the clocks going back or forward.
+- It is not offered for an application that is archived, at the end of its road (a final column, such as an offer or a refusal), that the user has not applied to, or that has a reminder waiting already. It comes back once that reminder is done.
+- The form to add a reminder by hand starts from the same delay.
+
+### Telling the user when a reminder is due
+
+A background of the extension (`src/entrypoints/background.ts`, with its logic in `src/background/reminders.ts` and `src/services/reminderDue.ts`) looks at the reminders and does two things. It reads the stored data and writes none of it.
+
+- **The number on the icon** is how many reminders are due and not done. It is there with or without notifications, needs no permission, and goes down when a reminder is done. It is capped at 99. A reminder of an archived or finished application is not counted.
+- **A notification**, only when the user turned it on in the options. It is made by the system of the user (the notification centre of Windows, macOS or Linux, through the browser), written in the language and the time zone of the settings: the title, the offer and the company, and the moment. A click opens the board on the application, in the tab that is open already if there is one.
+
+How it keeps to the point:
+
+- **Once each.** The reminders already told about are kept apart (`jat:notified`), so a reminder is told about once, however many times the background looks. One that is done is forgotten: ticked, then unticked, it is told about again.
+- **Right on time, and later if needed.** An alarm is set for the next moment a reminder is due, and another one looks every 15 minutes. A reminder that came due while the browser was shut is told about when it opens, once.
+- **Not a pile.** When more than three come due together (after days away), one notification tells about all of them, with the first few, and opens the board.
+- **An alert, if wanted.** By default a notification stays on screen until the user closes it (Chrome and Edge; Firefox does not know the option, so it does not get it). A setting turns that off.
+- **The permission is optional.** `notifications` is asked when the switch goes on, and given back when it goes off. If the browser refuses, the switch stays off and says why. If it is taken back later, the reminders that could not be shown are not marked, and are tried again.
+- Data written by a newer structure than the extension knows is left alone.
+
+## Exporting the board
+
+"Export (CSV)" in the header of the board writes **the applications that are shown**, in the order they are shown (the search, the filters, the sort and the archive switch apply), as a file for a spreadsheet: `job-application-tracker-board-2026-10-13.csv`.
+
+- **One line per application, and a head** in the language of the page. The columns: status, job title, company, place, country, contract, work mode, source, address, the day published, the salary as the offer states it (from, up to, currency, period, gross or net), the home currency and **the salary per year in the home currency**, when the rates allow it, the moments of application, creation and last change, priority, favourite, tags, contacts, how many reminders are waiting and the next one, and archived.
+- **Moments are in UTC**, as they are stored (`2026-10-13T08:00:00.000Z`); the day an offer was published is a plain date. Amounts are plain numbers a spreadsheet can compute with, with the digits of their currency, and no sign or group separator.
+- **The separator follows the language.** A comma, with a decimal point (`45000.50`); in French a semicolon, with a decimal comma (`45000,50`), which is what the spreadsheets of those countries read. The file starts with the mark of UTF-8, so that accents are read as such.
+- **Nothing runs as a formula.** A text that starts with `=`, `+`, `-` or `@` (an offer called `=HYPERLINK(...)`) would be run by a spreadsheet on the machine of whoever opens the file: such a text gets a quote in front and stays text.
+- The file is read back by the CSV reader of the imports.
+
+## Companies tied to one another
+
+A company can be tied to another: a **recruitment firm** that hires for a **final client**, or a **subsidiary** and its parent. A relation is a record of its own (`CompanyRelation`: `fromId`, `toId`, `kind`), so a company keeps its own record whatever it is tied to.
+
+| Kind (stored) | Told from the first company | Told from the second one |
+| :--- | :--- | :--- |
+| `recruits_for` | "Recruits for X" | "Is recruited by X" |
+| `subsidiary_of` | "Subsidiary of X" | "Parent of X" |
+
+Only these two kinds are stored, each in one direction; "parent of" is the opposite of "subsidiary of" and is not stored a second time, so the two cannot contradict each other.
+
+- **Where it shows.** The drawer of an application has a section for the company of its offer, with its links, to add or remove. The **card** tells who the offer is really for (`Hire Co → Big Bank`), the **search** finds an offer by any company it is tied to, and the **export** has a column for the final clients.
+- **How it is added.** By the name of the other company, found whatever its case, or made when it is new. The four ways to say it ("recruits for", "is recruited by", "subsidiary of", "parent of") are stored in the right direction.
+- **What is refused.** A company tied to itself, the same link twice, a kind nobody knows, and a link that would **close a circle** (A is a subsidiary of B, B of C, then C of A). Nothing is made when the link is refused: a new company is not left behind.
+
+## People, companies and applications
+
+A person is tied to **companies** and to **applications**, from either side.
+
+- **Companies.** A person can work, or have worked, for several companies, one after the other or at the same time (a recruiter in two firms). Each is a link (`ContactCompany`) with the company, the **title** they have there, and a **period**: the first and the last day, as plain dates, both optional. No last day means it goes on. The company is given by its name, found whatever its case, or made when it is new.
+- **The main company.** `Contact.companyId` is kept as the person's main company, in step with the links after every change: the one they work for now (the latest start first), or, when they left them all, the one they left last, or none. It is what the rest of the extension has always read.
+- **What is refused.** No name, a date that is not a date, a last day before the first, and the same company from the same first day twice. Nothing is made when a link is refused.
+- **Applications.** A person is linked to as many applications as needed, with the part they play (recruiter, interviewer…). In the drawer of an application the contacts section links a person who is known already to another application, and shows from the person every application they are tied to. Unlinking takes one link off and keeps the person.
+- **Meeting a person adds the first link**: the company of the offer, with the title typed for the person.
+
+## Estimating the net pay
+
+The net pay depends on the country, the year, the status and the person. The extension does not hold those rules: **a pay profile is data the user owns and edits**, and it only ever gives an **estimate**, shown as one ("About 3 200 net per month"), never in place of the pay of the offer.
+
+### A profile
+
+A name, a country, a status (executive, freelance…), a currency and a list of **lines**, taken in order. A line says:
+
+| Field | Meaning |
+| :--- | :--- |
+| Label | What is taken ("Employee contributions"). |
+| Applies to | `gross`: the gross pay of the year; `running`: what is left after the lines before it (a tax taken after the contributions). |
+| Share | The part of that base the line applies to, in percent (all of it when empty). A tax taken on 90% of the pay after a flat deduction, for instance. |
+| Taken as | A flat **rate** (a percentage), or a **scale** (progressive brackets). |
+
+A scale is one slice per line, written `limit rate`: `11497 0`, `29315 11`, `∞ 45`. Each slice of the base up to its limit (per year) is taken at its own percentage; the last slice has no limit (`∞`, `inf`, `*` or nothing). The limits go up. A rate is a number from 0 to 100. A profile that breaks these is refused and nothing is saved.
+
+### How it is computed
+
+The salary of the offer is turned into a pay per year (a day is the working days of the year, an hour the hours of a day: the same assumptions as for comparing offers), then the profile is applied to **each end of the range**. Each line is rounded to the minor unit of the currency and the net is the gross less the rounded lines, so that what is shown adds up to the cent.
+
+### When there is no estimate
+
+It is not made when it would be a guess, and the drawer says why: no profile chosen (nothing is shown), no period for the pay, a pay that is **net already**, or an offer whose currency is not the one of the profile (the amounts of a profile are in its own currency). A pay that does not say gross or net is taken for gross, and it says so.
+
+### Examples
+
+A few profiles can be added and edited: France (employee, executive or not; freelance under the micro regime) and a flat rate. **They are illustrations, not rules**: the rates and the scales change every year and depend on the person (family, region, options). Check them against an official simulator before relying on them. The scale of the example is the one of the income of 2024 for a single person with one part, as a model of the shape.
+
+### Where it shows
+
+The drawer of an application has the estimate of the profile chosen in the options, with the calculation line by line on request. The CSV export has the net per year (the middle of the range) and the name of the profile.
+
+## Freelance day rate
+
+A helper in the options, for a freelance: from the **income wanted** it finds the **day rate** to ask, or from a **day rate** it shows what is left. It uses the same pay profiles as the net pay (see above), so the charges are whatever the user wrote for their country and regime: a flat rate, or a scale.
+
+- **Inputs.** The days billed in the year (200 by default: fewer than the days worked), the hours of a day, the costs of the year, and the income wanted (or the day rate). The charges come from a profile, or from a flat rate typed in percent.
+- **What the charges apply to** is the user's choice, because it changes the answer: **the turnover** (a micro-enterprise: the costs cannot be deducted) or **the profit** (the turnover less the costs).
+- **How it is found.** A profile can be a scale, which has no formula to turn round, so the search is made the other way: the **smallest turnover whose net is enough** is found by halving, then divided by the days billed (day rate) and by the days and hours (hourly rate), rounded up so that the net is kept. The net never goes down when the turnover goes up, which is what makes the search sound.
+- **What it shows.** The day and hourly rates, the turnover, the costs and each line of the charges, and what is left, per year and per month.
+- **When it cannot be done.** If the charges take everything above some level (a rate of 100%), no turnover leaves the income, and it says so.
+- **An estimate.** It does not count the VAT, nor the days without a mission. Like the net pay of an employee, it is never a promise.
+
+### The journal of the persistence
+
+Each page keeps in memory the last 80 things its persistence did: what it **wrote** (the kind of data, a short fingerprint of the state, and for the applications their priorities and favourites) and what it **read** back from the storage, with whether it recognised it as its own write or as the write of another page (`FOREIGN`). It holds no data, only counts and fingerprints. It is `window.__jat.events` of a page, and the browser tests print it when two pages disagree, to find out which one put an old state back.

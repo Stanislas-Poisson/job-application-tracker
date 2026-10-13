@@ -4,9 +4,12 @@
   import AppearanceSetting from '../../components/options/AppearanceSetting.vue'
   import DataTools from '../../components/options/DataTools.vue'
   import ExchangeSetting from '../../components/options/ExchangeSetting.vue'
+  import FreelanceRate from '../../components/options/FreelanceRate.vue'
   import LanguageSetting from '../../components/options/LanguageSetting.vue'
   import MoneySetting from '../../components/options/MoneySetting.vue'
+  import PayProfiles from '../../components/options/PayProfiles.vue'
   import RegionalSetting from '../../components/options/RegionalSetting.vue'
+  import ReminderSetting from '../../components/options/ReminderSetting.vue'
   import StatusEditor from '../../components/options/StatusEditor.vue'
   import TagEditor from '../../components/options/TagEditor.vue'
   import TrashSetting from '../../components/options/TrashSetting.vue'
@@ -31,6 +34,9 @@
       <section class="card"><ExchangeSetting /></section>
       <section class="card"><StatusEditor /></section>
       <section class="card"><TagEditor /></section>
+      <section class="card"><PayProfiles /></section>
+      <section class="card"><FreelanceRate /></section>
+      <section class="card"><ReminderSetting /></section>
       <section class="card"><DataTools /></section>
       <section class="card"><TrashSetting /></section>
     </div>
