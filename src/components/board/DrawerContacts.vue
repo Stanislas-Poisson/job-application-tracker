@@ -10,6 +10,7 @@
   import { toggleFavorite } from '../../services/tags'
   import { countryName, languageName, listCountries, resolveCountry } from '../../utils/contact'
   import { formatTimeIn, listTimeZones } from '../../utils/time'
+  import ContactLinks from './ContactLinks.vue'
   import ContactMethods from './ContactMethods.vue'
 
   const props = defineProps<{ application: Application }>()
@@ -171,6 +172,10 @@
           </span>
         </div>
         <ContactMethods :contact="contact" />
+        <ContactLinks
+          :contact="contact"
+          :application-id="application.id"
+        />
       </li>
     </ul>
   </section>
