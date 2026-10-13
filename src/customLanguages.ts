@@ -1,6 +1,7 @@
 import { shallowRef } from 'vue'
 import { MAX_LANGUAGES, type StoredLanguage, normalizeStoredLanguages } from './customLanguage'
 import type { StorageAdapter } from './persistence/adapter'
+import { SETTINGS_KEY, normalizeSettings } from './settings'
 
 // The languages the user added from a file. They are kept on this machine, apart from the data (they are not in the backups).
 export const LANGUAGES_KEY = 'jat:languages'
@@ -12,8 +13,9 @@ export const customLanguage = (code: string): StoredLanguage | undefined =>
   installed.value.find((language) => language.code === code)
 
 export async function loadCustomLanguages(adapter: StorageAdapter): Promise<StoredLanguage[]> {
-  const stored = await adapter.get([LANGUAGES_KEY])
-  installed.value = normalizeStoredLanguages(stored[LANGUAGES_KEY])
+  const stored = await adapter.get([LANGUAGES_KEY, SETTINGS_KEY])
+  const developer = normalizeSettings(stored[SETTINGS_KEY]).developerMode
+  installed.value = normalizeStoredLanguages(stored[LANGUAGES_KEY], { developer })
   return installed.value
 }
 

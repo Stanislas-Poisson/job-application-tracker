@@ -809,6 +809,10 @@ const en: TranslationObject = {
     },
   },
   customLanguage: {
+    developer: 'Developer mode',
+    developerHint:
+      'Lets a language file take the place of a language of the extension, on this computer only, to check a translation before sending it. The file is checked as always and you see the result before anything is kept. When you turn this off, that file stays as a language of its own, with a code ending in -x-mine.',
+    replaces: 'This file replaces the language “{name}” of the extension, on this computer only.',
     title: 'A language of your own',
     hint: 'For a language that is not in the list: download the file, translate the texts in it, and give it back. It is checked here before anything is kept, nothing is sent anywhere, and it stays on this computer, apart from your data and your backups. A text you leave in English stays in English.',
     template: 'Download the file to translate',
@@ -832,8 +836,9 @@ const en: TranslationObject = {
       'too-big': 'This file is too big to be a language file.',
       json: 'This file is not valid JSON.',
       'not-a-language': 'This file is not a language file of this extension. Download the file to translate first.',
-      code: 'The code of the language is not valid: write it like sv or pt-BR.',
-      shipped: 'This language is already in the extension and cannot be replaced.',
+      code: 'The code of the language is not valid: write it like sv, pt-BR or es-x-mine.',
+      shipped:
+        'This language is already in the extension. Give your file a code of your own, such as es-x-mine, or turn on the developer mode.',
       name: 'The name of the language is missing, too long, or holds what is not allowed.',
       dir: 'The direction is ltr (left to right) or rtl (right to left).',
       messages: 'The texts are missing from the file.',

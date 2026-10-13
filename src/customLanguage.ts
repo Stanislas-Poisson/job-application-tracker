@@ -12,7 +12,9 @@ export const MAX_NAME = 40
 export const MAX_DEPTH = 6
 export const MAX_LANGUAGES = 5
 
-const CODE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8}){0,2}$/
+// A language tag (sv, pt-BR), and optionally a private-use part (es-x-mine, fr-CA-x-work): the part after "-x-" is the user's own
+// and does not change how the browser writes numbers, dates and plurals, which are the ones of the language before it.
+export const CODE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8}){0,2}(-x(-[A-Za-z0-9]{1,8}){1,3})?$/
 const CATEGORIES = ['zero', 'one', 'two', 'few', 'many', 'other']
 const PLACEHOLDER = /\{(\w+)\}/g
 // Control characters (a tab and a new line are allowed), the marks that change the direction of the text around them
@@ -140,7 +142,7 @@ function setPath(tree: Messages, path: string, value: unknown) {
  * Checks a language file (already read as JSON) and keeps what can be kept. A fault of the whole file refuses it; a fault in
  * a text leaves that text out, with the reason, and English is shown in its place.
  */
-export function validateLanguage(raw: unknown): LanguageResult {
+export function validateLanguage(raw: unknown, { developer = false } = {}): LanguageResult {
   if (!isObject(raw) || LANGUAGE_FILE !== raw.app) {
     return { ok: false, error: 'not-a-language' }
   }
@@ -148,7 +150,8 @@ export function validateLanguage(raw: unknown): LanguageResult {
   if (!CODE.test(code)) {
     return { ok: false, error: 'code' }
   }
-  if (SHIPPED.includes(code)) {
+  // A file cannot take the place of a language of the extension, unless the developer mode is on (to try a translation).
+  if (SHIPPED.includes(code) && !developer) {
     return { ok: false, error: 'shipped' }
   }
   let categories: string[]
@@ -227,12 +230,12 @@ export function validateLanguage(raw: unknown): LanguageResult {
 }
 
 // A file as text: its size first, then the JSON.
-export function readLanguageFile(text: string): LanguageResult {
+export function readLanguageFile(text: string, options: { developer?: boolean } = {}): LanguageResult {
   if (MAX_FILE_CHARS < text.length) {
     return { ok: false, error: 'too-big' }
   }
   try {
-    return validateLanguage(JSON.parse(text))
+    return validateLanguage(JSON.parse(text), options)
   } catch {
     return { ok: false, error: 'json' }
   }
@@ -243,7 +246,7 @@ export function languageTemplate(): string {
   return JSON.stringify(
     {
       app: LANGUAGE_FILE,
-      help: 'Fill code (for example sv or pt-BR), name (the name of the language in itself) and dir (ltr or rtl), then translate the texts of "messages". Keep every {placeholder} as it is. A text with forms (one, other…) has one text for each form the language needs; "other" is always needed. A text you leave in English stays in English. Do not add keys, markup or links.',
+      help: 'Fill code (for example sv, pt-BR or es-x-mine), name (the name of the language in itself) and dir (ltr or rtl), then translate the texts of "messages". Keep every {placeholder} as it is. A text with forms (one, other…) has one text for each form the language needs; "other" is always needed. A text you leave in English stays in English. Do not add keys, markup or links.',
       code: '',
       name: '',
       dir: 'ltr',
@@ -254,12 +257,32 @@ export function languageTemplate(): string {
   )
 }
 
-// The stored languages, checked again when they are read: what comes out of the storage is not trusted more than a file.
-export function normalizeStoredLanguages(raw: unknown): StoredLanguage[] {
+// The code a stored language takes when the extension has since come with a language of that code: its own, with "-x-mine" (and a
+// number if that is taken too), so that nothing the user made is lost or hidden behind the new language.
+export function privateCode(code: string, taken: Set<string>): string {
+  const base = code.includes('-x-') ? code : `${code}-x-mine`
+  let candidate = base
+  for (let index = 2; taken.has(candidate); index += 1) {
+    candidate = `${base}${String(index)}`
+  }
+  return candidate
+}
+
+// The stored languages, checked again when they are read: what comes out of the storage is not trusted more than a file. A
+// language whose code the extension now has is kept under a private code, unless the developer mode wants it to replace it.
+export function normalizeStoredLanguages(raw: unknown, { developer = false } = {}): StoredLanguage[] {
   const seen = new Set<string>()
   const list: StoredLanguage[] = []
   for (const candidate of Array.isArray(raw) ? raw : []) {
-    const result = validateLanguage(isObject(candidate) ? { ...candidate, app: LANGUAGE_FILE } : null)
+    if (!isObject(candidate)) {
+      continue
+    }
+    const code = 'string' === typeof candidate.code ? candidate.code.trim() : ''
+    const moved = SHIPPED.includes(code) && !developer
+    const result = validateLanguage(
+      { ...candidate, app: LANGUAGE_FILE, ...(moved ? { code: privateCode(code, seen) } : {}) },
+      { developer }
+    )
     if (result.ok && !seen.has(result.language.code)) {
       seen.add(result.language.code)
       list.push(result.language)

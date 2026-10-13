@@ -821,6 +821,10 @@ const fr: TranslationObject = {
     },
   },
   customLanguage: {
+    developer: 'Mode développeur',
+    developerHint:
+      'Permet à un fichier de langue de prendre la place d’une langue de l’extension, sur cet ordinateur seulement, pour vérifier une traduction avant de l’envoyer. Le fichier est contrôlé comme toujours et vous voyez le résultat avant que rien ne soit gardé. Quand vous le désactivez, ce fichier reste une langue à part, avec un code qui finit par -x-mine.',
+    replaces: 'Ce fichier remplace la langue « {name} » de l’extension, sur cet ordinateur seulement.',
     title: 'Une langue de votre choix',
     hint: 'Pour une langue qui n’est pas dans la liste : téléchargez le fichier, traduisez les textes qu’il contient, puis redonnez-le. Il est vérifié ici avant que rien ne soit gardé, rien n’est envoyé, et il reste sur cet ordinateur, à part de vos données et de vos sauvegardes. Un texte laissé en anglais reste en anglais.',
     template: 'Télécharger le fichier à traduire',
@@ -845,8 +849,9 @@ const fr: TranslationObject = {
       json: 'Ce fichier n’est pas du JSON valide.',
       'not-a-language':
         'Ce fichier n’est pas un fichier de langue de cette extension. Téléchargez d’abord le fichier à traduire.',
-      code: 'Le code de la langue n’est pas valide : écrivez-le comme sv ou pt-BR.',
-      shipped: 'Cette langue est déjà dans l’extension et ne peut pas être remplacée.',
+      code: 'Le code de la langue n’est pas valide : écrivez-le comme sv, pt-BR ou es-x-mine.',
+      shipped:
+        'Cette langue est déjà dans l’extension. Donnez à votre fichier un code à vous, comme es-x-mine, ou activez le mode développeur.',
       name: 'Le nom de la langue manque, est trop long, ou contient ce qui n’est pas permis.',
       dir: 'Le sens est ltr (de gauche à droite) ou rtl (de droite à gauche).',
       messages: 'Les textes manquent dans le fichier.',
