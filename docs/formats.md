@@ -385,3 +385,17 @@ A helper in the options, for a freelance: from the **income wanted** it finds th
 ### The journal of the persistence
 
 Each page keeps in memory the last 80 things its persistence did: what it **wrote** (the kind of data, a short fingerprint of the state, and for the applications their priorities and favourites) and what it **read** back from the storage, with whether it recognised it as its own write or as the write of another page (`FOREIGN`). It holds no data, only counts and fingerprints. It is `window.__jat.events` of a page, and the browser tests print it when two pages disagree, to find out which one put an old state back.
+
+### Several pages on one storage
+
+The popup, the board and the options are open at the same time, each with its own copy of the data, all writing to one storage. A page that replaced what the storage holds by its own copy would erase what another page wrote and it had not seen yet. So a page never does that:
+
+- **A write is a read, a merge and a write.** The storage is read at the moment of the write, and the changes of the page are brought to what it holds, **record by record, by id** (`src/persistence/merge.ts`). Three states are compared: the **base** (what the page and the storage last agreed on), **mine** (the page) and **theirs** (the storage now).
+  - A record that only one side changed (made, changed or removed) keeps that side's version.
+  - A record both changed: the one changed last (`updatedAt`) stands, this page's when they are equal.
+  - A record one side removed and the other changed **stays**: a removal never wins against an edit, nothing is lost.
+- **A read takes in the other pages.** When the storage tells a page that it changed, the page merges what it holds with what it has changed since its last write, and writes the rest when it saves. A write of its own coming back is recognised and ignored.
+- **One queue.** The writes and the reads of a page run one after the other, so that two of them never overlap.
+- **The settings follow the same rule.** Changing a setting writes only that setting into what the storage holds now (`changeSettings`), never the whole copy of the page.
+- **The default columns and sources have fixed ids** (`status_applied`, `source_linkedin`…), so that two pages opened together on an empty storage make the same records and not two sets.
+- **What is left.** The storage has no transaction: two writes in the very same instant can still lose one of two changes to the same record. The window is the time between a page reading and writing, a few milliseconds, instead of the whole life of a page as before.
