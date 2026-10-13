@@ -30,6 +30,7 @@ export function seedDefaults(pinia?: Pinia) {
 
   const sources = useRepo(Source, pinia)
   if (0 === sources.all().length) {
-    sources.save(DEFAULT_SOURCES)
+    // Copies: the store keeps and changes the objects it is given, and these are shared by every store.
+    sources.save(DEFAULT_SOURCES.map((source) => ({ ...source })))
   }
 }

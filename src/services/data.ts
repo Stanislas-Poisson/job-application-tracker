@@ -2,6 +2,7 @@ import type { Pinia } from 'pinia'
 import { useRepo } from 'pinia-orm'
 import { MODELS } from '../models'
 import { SCHEMA_VERSION } from '../persistence'
+import { type RawData, migrate } from '../persistence/schema'
 import { type Settings, normalizeSettings } from '../settings'
 import { seedDefaults } from './seed'
 
@@ -52,14 +53,15 @@ export function exportData(pinia?: Pinia, settings?: Settings): ExportFile {
   }
 }
 
-// The export in a file, checked. Throws, and touches nothing, when the file is not an export of this extension or comes
-// from a newer version.
-export function readExport(file: unknown): ExportFile {
+// The export in a file, checked and brought up to the current structure of the data. Throws, and touches nothing, when
+// the file is not an export of this extension, or comes from a newer version, or from a version nobody knows.
+// `fromSchema` is the version the file was written with.
+export function readExport(file: unknown): ExportFile & { fromSchema: number } {
   const candidate = file as Partial<ExportFile> | null
   if (EXPORT_APP !== candidate?.app || 'object' !== typeof candidate.data || null === candidate.data) {
     throw new Error('This file is not an export of Job Application Tracker.')
   }
-  if ('number' !== typeof candidate.schema || SCHEMA_VERSION < candidate.schema) {
+  if ('number' === typeof candidate.schema && SCHEMA_VERSION < candidate.schema) {
     throw new Error('This export comes from a newer version of the extension.')
   }
 
@@ -69,7 +71,22 @@ export function readExport(file: unknown): ExportFile {
       throw new Error(`The data of ${model.entity} is not a list.`)
     }
   }
-  return candidate as ExportFile
+  let migrated: RawData
+  try {
+    const raw: RawData = {}
+    for (const model of MODELS) {
+      raw[model.entity] = (data[model.entity] as Record<string, unknown>[] | undefined) ?? []
+    }
+    migrated = migrate(raw, candidate.schema)
+  } catch {
+    throw new Error('The version of this export is not known.')
+  }
+  return {
+    ...(candidate as ExportFile),
+    schema: SCHEMA_VERSION,
+    fromSchema: candidate.schema as number,
+    data: migrated,
+  }
 }
 
 // Replaces what is stored by the content of an export. Throws, and changes nothing, when the file is not one.
@@ -97,6 +114,10 @@ export interface ModelDiff {
 }
 
 export interface RestorePlan {
+  // The version of the structure the backup was written with, and whether it is older than the current one: it is then
+  // brought up to date when it is restored.
+  schema: number
+  outdated: boolean
   exportedAt: string | null
   hasSettings: boolean
   models: ModelDiff[]
@@ -123,7 +144,7 @@ const canonical = (record: unknown): string => {
  * only a real difference counts.
  */
 export function planRestore(file: unknown, pinia?: Pinia): RestorePlan {
-  const { data, exportedAt, settings } = readExport(file)
+  const { data, exportedAt, settings, fromSchema } = readExport(file)
   const models = MODELS.map((model): ModelDiff => {
     const repo = useRepo(model, pinia)
     const storedJson = new Map(
@@ -134,7 +155,7 @@ export function planRestore(file: unknown, pinia?: Pinia): RestorePlan {
           JSON.parse(JSON.stringify(record.$toJson())) as Record<string, unknown>,
         ])
     )
-    const incoming = ((data[model.entity] as Record<string, unknown>[] | undefined) ?? []).map(
+    const incoming = (data[model.entity] ?? []).map(
       (record) => repo.make(record as never) as unknown as { id: unknown; $toJson: () => Record<string, unknown> }
     )
     const diff: ModelDiff = { entity: model.entity, incoming: incoming.length, added: 0, changed: 0, same: 0, lost: 0 }
@@ -162,7 +183,13 @@ export function planRestore(file: unknown, pinia?: Pinia): RestorePlan {
     diff.lost = [...storedJson.keys()].filter((id) => !seen.has(id)).length
     return diff
   })
-  return { exportedAt: 'string' === typeof exportedAt ? exportedAt : null, hasSettings: undefined !== settings, models }
+  return {
+    schema: fromSchema,
+    outdated: SCHEMA_VERSION > fromSchema,
+    exportedAt: 'string' === typeof exportedAt ? exportedAt : null,
+    hasSettings: undefined !== settings,
+    models,
+  }
 }
 
 // Removes everything, then puts the defaults back.

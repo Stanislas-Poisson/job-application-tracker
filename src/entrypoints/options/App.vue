@@ -9,6 +9,7 @@
   import RegionalSetting from '../../components/options/RegionalSetting.vue'
   import StatusEditor from '../../components/options/StatusEditor.vue'
   import TagEditor from '../../components/options/TagEditor.vue'
+  import TrashSetting from '../../components/options/TrashSetting.vue'
   import { useApp } from '../../composables/useApp'
 
   const { t } = useApp()
@@ -31,6 +32,7 @@
       <section class="card"><StatusEditor /></section>
       <section class="card"><TagEditor /></section>
       <section class="card"><DataTools /></section>
+      <section class="card"><TrashSetting /></section>
     </div>
 
     <AppFooter />

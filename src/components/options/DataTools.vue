@@ -5,9 +5,10 @@
   import { useFormat } from '../../composables/useFormat'
   import { backupText, backupToFile, browserEnvironment } from '../../services/backup'
   import { type RestorePlan, importData, planRestore, settingsFromExport, wipeData } from '../../services/data'
+  import { emptyTrash } from '../../services/trash'
   import { todayIn } from '../../utils/time'
 
-  const { t, settings, updateSettings } = useApp()
+  const { t, settings, updateSettings, persistence } = useApp()
   const format = useFormat()
 
   const message = ref('')
@@ -75,7 +76,12 @@
   }
 
   // The kinds of data the restore touches, with their counts.
-  const rows = computed(() => pending.value?.plan.models.filter((model) => 0 < model.incoming || 0 < model.lost) ?? [])
+  const rows = computed(
+    () =>
+      pending.value?.plan.models.filter(
+        (model) => 'trash' !== model.entity && (0 < model.incoming || 0 < model.lost)
+      ) ?? []
+  )
   const sum = (key: 'added' | 'changed' | 'same' | 'lost') => rows.value.reduce((total, row) => total + row[key], 0)
 
   function setReminder(text: string) {
@@ -85,9 +91,13 @@
     }
   }
 
-  function wipe() {
+  async function wipe() {
     if (window.confirm(t('options.confirmWipe'))) {
-      wipeData()
+      // Deleting everything leaves nothing behind: not even in the trash.
+      await persistence.forget(() => {
+        wipeData()
+        emptyTrash()
+      })
       say(t('options.wiped'))
     }
   }
@@ -161,6 +171,12 @@
           : t('options.backupOfUnknown')
       }}</strong>
       · {{ pending.plan.hasSettings ? t('options.withSettings') : t('options.withoutSettings') }}
+    </p>
+    <p
+      v-if="pending.plan.outdated"
+      class="muted"
+    >
+      {{ t('options.outdated', { version: pending.plan.schema }) }}
     </p>
     <table>
       <thead>

@@ -708,5 +708,27 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       assert.equal((await all('#restore-preview')).length, 0)
       fs.unlinkSync(file)
     })
+
+    test('a deleted application goes to the trash, and comes back from it', async () => {
+      await open('board', '.application-card')
+      const before = (await all('.application-card')).length
+
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
+      await driver.executeScript('window.confirm = () => true')
+      const buttons = await all('.drawer-content button')
+      const labels = await Promise.all(buttons.map((button) => button.getText()))
+      await buttons[labels.indexOf('Delete')].click()
+      await waitFor(async () => (await all('.application-card')).length === before - 1, { message: 'the card to go' })
+
+      // It is in the trash of the options, with the date it was deleted.
+      await open('options', '#trash-list')
+      assert.match(await text('#trash-list'), /Applications/)
+      await css('#trash-list button').then((button) => button.click())
+      await waitFor(async () => (await all('#trash-empty')).length > 0, { message: 'the trash to be empty again' })
+
+      await open('board', '.application-card')
+      assert.equal((await all('.application-card')).length, before)
+    })
   })
 })

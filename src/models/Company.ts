@@ -10,6 +10,8 @@ export default class Company extends Model {
   static entity = 'companies'
 
   declare id: string
+  // When the record last changed (UTC). Set by the persistence; null for a record that was never stamped.
+  declare updatedAt: string | null
   declare name: string
   declare website: string | null
   // Where the company is: the city, and its ISO 3166-1 country.
@@ -27,6 +29,7 @@ export default class Company extends Model {
   static fields() {
     return {
       id: this.uid(),
+      updatedAt: this.string(null),
       name: this.string(''),
       website: this.string(null),
       city: this.string(null),
