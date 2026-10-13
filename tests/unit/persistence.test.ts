@@ -169,3 +169,57 @@ describe('writing at once', () => {
     persistence.stop()
   })
 })
+
+// A storage that tells about a write a little after it was made, as a browser does.
+function lateEchoAdapter(echoAfter: number) {
+  const adapter = memoryAdapter()
+  const onChanged = adapter.onChanged.bind(adapter)
+  adapter.onChanged = (callback) => onChanged((keys) => void setTimeout(() => callback(keys), echoAfter))
+  return adapter
+}
+
+describe('the echo of its own writes', () => {
+  it('does not take back a change that was made after the write it answers', async () => {
+    const adapter = lateEchoAdapter(10)
+    // The second change is still waiting to be written when the echo of the first arrives.
+    const persistence = createPersistence(freshStore({ seed: false }), adapter, { delay: 50 })
+    await persistence.ready
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    useRepo(Company).save({ name: 'A' })
+    await persistence.flush()
+    // The storage has told the page about its own write; a change is made before the page has read it back.
+    useRepo(Company).save({ name: 'B' })
+    await new Promise((resolve) => setTimeout(resolve, 120))
+
+    expect(
+      useRepo(Company)
+        .all()
+        .map((company) => company.name)
+        .sort()
+    ).toEqual(['A', 'B'])
+    expect((adapter.data[keyOf('companies')] as { name: string }[]).map((company) => company.name).sort()).toEqual(['A', 'B'])
+    persistence.stop()
+  })
+
+  it('still takes a change that another page made', async () => {
+    const adapter = memoryAdapter()
+    const first = createPersistence(freshStore({ seed: false }), adapter)
+    await first.ready
+    const other = freshStore({ seed: false })
+    const second = createPersistence(other, adapter)
+    await second.ready
+
+    useRepo(Company, other).save({ name: 'From the other page' })
+    await second.flush()
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    expect(
+      useRepo(Company)
+        .all()
+        .map((company) => company.name)
+    ).toContain('From the other page')
+    first.stop()
+    second.stop()
+  })
+})
