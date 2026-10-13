@@ -453,3 +453,7 @@ The style sheets say sides as start and end, block and inline (`margin-inline-st
 - **Compared** without the case, the accents or the spaces around (`fold`): "Société Générale" and "societe generale" are the same company, "Résumé" and "resume" the same tag. The search of the board uses the same folding.
 - **Sorted** with `Intl.Collator` of the language in use: accents and case do not decide the order, numbers are ordered by their value, and each language has its own order ("ä" after "z" in Swedish).
 - **Searched**: words are cut at the spaces; in Chinese, Japanese, Thai, Lao, Khmer and Burmese, which put no space between words, the search is cut with `Intl.Segmenter` where the browser has it.
+
+## Plurals and numbers
+
+A text that depends on a number is an object in the file of texts, with a form for each plural category of the language (`zero`, `one`, `two`, `few`, `many`, `other`), and `other` is always there: `labels.usage.one`, `labels.usage.other`. `tn(path, count)` picks the form with `Intl.PluralRules` of the language (English and French: one and other, Russian: one, few, many, Arabic: all six) and writes `{count}` with `Intl.NumberFormat` of the language, so with its digits. A form a language does not write falls back to `other`. Dates and amounts already use `Intl.DateTimeFormat` and `Intl.NumberFormat`, so a locale that carries a calendar (`-u-ca-islamic`, `-u-ca-buddhist`, `-u-ca-japanese`) or digits (`-u-nu-arab`) is followed.

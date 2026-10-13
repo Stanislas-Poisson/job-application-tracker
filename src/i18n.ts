@@ -17,3 +17,24 @@ export function resolveLocale(setting: Locale, browserLanguage: string): 'en' | 
 export function createTranslator(setting: Locale = 'auto', browserLanguage: string = navigator.language) {
   return createI18n({ en, fr }, resolveLocale(setting, browserLanguage))
 }
+
+// The plural categories of the language (CLDR): zero, one, two, few, many, other. English and French have one and other
+// (French also has many for large round numbers), Russian one, few, many and other, Arabic all six.
+export const pluralCategory = (locale: string, count: number): Intl.LDMLPluralRule =>
+  new Intl.PluralRules(locale).select(count)
+
+/**
+ * The text of a key for a number: `path.one`, `path.few`… by the category of the language, else `path.other`. The number
+ * is written in the language ({count}), with its digits.
+ */
+export function pluralText(
+  translator: Pick<ReturnType<typeof createTranslator>, '__' | 'hasTranslation'>,
+  locale: string,
+  path: string,
+  count: number,
+  replacements: Record<string, string | number> = {}
+): string {
+  const category = pluralCategory(locale, count)
+  const key = translator.hasTranslation(`${path}.${category}`) ? `${path}.${category}` : `${path}.other`
+  return translator.__(key, { ...replacements, count: new Intl.NumberFormat(locale).format(count) })
+}

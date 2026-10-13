@@ -21,7 +21,7 @@
 
   const props = defineProps<{ application: Application }>()
 
-  const { t, settings } = useApp()
+  const { t, tn, settings } = useApp()
   const format = useFormat()
 
   interface Row {
@@ -314,7 +314,7 @@
         :disabled="0 === importable.length"
         @click="commit"
       >
-        {{ t('import.commit', { count: importable.length }) }}
+        {{ tn('import.commit', importable.length) }}
       </FormButton>
     </div>
   </details>

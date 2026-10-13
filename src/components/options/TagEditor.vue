@@ -7,7 +7,7 @@
   import { normalizeSymbol } from '../../services/symbol'
   import { TagError, createTag, deleteTag, recolorTag, renameTag, tagUsage } from '../../services/tags'
 
-  const { t } = useApp()
+  const { t, tn } = useApp()
 
   const name = ref('')
   const problem = ref('')
@@ -43,7 +43,7 @@
   }
 
   function remove(tag: Tag) {
-    if (0 === tagUsage(tag.id) || window.confirm(t('labels.confirmDelete', { count: tagUsage(tag.id) }))) {
+    if (0 === tagUsage(tag.id) || window.confirm(tn('labels.confirmDelete', tagUsage(tag.id)))) {
       deleteTag(tag.id)
     }
   }
@@ -86,7 +86,7 @@
         :field="false"
         @update:model-value="attempt(() => renameTag(tag.id, String($event)))"
       />
-      <span class="muted">{{ t('labels.usage', { count: tagUsage(tag.id) }) }}</span>
+      <span class="muted">{{ tn('labels.usage', tagUsage(tag.id)) }}</span>
       <FormButton
         type="button"
         @click="remove(tag)"

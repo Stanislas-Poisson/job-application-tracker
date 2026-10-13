@@ -11,7 +11,7 @@
   import { type ChecksumStatus, verifyChecksum } from '../../utils/checksum'
   import PassphraseForm from '../PassphraseForm.vue'
 
-  const { t, settings, updateSettings, persistence } = useApp()
+  const { t, tn, settings, updateSettings, persistence } = useApp()
   const format = useFormat()
   const { needs, protect, backup: backupToChosenFile } = useBackup()
 
@@ -323,7 +323,7 @@
       id="merge-duplicates"
       class="error"
     >
-      {{ t('options.mergeDuplicates', { count: duplicateCount }) }}
+      {{ tn('options.mergeDuplicates', duplicateCount) }}
     </p>
     <p class="muted">{{ t('options.mergeWarning') }}</p>
     <label class="row">
