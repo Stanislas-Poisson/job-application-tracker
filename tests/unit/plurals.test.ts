@@ -62,7 +62,7 @@ describe('pluralText', () => {
           : []
       )
     const inEnglish = counted(en)
-    expect(inEnglish.length).toBe(8)
+    expect(inEnglish.length).toBe(10)
     expect(counted(fr)).toEqual(inEnglish)
   })
 })
