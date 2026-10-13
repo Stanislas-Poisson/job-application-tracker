@@ -14,7 +14,7 @@
   const props = defineProps<{ application: Application }>()
   const emit = defineEmits<{ deleted: [] }>()
 
-  const { t, persistence } = useApp()
+  const { t, persistence, statusName } = useApp()
   const format = useFormat()
   // What is wrong with the form, shown under it.
   const problem = ref('')
@@ -73,7 +73,7 @@
       useRepo(Status)
         .orderBy('order')
         .get()
-        .map((status) => [status.id, status.label])
+        .map((status) => [status.id, statusName(status)])
     )
   )
 

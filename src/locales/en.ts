@@ -7,6 +7,7 @@ const en: TranslationObject = {
     source: 'Source',
     issues: 'Report an issue',
     privacy: 'Privacy policy',
+    support: 'Support the stream',
     madeBy: 'Made by Stanislas Poisson (Zairakai)',
   },
   fields: {
@@ -111,6 +112,18 @@ const en: TranslationObject = {
     contacts: 'Contacts',
     addContact: 'Add the contact',
     unlink: 'Remove',
+  },
+  // The names of the columns and sources that come with the extension. They follow the language until you rename them.
+  defaults: {
+    statuses: {
+      to_apply: 'To apply',
+      applied: 'Applied',
+      follow_up: 'Follow-up',
+      interview: 'Interview',
+      offer: 'Offer',
+      rejected: 'Rejected',
+    },
+    sources: { other: 'Other' },
   },
   activity: {
     created: 'Saved',
@@ -576,6 +589,7 @@ const en: TranslationObject = {
     },
   },
   freelance: {
+    flatLine: 'Charges',
     title: 'Freelance rate',
     hint: 'From the income you want, find the day rate to ask; or from a day rate, see what is left. The charges come from a pay profile, or from a flat rate.',
     mode: 'I want to know',
@@ -799,6 +813,21 @@ const en: TranslationObject = {
       plural: 'the forms are not those of this language',
       key: 'a key that is not allowed',
     },
+  },
+  // What goes wrong with a file or the data, said to the user.
+  problems: {
+    notExport: 'This file is not an export of Job Application Tracker.',
+    newerExport: 'This export comes from a newer version of the extension. Update the extension to read it.',
+    notList: 'The data of {name} in this file is not a list.',
+    unknownExport: 'The version of this export is not known.',
+    shortPassphrase: 'The passphrase needs at least {min} characters.',
+    iterations: 'The number of iterations is out of range.',
+    newerBackup: 'This backup was protected by a newer version of the extension. Update the extension to open it.',
+    badHeader: 'The header of this protected backup is not valid.',
+    newerData: 'The data comes from a newer version of the extension. Update the extension to read it.',
+    unknownData: 'The version of the data is not known.',
+    noStep: 'There is no way to bring data of version {version} up to date.',
+    other: 'Something went wrong: {message}',
   },
   options: {
     symbol: 'Symbol',

@@ -80,6 +80,7 @@
       chargesOn: form.chargesOn as ChargesOn,
       profile: profile.value,
       flatRate: flat ?? 0,
+      flatLabel: t('freelance.flatLine'),
     }
     let turnover: number | null
     if ('income' === form.mode) {

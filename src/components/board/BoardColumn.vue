@@ -9,7 +9,7 @@
   const props = defineProps<{ status: Status; applications: Application[]; index: number }>()
   const emit = defineEmits<{ open: [id: string]; dropApplication: [id: string] }>()
 
-  const { settings } = useApp()
+  const { settings, statusName } = useApp()
 
   const over = ref(false)
   // In a colour-blind mode the colour comes from a safe palette and a shape goes with it.
@@ -45,7 +45,7 @@
         v-else
         class="dot"
       />
-      {{ status.label }}
+      {{ statusName(status) }}
       <span class="count">{{ applications.length }}</span>
     </h2>
     <ApplicationCard

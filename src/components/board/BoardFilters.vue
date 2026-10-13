@@ -13,7 +13,7 @@
   defineProps<{ shown: number; total: number }>()
   const emit = defineEmits<{ clear: [] }>()
 
-  const { t } = useApp()
+  const { t, sourceName } = useApp()
   const format = useFormat()
   const view = useProvidedView()
 
@@ -23,7 +23,7 @@
     ...Object.fromEntries(
       useRepo(Source)
         .all()
-        .map((source) => [source.id, source.label])
+        .map((source) => [source.id, sourceName(source)])
     ),
   }))
   const companyOptions = computed(() => ({

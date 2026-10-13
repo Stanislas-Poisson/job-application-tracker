@@ -16,7 +16,7 @@
   import { clearDraft, draftFor, loadDraft, saveDraft } from '../../services/draft'
   import { resolveTimeZone } from '../../utils/time'
 
-  const { t, persistence, settings } = useApp()
+  const { t, persistence, settings, statusName } = useApp()
 
   const form = reactive({ title: '', company: '', url: '', location: '', statusKey: '', note: '' })
   const state = ref<'idle' | 'saving' | 'saved'>('idle')
@@ -30,7 +30,9 @@
   )
 
   const statuses = computed(() => useRepo(Status).orderBy('order').get())
-  const statusOptions = computed(() => Object.fromEntries(statuses.value.map((status) => [status.key, status.label])))
+  const statusOptions = computed(() =>
+    Object.fromEntries(statuses.value.map((status) => [status.key, statusName(status)]))
+  )
   const report = computed(() => reportUrl(pageUrl.value, read.value, browser.runtime.getManifest().version))
   const reportMail = computed(() => reportMailto(pageUrl.value, read.value, browser.runtime.getManifest().version))
   const boardUrl = browser.runtime.getURL('/board.html' as never)
