@@ -11,6 +11,8 @@ export default class JobOffer extends Model {
   static entity = 'jobOffers'
 
   declare id: string
+  // When the record last changed (UTC). Set by the persistence; null for a record that was never stamped.
+  declare updatedAt: string | null
   declare companyId: string | null
   declare sourceId: string | null
   declare title: string
@@ -38,6 +40,7 @@ export default class JobOffer extends Model {
   static fields() {
     return {
       id: this.uid(),
+      updatedAt: this.string(null),
       companyId: this.attr(null),
       sourceId: this.attr(null),
       title: this.string(''),

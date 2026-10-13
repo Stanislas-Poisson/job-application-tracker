@@ -310,7 +310,25 @@ const fr: TranslationObject = {
     shown: '{shown} sur {total} affichées',
     clear: 'Effacer les filtres',
   },
+  schema: {
+    newerTitle: 'Ces données viennent d’une version plus récente',
+    newerBody:
+      'Les données stockées dans ce navigateur ont été écrites par une version plus récente de l’extension que celle-ci. Pour les protéger, rien n’est lu et rien n’est modifié. Mettez l’extension à jour pour les utiliser.',
+  },
+  trash: {
+    title: 'Corbeille',
+    hint: 'Ce que vous supprimez reste ici {days} jours, et peut être remis.',
+    none: 'La corbeille est vide.',
+    restore: 'Remettre',
+    restored: '{count} remis.',
+    related: '{count} liés',
+    empty: 'Vider la corbeille',
+    emptied: 'La corbeille est vide.',
+    confirmEmpty: 'Supprimer définitivement tout le contenu de la corbeille ?',
+  },
   options: {
+    outdated:
+      'Cette sauvegarde a été écrite avec une ancienne structure des données (version {version}). Elle est mise à jour quand vous la restaurez.',
     backup: 'Sauvegarde',
     backupHint:
       'Une copie de tout (et des réglages) dans un fichier JSON que vous gardez où vous voulez. Ouvrez-le avec un éditeur, ou réimportez-le.',
@@ -337,7 +355,7 @@ const fr: TranslationObject = {
     colLost: 'Seulement ici',
     restoreSummary: '{added} seront ajoutés, {changed} seront modifiés et {lost} seront supprimés.',
     restoreWarning:
-      "La restauration remplace tout ce qui est stocké maintenant par cette sauvegarde. Ce qui n'existe qu'ici est supprimé. Faites d'abord une sauvegarde si vous avez un doute.",
+      "La restauration remplace tout ce qui est stocké maintenant par cette sauvegarde. Ce qui n'existe qu'ici est supprimé, et reste 30 jours dans la corbeille. Faites d'abord une sauvegarde si vous avez un doute.",
     restoreApply: 'Remplacer mes données par cette sauvegarde',
     cancel: 'Annuler',
     entities: {

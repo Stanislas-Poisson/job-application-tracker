@@ -307,7 +307,25 @@ const en: TranslationObject = {
     shown: '{shown} of {total} shown',
     clear: 'Clear the filters',
   },
+  schema: {
+    newerTitle: 'These data come from a newer version',
+    newerBody:
+      'The data stored in this browser was written by a newer version of the extension than this one. To protect it, nothing is read and nothing is changed. Update the extension to use it.',
+  },
+  trash: {
+    title: 'Trash',
+    hint: 'What you delete stays here for {days} days, and can be put back.',
+    none: 'The trash is empty.',
+    restore: 'Put back',
+    restored: '{count} put back.',
+    related: '{count} related',
+    empty: 'Empty the trash',
+    emptied: 'The trash is empty.',
+    confirmEmpty: 'Delete everything in the trash for good?',
+  },
   options: {
+    outdated:
+      'This backup was written with an older structure of the data (version {version}). It is brought up to date when you restore it.',
     backup: 'Backup',
     backupHint:
       'A copy of everything (and of the settings) in a JSON file you keep where you want. Open it with any editor, or import it back.',
@@ -334,7 +352,7 @@ const en: TranslationObject = {
     colLost: 'Only here',
     restoreSummary: '{added} will be added, {changed} will be changed and {lost} will be removed.',
     restoreWarning:
-      'Restoring replaces everything stored now with this backup. What is only here is removed. Back up first if you are not sure.',
+      'Restoring replaces everything stored now with this backup. What is only here is removed, and stays in the trash for 30 days. Back up first if you are not sure.',
     restoreApply: 'Replace my data with this backup',
     cancel: 'Cancel',
     entities: {
