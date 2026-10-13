@@ -13,6 +13,8 @@ export default class Contact extends Model {
   static entity = 'contacts'
 
   declare id: string
+  // When the record last changed (UTC). Set by the persistence; null for a record that was never stamped.
+  declare updatedAt: string | null
   declare companyId: string | null
   declare firstName: string
   declare lastName: string
@@ -34,6 +36,7 @@ export default class Contact extends Model {
   static fields() {
     return {
       id: this.uid(),
+      updatedAt: this.string(null),
       companyId: this.attr(null),
       firstName: this.string(''),
       lastName: this.string(''),

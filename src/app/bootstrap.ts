@@ -1,9 +1,9 @@
 import { createPinia } from 'pinia'
 import { createORM } from 'pinia-orm'
-import { type Component, createApp, reactive, watchEffect } from 'vue'
+import { type Component, createApp, h, reactive, watchEffect } from 'vue'
 import { applyAppearance } from '../appearance'
 import '../assets/main.scss'
-import { createTranslator } from '../i18n'
+import { createTranslator, resolveLocale } from '../i18n'
 import { createPersistence } from '../persistence'
 import { browserAdapter } from '../persistence/adapter'
 import { refreshRates } from '../services/rates'
@@ -20,6 +20,21 @@ export async function mountApp(root: Component, selector = '#app') {
 
   const persistence = createPersistence(pinia, browserAdapter)
   await persistence.ready
+
+  // Data written by a newer structure than this version knows is left exactly as it is: nothing is read, nothing is
+  // written, and the page says why.
+  if (persistence.newer) {
+    const translator = createTranslator(settings.locale)
+    translator.setLocale(resolveLocale(settings.locale, navigator.language))
+    createApp({
+      render: () =>
+        h('main', { class: 'page', id: 'newer-data' }, [
+          h('h1', translator.__('schema.newerTitle')),
+          h('p', translator.__('schema.newerBody')),
+        ]),
+    }).mount(selector)
+    return
+  }
 
   // A setting changed in another page changes this one too.
   browserAdapter.onChanged((keys) => {

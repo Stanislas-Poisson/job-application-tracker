@@ -13,6 +13,7 @@ import Source from './Source'
 import Status from './Status'
 import Tag from './Tag'
 import Taggable from './Taggable'
+import Trash from './Trash'
 
 export {
   Activity,
@@ -29,6 +30,7 @@ export {
   Status,
   Tag,
   Taggable,
+  Trash,
 }
 
 // Every model that is stored. The persistence saves and loads these, one storage key per model.
@@ -47,4 +49,5 @@ export const MODELS: (typeof Model)[] = [
   Reminder,
   Tag,
   Taggable,
+  Trash,
 ]
