@@ -12,8 +12,10 @@
   const { settings, statusName } = useApp()
 
   const over = ref(false)
+  // A custom theme in use brings the colours of the columns.
+  const inUse = computed(() => settings.customThemes.some((theme) => theme.id === settings.customThemeId))
   // In a colour-blind mode the colour comes from a safe palette and a shape goes with it.
-  const color = computed(() => statusColor(props.status.color, props.index, settings.vision))
+  const color = computed(() => statusColor(props.status.color, props.index, settings.vision, inUse.value))
   // The symbol of the user, or else the shape of the colour-blind modes.
   const shape = computed(() => symbolToShow(props.status.symbol, statusShape(props.index, settings.vision)))
 

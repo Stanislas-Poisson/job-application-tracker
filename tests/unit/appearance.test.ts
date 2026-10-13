@@ -184,3 +184,12 @@ describe('appearance', () => {
     }
   })
 })
+
+describe('statusColor with a custom theme', () => {
+  it('takes the colour of the theme for the column, in every mode, and goes round after the eighth', () => {
+    expect(statusColor('#123456', 2, 'standard', true)).toBe('var(--column-2)')
+    expect(statusColor('#123456', 2, 'red-green', true)).toBe('var(--column-2)')
+    expect(statusColor('#123456', 9, 'standard', true)).toBe('var(--column-1)')
+    expect(statusColor('#123456', 2, 'standard')).toBe('#123456')
+  })
+})
