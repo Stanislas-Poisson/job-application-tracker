@@ -337,6 +337,13 @@ const en: TranslationObject = {
     reminderDays: 'Remind me after this many days (0 for never)',
     reminderHint:
       'The reminder shows on the board when the last backup is older than that, if there is something to save.',
+    checksum: {
+      valid: 'The checksum matches: the file is as it was saved.',
+      missing: 'This file has no checksum (an older backup): nothing tells whether it was changed since.',
+      invalid:
+        'The checksum does not match: the file was changed since it was saved. It may be damaged, cut off or edited by hand.',
+      acknowledge: 'I know it was changed, and I want to restore it anyway',
+    },
     restoreHint:
       'Bring your data back from a backup file, after a loss or on a new computer. You see what changes before anything is applied.',
     notJson: 'This file is not a JSON file.',

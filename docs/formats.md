@@ -175,7 +175,7 @@ Some sites publish no `JobPosting` data. For them the extension also takes the m
 
 | What | How |
 | :--- | :--- |
-| The file | Plain, indented JSON: `app`, `schema`, `exportedAt`, `settings` and `data` (one list per model). Open it with any editor. Named `job-application-tracker-2026-10-13.json`. |
+| The file | Plain, indented JSON: `app`, `schema`, `exportedAt`, `settings`, `data` (one list per model) and `checksum`. Open it with any editor. Named `job-application-tracker-2026-10-13.json`. |
 | Where it is written | With the file system API (Chrome, Edge): the file is chosen once, the browser remembers it, and each backup overwrites it. When the browser refuses the permission or the file is gone, another file is asked for. Without the API (Firefox): a download. |
 | Another file | "Back up to another file" lets the user pick a new one. |
 | The settings | They are in the file and come back with an import. **There is no secret in them.** The cache of the exchange rates and the date of the last backup are left out: they belong to the browser. A setting that is not valid in a file edited by hand falls back on its default. |
@@ -219,3 +219,10 @@ A record that is deleted (an application and what goes with it, a contact, a tag
 - The records a restore removes go to the trash too.
 - "Delete everything" leaves nothing behind, the trash included.
 - It is part of the backup, and tells a merge of two computers (see the merge ticket) a deletion from a record that is missing.
+
+### Checksum
+
+A backup carries `checksum`: `sha256:` and the SHA-256 of the **canonical form** of the file (the keys of every object in order, on one line, without the checksum itself). Reading the file in an editor and saving it again with another indentation or order of keys does not break it; a changed value, a record added or a cut-off file does.
+
+- A restore checks it and says so in the preview: it **matches**, it is **absent** (an older backup: nothing tells whether it was changed), or it **does not match**. A file that does not match is not refused: the button stays off until the user ticks that they know it was changed and want it anyway (they may have edited it on purpose).
+- It catches an edit or damage that nobody meant. It is **not** a protection against a change made on purpose, because whoever changes the file can compute it again. A backup protected by a passphrase is authenticated by its encryption (see the ticket of the passphrase).

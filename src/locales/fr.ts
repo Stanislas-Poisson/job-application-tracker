@@ -340,6 +340,14 @@ const fr: TranslationObject = {
     reminderDays: 'Me rappeler après ce nombre de jours (0 pour jamais)',
     reminderHint:
       "Le rappel s'affiche sur le tableau quand la dernière sauvegarde est plus ancienne, s'il y a quelque chose à sauvegarder.",
+    checksum: {
+      valid: 'La somme de contrôle correspond : le fichier est tel qu’il a été enregistré.',
+      missing:
+        'Ce fichier n’a pas de somme de contrôle (une ancienne sauvegarde) : rien ne dit s’il a été modifié depuis.',
+      invalid:
+        'La somme de contrôle ne correspond pas : le fichier a été modifié depuis son enregistrement. Il est peut-être abîmé, tronqué ou édité à la main.',
+      acknowledge: 'Je sais qu’il a été modifié et je veux quand même le restaurer',
+    },
     restoreHint:
       'Récupérez vos données depuis un fichier de sauvegarde, après une perte ou sur un nouvel ordinateur. Vous voyez ce qui change avant que rien ne soit appliqué.',
     notJson: "Ce fichier n'est pas un fichier JSON.",
