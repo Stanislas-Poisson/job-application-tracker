@@ -6,7 +6,7 @@
   import { useApp } from '../../composables/useApp'
   import { Application, Status } from '../../models'
 
-  const { t } = useApp()
+  const { t, persistence } = useApp()
 
   const newLabel = ref('')
 
@@ -45,9 +45,11 @@
     list.forEach((candidate, order) => useRepo(Status).where('id', candidate.id).update({ order }))
   }
 
-  function remove(status: Status) {
+  // A deletion is written at once: another page opened right after must not still show the column.
+  async function remove(status: Status) {
     if (0 === usage(status)) {
       useRepo(Status).destroy(status.id)
+      await persistence.flush()
     }
   }
 

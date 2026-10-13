@@ -842,9 +842,21 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       // It is in the trash of the options, with the date it was deleted.
       await open('options', '#trash-list')
-      assert.match(await text('#trash-list'), /Applications/)
-      await css('#trash-list button').then((button) => button.click())
-      await waitFor(async () => (await all('#trash-empty')).length > 0, { message: 'the trash to be empty again' })
+      await waitFor(async () => /Applications/.test(await text('#trash-list')), {
+        message: 'the application in the trash',
+      })
+      // Other things may be in the trash (the column the options test removed): the row of the application is the one put back.
+      const rows = await all('#trash-list li')
+      const texts = await Promise.all(rows.map((row) => row.getText()))
+      await rows[texts.findIndex((line) => /Applications/.test(line))]
+        .findElement(By.css('button'))
+        .then((button) => button.click())
+      await waitFor(
+        async () => !/Applications/.test((await all('#trash-list')).length > 0 ? await text('#trash-list') : ''),
+        {
+          message: 'the application to leave the trash',
+        }
+      )
 
       await open('board', '.application-card')
       assert.equal((await all('.application-card')).length, before)
