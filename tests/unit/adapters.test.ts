@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { adapterFor } from '../../src/extraction/adapters'
 import { readLinkedIn, titleAndCompany } from '../../src/extraction/adapters/linkedin'
+import { readTalent } from '../../src/extraction/adapters/talent'
 import type { PageSnapshot } from '../../src/extraction/page'
 import { readSnapshot } from '../../src/extraction/read'
 import { relativeDay } from '../../src/extraction/relativeDate'
@@ -188,5 +189,79 @@ describe.skipIf(!existsSync(SAVED))('the saved LinkedIn page', () => {
     expect(offer.description?.startsWith('OUR STORY:')).toBe(true)
     // The salaries on this page are the ones of other offers.
     expect(offer.salary).toBeUndefined()
+  })
+})
+
+describe('Talent.com', () => {
+  const page = (changes: Partial<PageSnapshot> = {}): PageSnapshot => ({
+    url: 'https://fr.talent.com/view?id=639659608588816513',
+    title: "Développeur fullstack IA CDI H/F – ALTEN – Offre d'emploi permanent Bezons, IDF",
+    jsonLd: [],
+    meta: {
+      'og:title': "Développeur fullstack IA CDI H/F – ALTEN – Offre d'emploi permanent Bezons, IDF",
+      'og:description':
+        'Postulez pour le poste de « Développeur fullstack IA CDI H/F » (permanent). ALTEN recrute (Bezons, IDF). Votre prochaine opportunité',
+    },
+    ...changes,
+  })
+
+  it('knows the pages of an offer, and only those', () => {
+    expect(adapterFor('https://fr.talent.com/view?id=1')?.name).toBe('talent')
+    expect(adapterFor('https://www.talent.com/view?id=1')?.name).toBe('talent')
+    expect(adapterFor('https://fr.talent.com/jobs?k=laravel')).toBeNull()
+    expect(adapterFor('https://nottalent.com/view?id=1')).toBeNull()
+    // It reads the title and the tags, not the body: the body is not taken.
+    expect(adapterFor('https://fr.talent.com/view?id=1')?.needsBody).toBe(false)
+    expect(adapterFor('https://www.linkedin.com/jobs/view/1')?.needsBody).toBe(true)
+  })
+
+  it('reads the title, the company and the place', () => {
+    expect(readTalent(page())).toEqual({
+      title: 'Développeur fullstack IA CDI H/F',
+      companyName: 'ALTEN',
+      location: 'Bezons, IDF',
+    })
+  })
+
+  it('is used by the reading of a page, with no body, and gives way to JobPosting data', () => {
+    expect(readSnapshot(page(), PARIS, NOW)).toMatchObject({
+      title: 'Développeur fullstack IA CDI H/F',
+      companyName: 'ALTEN',
+    })
+    const withPosting = page({ jsonLd: [JSON.stringify({ '@type': 'JobPosting', title: 'Exact title' })] })
+    expect(readSnapshot(withPosting, PARIS, NOW)).toMatchObject({ title: 'Exact title', companyName: 'ALTEN' })
+  })
+
+  it('gives what it can for a page that does not follow the pattern', () => {
+    expect(readTalent(page({ title: 'Just a title', meta: {} }))).toEqual({})
+    expect(readTalent(page({ meta: { 'og:title': 'A – B' } }))).toEqual({})
+    expect(
+      readTalent(
+        page({ meta: { 'og:title': 'Dev – Acme – Job offer Paris', description: 'Acme is hiring (Paris, FR).' } })
+      )
+    ).toEqual({
+      title: 'Dev',
+      companyName: 'Acme',
+      location: 'Paris, FR',
+    })
+  })
+})
+
+const SAVED_TALENT = '/home/zairakai/code/datas/pages/talent.html'
+describe.skipIf(!existsSync(SAVED_TALENT))('the saved Talent.com page', () => {
+  it('is read as the offer it shows', () => {
+    const html = readFileSync(SAVED_TALENT, 'utf8').replace(/<iframe\b[^>]*>(?:[\s\S]*?<\/iframe>)?/g, '')
+    const doc = parse(html)
+    const meta: Record<string, string> = {}
+    doc.querySelectorAll('meta[content]').forEach((tag) => {
+      const key = tag.getAttribute('property') ?? tag.getAttribute('name')
+      if (key) meta[key.toLowerCase()] = tag.getAttribute('content') ?? ''
+    })
+    const offer = readTalent({ url: 'https://fr.talent.com/view?id=1', title: doc.title, jsonLd: [], meta })
+    expect(offer).toMatchObject({
+      title: 'Développeur fullstack IA CDI H/F',
+      companyName: 'ALTEN',
+      location: 'Bezons, IDF',
+    })
   })
 })
