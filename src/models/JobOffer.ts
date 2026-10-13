@@ -20,9 +20,16 @@ export default class JobOffer extends Model {
   // The place as the offer says it, and its ISO 3166-1 country when it is known.
   declare location: string | null
   declare country: string | null
-  // The postal address of the workplace, on one line, as read from the page or typed. The place above is the city as the
-  // offer says it; this one is what a map service is asked for.
-  declare address: string | null
+  // The postal address of the workplace, in fields (the country is the one above). The coordinates are those of the page or
+  // pasted by the user from a map: nothing is looked up.
+  declare addressLine1: string | null
+  declare addressLine2: string | null
+  declare addressLine3: string | null
+  declare postalCode: string | null
+  declare city: string | null
+  declare region: string | null
+  declare latitude: number | null
+  declare longitude: number | null
   // What the user found on a map and kept: the distance (metres) and the time (minutes) from home, and how they travel.
   declare commuteMeters: number | null
   declare commuteMinutes: number | null
@@ -54,7 +61,14 @@ export default class JobOffer extends Model {
       url: this.string(null),
       location: this.string(null),
       country: this.string(null),
-      address: this.string(null),
+      addressLine1: this.string(null),
+      addressLine2: this.string(null),
+      addressLine3: this.string(null),
+      postalCode: this.string(null),
+      city: this.string(null),
+      region: this.string(null),
+      latitude: this.number(null),
+      longitude: this.number(null),
       commuteMeters: this.number(null),
       commuteMinutes: this.number(null),
       commuteMode: this.string(null),

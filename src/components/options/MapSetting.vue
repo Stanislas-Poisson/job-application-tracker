@@ -3,6 +3,7 @@
   import { computed } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { PROVIDERS, TRAVEL_MODES, isValidTemplate } from '../../services/maps'
+  import AddressFields from '../AddressFields.vue'
 
   const { t, settings, updateSettings } = useApp()
 
@@ -49,14 +50,13 @@
       {{ t('map.customProblem') }}
     </p>
   </template>
-  <FormInput
-    :model-value="settings.homeAddress"
-    name="homeAddress"
-    :label="t('map.home')"
-    autocomplete="street-address"
-    @update:model-value="updateSettings({ homeAddress: String($event).trim() })"
-  />
+  <h3>{{ t('map.home') }}</h3>
   <p class="muted">{{ t('map.homeHint') }}</p>
+  <AddressFields
+    :model-value="settings.home"
+    prefix="home"
+    @update:model-value="updateSettings({ home: $event })"
+  />
   <FormSelect
     :model-value="settings.travelMode"
     name="travelMode"

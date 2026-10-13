@@ -21,6 +21,7 @@ import type { ContactRole } from '../models/ApplicationContact'
 import type { WorkMode } from '../models/JobOffer'
 import type { Salary } from '../utils/money'
 import { isInstant, isPlainDate } from '../utils/time'
+import { type AddressParts, normalizeAddress } from './address'
 import { type ContactInput, normalizeContactInput } from './contacts'
 
 export interface CaptureInput {
@@ -30,8 +31,8 @@ export interface CaptureInput {
   location?: string | null
   // The ISO 3166-1 country of the place, when it is known.
   country?: string | null
-  // The postal address of the workplace, on one line.
-  address?: string | null
+  // The postal address of the workplace, in fields.
+  address?: AddressParts | null
   contractType?: string | null
   workMode?: WorkMode | null
   description?: string | null
@@ -43,6 +44,22 @@ export interface CaptureInput {
 }
 
 const now = () => new Date().toISOString()
+
+// The fields of an offer that hold its address, from an address in fields (empty ones are not kept).
+export function offerAddressFields(address: AddressParts | null | undefined) {
+  const parts = normalizeAddress(address)
+  const text = (value: string) => ('' === value ? null : value)
+  return {
+    addressLine1: text(parts.line1),
+    addressLine2: text(parts.line2),
+    addressLine3: text(parts.line3),
+    postalCode: text(parts.postalCode),
+    city: text(parts.city),
+    region: text(parts.region),
+    latitude: parts.latitude,
+    longitude: parts.longitude,
+  }
+}
 
 const byOrder = (a: Status, b: Status) => a.order - b.order
 
@@ -99,8 +116,8 @@ export function captureOffer(input: CaptureInput): Application {
     title: input.title.trim(),
     url: input.url ?? null,
     location: input.location ?? null,
-    country: input.country ?? null,
-    address: input.address ?? null,
+    country: input.country ?? ('' === (input.address?.country ?? '') ? null : (input.address?.country ?? null)),
+    ...offerAddressFields(input.address),
     contractType: input.contractType ?? null,
     workMode: input.workMode ?? null,
     description: input.description ?? null,

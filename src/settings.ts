@@ -1,4 +1,5 @@
 import type { StorageAdapter } from './persistence/adapter'
+import { type AddressParts, emptyAddress, normalizeAddress } from './services/address'
 import { type PassphraseCheck, normalizeCheck } from './services/encryption'
 import { isCountry, normalizeEmail } from './utils/contact'
 import { CURRENCY_DISPLAYS, type CurrencyDisplay, DEFAULT_ASSUMPTIONS, isCurrency } from './utils/money'
@@ -54,7 +55,8 @@ export interface Settings {
   payProfileId: string
   // The address a route starts from (home), and the map service the links open. Nothing is sent by the extension: a link is
   // built, and the browser opens it when the user clicks.
-  homeAddress: string
+  // The address a route starts from, in fields; its coordinates, if the user gives them, let a route be made by services that need them.
+  home: AddressParts
   mapProvider: 'google' | 'osm' | 'apple' | 'custom'
   // The link of a map service of their own, with {from} and {to} (the addresses) and {query} (a place), for 'custom'.
   mapCustomTemplate: string
@@ -88,7 +90,7 @@ export const DEFAULT_SETTINGS: Settings = {
   ownEmails: [],
   followUpDays: 7,
   payProfileId: '',
-  homeAddress: '',
+  home: emptyAddress(),
   mapProvider: 'google',
   mapCustomTemplate: '',
   travelMode: 'car',
@@ -107,9 +109,12 @@ const inRange = (min: number, max: number) => (value: unknown) =>
 
 // What a setting may hold. A stored value that does not pass is replaced by the default.
 const VALID: {
-  [K in Exclude<keyof Settings, 'rates' | 'ownEmails' | 'autoRatesData' | 'lastBackupAt' | 'backupPassphraseCheck'>]: (
-    value: unknown
-  ) => boolean
+  [
+    K in Exclude<
+      keyof Settings,
+      'rates' | 'ownEmails' | 'autoRatesData' | 'lastBackupAt' | 'backupPassphraseCheck' | 'home'
+    >
+  ]: (value: unknown) => boolean
 } = {
   locale: oneOf(LOCALES),
   theme: oneOf(THEMES),
@@ -125,7 +130,6 @@ const VALID: {
   backupProtect: (value) => 'boolean' === typeof value,
   followUpDays: (value) => Number.isInteger(value) && inRange(1, 60)(value),
   payProfileId: (value) => 'string' === typeof value,
-  homeAddress: (value) => 'string' === typeof value && 300 >= value.length,
   mapProvider: oneOf(['google', 'osm', 'apple', 'custom']),
   mapCustomTemplate: (value) => 'string' === typeof value && 500 >= value.length,
   travelMode: oneOf(['car', 'transit', 'bike', 'walk']),
@@ -192,6 +196,12 @@ export function normalizeSettings(stored: unknown): Settings {
     ownEmails: normalizeEmails(source.ownEmails),
     lastBackupAt: isInstant(source.lastBackupAt) ? source.lastBackupAt : null,
     backupPassphraseCheck: normalizeCheck(source.backupPassphraseCheck),
+    // The address a route starts from. Before it was in fields, it was a line of text: that line is the first line.
+    home: normalizeAddress(
+      'object' === typeof source.home && null !== source.home
+        ? source.home
+        : { line1: 'string' === typeof source.homeAddress ? source.homeAddress : '' }
+    ),
   }
   for (const key of Object.keys(VALID) as (keyof typeof VALID)[]) {
     if (VALID[key](source[key])) {

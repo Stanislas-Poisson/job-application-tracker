@@ -86,6 +86,7 @@
     const text = boardCsv(
       visible.value,
       {
+        locale: format.locale.value,
         labels: {
           columns: Object.fromEntries(COLUMNS.map((column) => [column, t(`export.columns.${column}`)])) as never,
           yes: t('export.yes'),
