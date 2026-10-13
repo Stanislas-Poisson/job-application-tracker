@@ -95,6 +95,9 @@ const en: TranslationObject = {
     notePlaceholder: 'Write a note',
     addNote: 'Add the note',
     timeline: 'Timeline',
+    followUp: 'Follow up',
+    followUpSuggestion: 'You applied: follow up {days} days later, on {date}?',
+    followUpAdd: 'Add this reminder',
     reminders: 'Reminders',
     reminderPlaceholder: 'What to do',
     addReminder: 'Add the reminder',
@@ -342,6 +345,12 @@ const en: TranslationObject = {
   dirty: {
     unsaved: 'Unsaved changes',
     confirmClose: 'Some text you typed is not saved. Close anyway?',
+  },
+  reminders: {
+    title: 'Reminders',
+    followUpDays: 'Suggest a follow-up this many days after applying',
+    followUpHint:
+      'Once you have applied, the application offers a reminder to follow up at 9 in the morning, in your time zone. Nothing is added until you accept.',
   },
   options: {
     protectedBackup: 'This backup is protected by a passphrase.',
