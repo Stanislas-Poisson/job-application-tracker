@@ -8,6 +8,10 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    ignore:
+      # TypeScript 7 is the native compiler: it has no JavaScript API yet, and vue-tsc and typescript-eslint need it.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "npm"
     directory: "/tests/e2e"
     schedule:

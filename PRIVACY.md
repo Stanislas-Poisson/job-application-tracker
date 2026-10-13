@@ -1,6 +1,6 @@
 # Privacy Policy - Job Application Tracker
 
-Last updated: 2026-10-12
+Last updated: 2026-10-13
 
 **Job Application Tracker does not collect, transmit, or share any user data of any kind.** Everything you save stays in your own browser. The only network request is an option that is off by default: the exchange rates (see below).
 
@@ -55,4 +55,16 @@ If you turn on "Notify me when a reminder is due", the extension asks the browse
 
 ## Addresses and maps
 
-An offer can keep the address of its workplace, and the settings can hold the address you leave from. They stay in your browser, with your backups. The extension never sends them anywhere by itself. A link such as "Show on the map" or "Route from home" is built from them, and **only when you click it** your browser opens the map service you chose (Google Maps, OpenStreetMap, Apple Maps or a link of your own) with the address in the link. What that service does with it is governed by its own policy.
+An offer can keep the address of its workplace (in fields, with its position on a map if the page gave it or you typed it), the journeys you found to get there (the means, the line and the time of each leg), and the settings can hold the address you leave from. They stay in your browser, with your backups. The extension looks nothing up and computes no route: you search on the map, and keep the result. The extension never sends them anywhere by itself. A link such as "Show on the map" or "Route from home" is built from them, and **only when you click it** your browser opens the map service you chose (Google Maps, OpenStreetMap, Apple Maps or a link of your own) with the address (or the position) in the link. What that service does with it is governed by its own policy.
+
+## Bringing two computers together
+
+The merge reads a backup file you choose, on your computer, and adds its content to the data stored in your browser. Nothing is sent anywhere, and nothing is deleted.
+
+## Your look
+
+The font, the size and spacing of the text, your colours and your own themes are settings. They stay in your browser, with your backups. A font you name is one installed on your computer: nothing is downloaded.
+
+## A language of your own
+
+If you add a language from a file, the file is read on your computer, checked, and kept in your browser. Nothing is downloaded or sent.

@@ -1,12 +1,10 @@
 import { describe, expect, it } from 'vitest'
+import { SUPPORTED } from '../../src/i18n'
 import { LANGUAGES, applyLanguage, isRtlScript, languageOf } from '../../src/languages'
-import { LOCALES } from '../../src/settings'
 
 describe('languages', () => {
   it('describes every language the extension has, by its code, its own name, its direction and its script', () => {
-    expect(LANGUAGES.map((language) => language.code).sort()).toEqual(
-      LOCALES.filter((locale) => 'auto' !== locale).sort()
-    )
+    expect(LANGUAGES.map((language) => language.code).sort()).toEqual([...SUPPORTED].sort())
     for (const language of LANGUAGES) {
       expect(language.name).not.toBe('')
       expect(['ltr', 'rtl']).toContain(language.dir)
