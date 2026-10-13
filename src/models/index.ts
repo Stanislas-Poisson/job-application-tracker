@@ -9,6 +9,7 @@ import ContactCompany from './ContactCompany'
 import ContactMethod from './ContactMethod'
 import Interaction from './Interaction'
 import JobOffer from './JobOffer'
+import Journey from './Journey'
 import Note from './Note'
 import PayProfile from './PayProfile'
 import Reminder from './Reminder'
@@ -29,6 +30,7 @@ export {
   ContactMethod,
   Interaction,
   JobOffer,
+  Journey,
   Note,
   PayProfile,
   Reminder,
@@ -45,6 +47,7 @@ export const MODELS: (typeof Model)[] = [
   CompanyRelation,
   Source,
   JobOffer,
+  Journey,
   Status,
   Application,
   Contact,

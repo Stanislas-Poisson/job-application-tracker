@@ -5,7 +5,7 @@
 // How to change the structure: add a function to MIGRATIONS that turns the data of version N into the data of N + 1,
 // raise SCHEMA_VERSION to N + 1, and add a test with a file of version N. The functions only ever go up one step.
 
-export const SCHEMA_VERSION = 7
+export const SCHEMA_VERSION = 8
 export const SCHEMA_KEY = 'jat:schema'
 
 // The records of every kind of data, by entity name, as they are stored.
@@ -77,6 +77,33 @@ export const MIGRATIONS: Record<number, Migration> = {
       }
     }),
   }),
+  // 7 -> 8: the way to the workplace is a journey in legs. What was kept as a distance, a time and a means becomes a journey of one
+  // leg, the preferred outbound one; its id comes from the offer, so that running the step twice makes no second one.
+  7: (data) => {
+    const existing = data.journeys ?? []
+    const have = new Set(existing.map((journey) => String(journey.id)))
+    const made: Record<string, unknown>[] = []
+    const jobOffers = (data.jobOffers ?? []).map((offer) => {
+      const { commuteMeters, commuteMinutes, commuteMode, ...rest } = offer
+      const minutes = 'number' === typeof commuteMinutes ? commuteMinutes : null
+      const meters = 'number' === typeof commuteMeters ? commuteMeters : null
+      const id = `jy_${String(offer.id)}`
+      if ((null !== minutes || null !== meters) && !have.has(id)) {
+        const mode = ['car', 'bike', 'walk', 'transit'].includes(String(commuteMode)) ? commuteMode : 'other'
+        made.push({
+          id,
+          updatedAt: null,
+          jobOfferId: offer.id,
+          direction: 'outbound',
+          name: null,
+          preferred: true,
+          legs: [{ mode, line: '', minutes: minutes ?? 0, meters }],
+        })
+      }
+      return rest
+    })
+    return { ...data, jobOffers, journeys: [...existing, ...made] }
+  },
 }
 
 // Whether data of that version can be read: a number from 1 to the current version.

@@ -1315,38 +1315,24 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         message: 'the position understood',
       })
 
-      // What was found on the map is kept in the offer, with the address.
-      await type('input[name=commuteKm]', '12,4')
-      await type('input[name=commuteMinutes]', '35')
-      await choose('select[name=commuteMode]', 'transit')
+      // The address is kept in the offer, in fields.
       await driver.executeScript(`document.querySelector('#place form').requestSubmit()`)
-      await waitFor(async () => /12\.4 km - 35 min/.test(await text('#commute-saved')), {
-        message: 'the way there kept',
-      })
-      const kept = await driver.executeAsyncScript(`
-        const done = arguments[arguments.length - 1];
-        chrome.storage.local.get('jat:jobOffers', (items) => done((items['jat:jobOffers'] || []).find((o) => o.addressLine1)));
-      `)
+      const kept = await waitFor(
+        async () => {
+          const found = await driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:jobOffers', (items) => done((items['jat:jobOffers'] || []).find((o) => o.addressLine1)));
+          `)
+          return found && found.latitude === 45.764 && found
+        },
+        { message: 'the address to be kept' }
+      )
       assert.equal(kept.city, 'Lyon')
       assert.equal(kept.postalCode, '69001')
       assert.equal(kept.country, 'FR')
-      assert.equal(kept.latitude, 45.764)
       assert.equal(kept.longitude, 4.8357)
-
-      // A distance that is not a number is refused.
-      await type('input[name=commuteKm]', 'far')
-      await driver.executeScript(`document.querySelector('#place form').requestSubmit()`)
-      await waitFor(async () => /is a number/.test(await text('#place .error')), { message: 'the refusal' })
-      await type('input[name=commuteKm]', '12.4')
+      assert.equal(kept.addressLine2, 'Building B')
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
-
-      // The card tells the way there.
-      await waitFor(
-        async () => (await texts('.application-card .commute-line')).some((line) => /12\.4 km - 35 min/.test(line)),
-        {
-          message: 'the way there on the card',
-        }
-      )
 
       // OpenStreetMap makes a route only with a position at both ends: give the one of home.
       await open('options', 'select[name=mapProvider]')
@@ -1356,8 +1342,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const again = await all('.application-card')
       const names = await Promise.all(again.map((card) => card.getText()))
       await again[names.findIndex((line) => /Follow me/.test(line))].click()
-      // This offer is kept as a journey by public transport, for which OpenStreetMap has no route: by car it has one.
-      await choose('select[name=commuteMode]', 'car')
+      // The settings say public transport, for which OpenStreetMap has no route: for this offer, by car, it has one.
+      await choose('select[name=routeMode]', 'car')
       await waitFor(async () => (await all('#map-route')).length > 0, { message: 'the route on OpenStreetMap' })
       const osm = await css('#map-route').then((link) => link.getAttribute('href'))
       assert.match(
@@ -1370,7 +1356,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       )
 
       // Public transport has no route on OpenStreetMap, and the page says why.
-      await choose('select[name=commuteMode]', 'transit')
+      await choose('select[name=routeMode]', 'transit')
       await waitFor(async () => (await all('#map-route')).length === 0, { message: 'the route to go' })
       assert.match(await text('#place'), /no route for public transport/)
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
@@ -1378,6 +1364,129 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       // Back to the service the other tests expect.
       await open('options', 'select[name=mapProvider]')
       await choose('select[name=mapProvider]', 'google')
+    })
+
+    test('journeys to work are kept in legs with a total, as a way there and a way back, one of them preferred', async () => {
+      await open('board', '.application-card')
+      const cards = await all('.application-card')
+      const lines = await Promise.all(cards.map((card) => card.getText()))
+      await cards[lines.findIndex((line) => /Follow me/.test(line))].click()
+      await waitFor(async () => (await all('#new-journey')).length > 0, { message: 'the journeys section' })
+      await driver.executeScript('window.confirm = () => true')
+
+      // Tours to Bussy-Saint-Georges: on foot, bus, train, metro, suburban train, on foot.
+      const legs = [
+        ['walk', '', '10'],
+        ['bus', '12', '25'],
+        ['train', 'TER', '62'],
+        ['metro', '14', '20'],
+        ['suburban', 'RER A', '18'],
+        ['walk', '', '8'],
+      ]
+      await css('#new-journey').then((button) => button.click())
+      await waitFor(async () => (await all('#journey-form')).length > 0, { message: 'the journey form' })
+      await type('input[name=journeyName]', 'By train')
+      for (let index = 0; index < legs.length; index++) {
+        if (index > 0) {
+          await driver.executeScript(
+            `[...document.querySelectorAll('#journey-form button')].find((b) => b.textContent.trim() === 'Add a leg').click()`
+          )
+          await waitFor(async () => (await all(`select[name=legMode${index}]`)).length > 0, { message: `leg ${index}` })
+        }
+        const [mode, line, minutes] = legs[index]
+        await choose(`select[name=legMode${index}]`, mode)
+        await type(`input[name=legLine${index}]`, line)
+        await type(`input[name=legMinutes${index}]`, minutes)
+      }
+      // The total follows what is typed: 10 + 25 + 62 + 20 + 18 + 8 = 143 minutes.
+      await waitFor(async () => /2 h23/.test(await text('#journey-typed-total')), { message: 'the total as typed' })
+
+      // A leg with no time is refused, and nothing is kept.
+      await driver.executeScript(
+        `[...document.querySelectorAll('#journey-form button')].find((b) => b.textContent.trim() === 'Add a leg').click()`
+      )
+      await waitFor(async () => (await all('select[name=legMode6]')).length > 0, { message: 'the blank leg' })
+      await driver.executeScript(`document.querySelector('#journey-form').requestSubmit()`)
+      await waitFor(async () => /whole number of minutes/.test(await text('#journey-form .error')), {
+        message: 'the refusal',
+      })
+      assert.equal((await all('.journey-list')).length, 0)
+      await driver.executeScript(
+        `[...document.querySelectorAll('#journey-form .journey-leg')].at(-1).querySelector('.leg-remove').click()`
+      )
+
+      await driver.executeScript(`document.querySelector('#journey-form').requestSubmit()`)
+      await waitFor(async () => (await all('.journey-list .journey')).length > 0, {
+        message: 'the journey in the list',
+      })
+      const journey = await text('.journey-list .journey')
+      assert.match(journey, /Going - By train/)
+      assert.match(journey, /2 h23/)
+      assert.match(journey, /Preferred/)
+      assert.match(journey, /Suburban train RER A 18 min/)
+
+      // The card tells the time of the preferred journey.
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+      await waitFor(async () => (await texts('.application-card .commute-line')).some((line) => /2 h23/.test(line)), {
+        message: 'the time on the card',
+      })
+
+      // The way back: the same legs in the other order, the preferred one of its direction.
+      await open('board', '.application-card')
+      const again = await all('.application-card')
+      const names = await Promise.all(again.map((card) => card.getText()))
+      await again[names.findIndex((line) => /Follow me/.test(line))].click()
+      await waitFor(async () => (await all('.journey-reverse')).length > 0, { message: 'the journeys' })
+      await driver.executeScript(`document.querySelector('.journey-reverse').click()`)
+      await waitFor(async () => (await all('.journey[data-direction=return]')).length > 0, { message: 'the way back' })
+      const back = await text('.journey[data-direction=return]')
+      assert.match(back, /Coming back - By train/)
+      assert.match(back, /2 h23/)
+      assert.ok(back.indexOf('Suburban train') < back.indexOf('Bus'), 'the legs are in the reverse order')
+      assert.match(
+        await css('.journey[data-direction=return] .journey-legs li').then((leg) => leg.getText()),
+        /On foot 8 min/
+      )
+
+      // Another way there, shorter or longer: only one is preferred, and the card follows the choice.
+      await css('#new-journey').then((button) => button.click())
+      await waitFor(async () => (await all('#journey-form')).length > 0, { message: 'the second form' })
+      await type('input[name=journeyName]', 'By car')
+      await choose('select[name=legMode0]', 'car')
+      await type('input[name=legMinutes0]', '95')
+      await driver.executeScript(`document.querySelector('#journey-form').requestSubmit()`)
+      await waitFor(async () => (await all('.journey[data-direction=outbound]')).length === 2, {
+        message: 'two ways there',
+      })
+      assert.equal((await all('.journey-preferred')).length, 2, 'one preferred for each direction')
+      await driver.executeScript(`
+        [...document.querySelectorAll('.journey[data-direction=outbound]')].find((j) => j.textContent.includes('By car')).querySelector('.journey-prefer').click()
+      `)
+      await waitFor(async () => /By car[\s\S]*Preferred/.test(await text('.journey[data-direction=outbound]')), {
+        message: 'the car is preferred',
+      })
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+      await waitFor(async () => (await texts('.application-card .commute-line')).some((line) => /1 h35/.test(line)), {
+        message: 'the card follows the preferred journey',
+      })
+
+      // Deleting the preferred one gives its place to the other.
+      await open('board', '.application-card')
+      const last = await all('.application-card')
+      const labels = await Promise.all(last.map((card) => card.getText()))
+      await last[labels.findIndex((line) => /Follow me/.test(line))].click()
+      await waitFor(async () => (await all('.journey[data-direction=outbound]')).length === 2, {
+        message: 'the journeys again',
+      })
+      await driver.executeScript('window.confirm = () => true')
+      await driver.executeScript(`
+        [...[...document.querySelectorAll('.journey[data-direction=outbound]')].find((j) => j.textContent.includes('By car')).querySelectorAll('.row button')].find((b) => b.textContent.trim() === 'Delete').click()
+      `)
+      await waitFor(async () => (await all('.journey[data-direction=outbound]')).length === 1, {
+        message: 'the car journey deleted',
+      })
+      assert.match(await text('.journey[data-direction=outbound]'), /By train[\s\S]*Preferred/)
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
     })
 
     test('a deleted application goes to the trash, and comes back from it', async () => {

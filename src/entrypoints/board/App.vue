@@ -11,6 +11,7 @@
   import { useBoardView } from '../../composables/useBoardView'
   import { useFormat } from '../../composables/useFormat'
   import { Application, CompanyRelation, PayProfile, Status } from '../../models'
+  import { LEG_MODES } from '../../models/Journey'
   import { moveApplication } from '../../services/applications'
   import { queryApplications } from '../../services/boardQuery'
   import { finalClientsOf, linksOf } from '../../services/companyRelations'
@@ -50,7 +51,7 @@
   // Every application, with what the filters and the search look at.
   const everything = computed(() =>
     useRepo(Application)
-      .with('jobOffer', (query) => query.with('company').with('source'))
+      .with('jobOffer', (query) => query.with('company').with('source').with('journeys'))
       .with('reminders')
       .with('tags')
       .with('contacts')
@@ -96,7 +97,7 @@
             ['year', 'month', 'week', 'day', 'hour'].map((p) => [p, t(`salary.per.${p}`)])
           ) as never,
           kinds: { gross: t('salary.kind.gross'), net: t('salary.kind.net') },
-          modes: Object.fromEntries(['car', 'transit', 'bike', 'walk'].map((mode) => [mode, t(`place.modes.${mode}`)])),
+          legModes: Object.fromEntries(LEG_MODES.map((mode) => [mode, t(`journeys.modes.${mode}`)])) as never,
         },
         conversion: format.conversion(),
         netEstimate: (salary) => {
