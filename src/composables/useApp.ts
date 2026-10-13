@@ -1,6 +1,6 @@
 import { inject } from 'vue'
 import { CONTEXT_KEY } from '../app/context'
-import { resolveLocale } from '../i18n'
+import { pluralText, resolveLocale } from '../i18n'
 
 export function useApp() {
   const context = inject(CONTEXT_KEY)
@@ -14,8 +14,16 @@ export function useApp() {
     return context.translator.__(path, replacements)
   }
 
+  // A text that depends on a number: labels.usage.one, labels.usage.other… by the plural rules of the language.
+  const tn = (path: string, count: number, replacements?: Record<string, string | number>) => {
+    const locale = resolveLocale(context.settings.locale, navigator.language)
+    context.translator.setLocale(locale)
+    return pluralText(context.translator, locale, path, count, replacements)
+  }
+
   return {
     t,
+    tn,
     settings: context.settings,
     updateSettings: context.updateSettings,
     persistence: context.persistence,

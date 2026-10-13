@@ -270,7 +270,10 @@ const fr: TranslationObject = {
     files: 'Fichiers e-mail (.eml), ou une liste (.json, .csv)',
     chooseDirection: 'Reçu ou envoyé ?',
     nothing: "Rien n'a pu être lu dans ces fichiers.",
-    commit: 'Importer {count}',
+    commit: {
+      one: 'Importer {count} élément',
+      other: 'Importer {count} éléments',
+    },
     done: '{added} ajoutés, {duplicates} déjà présents, {skipped} ignorés.',
     errors: {
       json: "{file} n'est pas un fichier JSON valide.",
@@ -302,8 +305,14 @@ const fr: TranslationObject = {
     manageHint:
       'Les étiquettes que vous mettez sur les candidatures. Renommez-les, changez leur couleur ou retirez-les.',
     none: "Pas encore d'étiquette. Ajoutez-en une à une candidature, ou ici.",
-    usage: 'utilisée {count} fois',
-    confirmDelete: 'Cette étiquette est sur {count} éléments. La retirer de tous ?',
+    usage: {
+      one: 'utilisée {count} fois',
+      other: 'utilisée {count} fois',
+    },
+    confirmDelete: {
+      one: 'Cette étiquette est sur {count} élément. La retirer ?',
+      other: 'Cette étiquette est sur {count} éléments. La retirer de tous ?',
+    },
     errors: {
       name: "Donnez à l'étiquette un nom qu'aucune autre n'utilise.",
       color: 'La couleur doit être écrite comme #0072b2.',
@@ -348,8 +357,14 @@ const fr: TranslationObject = {
     hint: 'Ce que vous supprimez reste ici {days} jours, et peut être remis.',
     none: 'La corbeille est vide.',
     restore: 'Remettre',
-    restored: '{count} remis.',
-    related: '{count} liés',
+    restored: {
+      one: '{count} remis.',
+      other: '{count} remis.',
+    },
+    related: {
+      one: '{count} lié',
+      other: '{count} liés',
+    },
     empty: 'Vider la corbeille',
     emptied: 'La corbeille est vide.',
     confirmEmpty: 'Supprimer définitivement tout le contenu de la corbeille ?',
@@ -388,13 +403,19 @@ const fr: TranslationObject = {
       'Une fois que vous avez postulé, la candidature propose un rappel de relance à 9 h du matin, dans votre fuseau horaire. Rien n’est ajouté tant que vous n’acceptez pas.',
   },
   notify: {
-    many: '{count} rappels sont échus',
+    many: {
+      one: '{count} rappel est échu',
+      other: '{count} rappels sont échus',
+    },
     more: 'et {count} de plus',
     title: 'Rappel',
   },
   export: {
     link: 'Exporter (CSV)',
-    hint: 'Un fichier pour tableur avec les {count} candidatures affichées, dans l’ordre affiché',
+    hint: {
+      one: 'Un fichier pour tableur avec la candidature affichée ({count}), dans l’ordre affiché',
+      other: 'Un fichier pour tableur avec les {count} candidatures affichées, dans l’ordre affiché',
+    },
     yes: 'oui',
     no: 'non',
     columns: {
@@ -746,8 +767,11 @@ const fr: TranslationObject = {
     mergeUpdated: 'Plus récents dans le fichier',
     mergeKept: 'Gardés comme ici',
     mergeSummary: '{added} seront ajoutés et {updated} remplacés par une version plus récente.',
-    mergeDuplicates:
-      '{count} des enregistrements à ajouter ressemblent à ceux que vous avez déjà sous une autre identité (même nom d’entreprise, même contact, même adresse d’offre). Ils seraient là en double.',
+    mergeDuplicates: {
+      one: '{count} des enregistrements à ajouter ressemble à un que vous avez déjà sous une autre identité (même nom d’entreprise, même contact, même adresse d’offre). Il serait là en double.',
+      other:
+        '{count} des enregistrements à ajouter ressemblent à ceux que vous avez déjà sous une autre identité (même nom d’entreprise, même contact, même adresse d’offre). Ils seraient là en double.',
+    },
     mergeWarning:
       'Une même entreprise, un même contact ou une même étiquette créés sur les deux ordinateurs ne sont pas le même enregistrement : ils seront en double, et il faudra les fusionner à la main. Les colonnes et sources fournies avec l’extension sont rapprochées, pas doublées. Ce que vous avez supprimé ici reste supprimé ; ce qui a été supprimé sur l’autre ordinateur ne l’est pas ici. Les réglages ne sont pas fusionnés. Faites d’abord une sauvegarde.',
     mergeUnderstood: 'Je sais que des doublons sont possibles et que cela ne peut pas être annulé',
