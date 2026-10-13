@@ -1266,10 +1266,13 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await waitFor(async () => /78,000/.test(await text('#freelance-result')), { message: 'the income' })
     })
 
-    test('the address of an offer opens in the map service chosen, and what is found there is kept in the offer', async () => {
-      // The address the routes start from, in the options.
-      await open('options', 'input[name=homeAddress]')
-      await type('input[name=homeAddress]', '10 rue de Rivoli, 75001 Paris')
+    test('the address of an offer, in fields, opens in the map service chosen, and what is found there is kept in the offer', async () => {
+      // The address the routes start from, in fields, in the options.
+      await open('options', 'input[name=homeLine1]')
+      await type('input[name=homeLine1]', '10 rue de Rivoli')
+      await type('input[name=homePostalCode]', '75001')
+      await type('input[name=homeCity]', 'Paris')
+      await choose('select[name=homeCountry]', 'FR')
       await choose('select[name=mapProvider]', 'google')
       await choose('select[name=travelMode]', 'transit')
 
@@ -1277,12 +1280,17 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const cards = await all('.application-card')
       const lines = await Promise.all(cards.map((card) => card.getText()))
       await cards[lines.findIndex((line) => /Follow me/.test(line))].click()
-      await waitFor(async () => (await all('input[name=address]')).length > 0, { message: 'the place section' })
+      await waitFor(async () => (await all('input[name=addressLine1]')).length > 0, { message: 'the place section' })
 
       // No address, no link.
       assert.equal((await all('#map-place')).length, 0)
-      await type('input[name=address]', "5 avenue de l'Opéra, 69001 Lyon")
+      await type('input[name=addressLine1]', "5 avenue de l'Opéra")
+      await type('input[name=addressLine2]', 'Building B')
+      await type('input[name=addressPostalCode]', '69001')
+      await type('input[name=addressCity]', 'Lyon')
+      await choose('select[name=addressCountry]', 'FR')
       await waitFor(async () => (await all('#map-place')).length > 0, { message: 'the link to the place' })
+      assert.match(await text('#address-line'), /5 avenue de l'Opéra, Building B, 69001 Lyon, France/)
 
       // The links carry the address, in the service and the way of travelling chosen. They open a new tab, with no referrer.
       const place = await css('#map-place')
@@ -1290,11 +1298,24 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       assert.match(await place.getAttribute('rel'), /noopener/)
       assert.equal(await place.getAttribute('target'), '_blank')
       const route = await css('#map-route').then((link) => link.getAttribute('href'))
-      assert.match(route, /origin=10%20rue%20de%20Rivoli/)
-      assert.match(route, /destination=5%20avenue%20de%20l(?:'|%27)Op%C3%A9ra/)
+      assert.match(route, /origin=10%20rue%20de%20Rivoli%2C%2075001%20Paris%2C%20France/)
+      assert.match(
+        route,
+        /destination=5%20avenue%20de%20l(?:'|%27)Op%C3%A9ra%2C%20Building%20B%2C%2069001%20Lyon%2C%20France/
+      )
       assert.match(route, /travelmode=transit/)
 
-      // What was found on the map is kept in the offer.
+      // A position pasted from a map: understood, or refused.
+      await type('input[name=addressCoordinates]', 'north, east')
+      await waitFor(async () => /Two numbers/.test(await text('#place .error')), {
+        message: 'the refusal of the position',
+      })
+      await type('input[name=addressCoordinates]', '45,7640; 4,8357')
+      await waitFor(async () => (await all('#place .address-fields .error')).length === 0, {
+        message: 'the position understood',
+      })
+
+      // What was found on the map is kept in the offer, with the address.
       await type('input[name=commuteKm]', '12,4')
       await type('input[name=commuteMinutes]', '35')
       await choose('select[name=commuteMode]', 'transit')
@@ -1302,6 +1323,15 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await waitFor(async () => /12\.4 km - 35 min/.test(await text('#commute-saved')), {
         message: 'the way there kept',
       })
+      const kept = await driver.executeAsyncScript(`
+        const done = arguments[arguments.length - 1];
+        chrome.storage.local.get('jat:jobOffers', (items) => done((items['jat:jobOffers'] || []).find((o) => o.addressLine1)));
+      `)
+      assert.equal(kept.city, 'Lyon')
+      assert.equal(kept.postalCode, '69001')
+      assert.equal(kept.country, 'FR')
+      assert.equal(kept.latitude, 45.764)
+      assert.equal(kept.longitude, 4.8357)
 
       // A distance that is not a number is refused.
       await type('input[name=commuteKm]', 'far')
@@ -1318,20 +1348,31 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         }
       )
 
-      // With OpenStreetMap there is a place but no route, and the page says why.
+      // OpenStreetMap makes a route only with a position at both ends: give the one of home.
       await open('options', 'select[name=mapProvider]')
       await choose('select[name=mapProvider]', 'osm')
+      await type('input[name=homeCoordinates]', '48.8566, 2.3522')
       await open('board', '.application-card')
       const again = await all('.application-card')
       const names = await Promise.all(again.map((card) => card.getText()))
       await again[names.findIndex((line) => /Follow me/.test(line))].click()
-      await waitFor(async () => (await all('#map-place')).length > 0, { message: 'the place link' })
+      // This offer is kept as a journey by public transport, for which OpenStreetMap has no route: by car it has one.
+      await choose('select[name=commuteMode]', 'car')
+      await waitFor(async () => (await all('#map-route')).length > 0, { message: 'the route on OpenStreetMap' })
+      const osm = await css('#map-route').then((link) => link.getAttribute('href'))
+      assert.match(
+        osm,
+        /openstreetmap\.org\/directions\?engine=fossgis_osrm_car&route=48\.8566%2C2\.3522%3B45\.764%2C4\.8357/
+      )
       assert.match(
         await css('#map-place').then((link) => link.getAttribute('href')),
-        /openstreetmap\.org\/search\?query=/
+        /openstreetmap\.org\/\?mlat=45\.764&mlon=4\.8357/
       )
-      assert.equal((await all('#map-route')).length, 0)
-      assert.match(await text('#place'), /cannot make a route/)
+
+      // Public transport has no route on OpenStreetMap, and the page says why.
+      await choose('select[name=commuteMode]', 'transit')
+      await waitFor(async () => (await all('#map-route')).length === 0, { message: 'the route to go' })
+      assert.match(await text('#place'), /no route for public transport/)
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
 
       // Back to the service the other tests expect.

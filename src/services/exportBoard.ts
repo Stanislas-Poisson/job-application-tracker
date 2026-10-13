@@ -1,4 +1,4 @@
-import type { Application } from '../models'
+import type { Application, JobOffer } from '../models'
 import { UTF8_BOM, plainCell, toCsv } from '../utils/csv'
 import {
   type Conversion,
@@ -9,6 +9,7 @@ import {
   currencyDigits,
   fromMinor,
 } from '../utils/money'
+import { type AddressParts, formatAddress, normalizeAddress } from './address'
 
 export const COLUMNS = [
   'status',
@@ -17,6 +18,11 @@ export const COLUMNS = [
   'finalClient',
   'place',
   'postalAddress',
+  'postalCode',
+  'city',
+  'region',
+  'latitude',
+  'longitude',
   'commuteKm',
   'commuteMinutes',
   'commuteMode',
@@ -61,6 +67,8 @@ export interface ExportLabels {
 }
 
 export interface ExportContext {
+  // The language of the file, for the country in the address.
+  locale: string
   labels: ExportLabels
   conversion: Conversion
   // The estimate of the net pay of the salary of an offer, per year (the middle of the range), by the profile chosen, or null.
@@ -118,7 +126,12 @@ export function boardRows(applications: Application[], context: ExportContext): 
       company: offer?.company?.name ?? '',
       finalClient: offer?.company ? list(context.finalClients(offer.company.id)) : '',
       place: offer?.location ?? '',
-      postalAddress: offer?.address ?? '',
+      postalAddress: offer ? formatAddress(addressOfOffer(offer), context.locale) : '',
+      postalCode: offer?.postalCode ?? '',
+      city: offer?.city ?? '',
+      region: offer?.region ?? '',
+      latitude: null == offer?.latitude ? '' : String(offer.latitude).replace('.', decimal),
+      longitude: null == offer?.longitude ? '' : String(offer.longitude).replace('.', decimal),
       commuteKm: null == offer?.commuteMeters ? '' : String(offer.commuteMeters / 1000).replace('.', decimal),
       commuteMinutes: null == offer?.commuteMinutes ? '' : String(offer.commuteMinutes),
       commuteMode: offer?.commuteMode ? (labels.modes[offer.commuteMode] ?? '') : '',
@@ -164,3 +177,17 @@ export function boardCsv(
 }
 
 export const exportFileName = (day: string): string => `job-application-tracker-board-${day}.csv`
+
+// The address of an offer as fields.
+export const addressOfOffer = (offer: JobOffer): AddressParts =>
+  normalizeAddress({
+    line1: offer.addressLine1,
+    line2: offer.addressLine2,
+    line3: offer.addressLine3,
+    postalCode: offer.postalCode,
+    city: offer.city,
+    region: offer.region,
+    country: offer.country,
+    latitude: offer.latitude,
+    longitude: offer.longitude,
+  })

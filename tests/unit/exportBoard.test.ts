@@ -1,6 +1,7 @@
 import { useRepo } from 'pinia-orm'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { Application, JobOffer, Reminder } from '../../src/models'
+import { emptyAddress } from '../../src/services/address'
 import { addContact, addReminder, captureOffer } from '../../src/services/applications'
 import {
   COLUMNS,
@@ -25,6 +26,7 @@ const labels: ExportContext['labels'] = {
 }
 
 const context = (changes: Partial<ExportContext> = {}): ExportContext => ({
+  locale: 'en',
   labels,
   conversion: {
     home: 'EUR',
@@ -162,12 +164,30 @@ describe('boardRows', () => {
   })
 
   it('writes the address of the workplace and the way there', () => {
-    const application = captureOffer({ title: 'Dev', companyName: 'Acme', address: '1 rue X, 75001 Paris' })
+    const application = captureOffer({
+      title: 'Dev',
+      companyName: 'Acme',
+      address: {
+        ...emptyAddress(),
+        line1: '1 rue X',
+        postalCode: '75001',
+        city: 'Paris',
+        country: 'FR',
+        latitude: 48.86,
+        longitude: 2.34,
+      },
+    })
     useRepo(JobOffer)
       .where('id', application.jobOfferId ?? '')
       .update({ commuteMeters: 12_400, commuteMinutes: 35, commuteMode: 'transit' })
     const dot = rowsOf(...everything())[1] ?? []
-    expect(cell(dot, 'postalAddress')).toBe('1 rue X, 75001 Paris')
+    expect(cell(dot, 'postalAddress')).toBe('1 rue X, 75001 Paris, France')
+    expect(['postalCode', 'city', 'latitude', 'longitude'].map((column) => cell(dot, column as never))).toEqual([
+      '75001',
+      'Paris',
+      '48.86',
+      '2.34',
+    ])
     expect(cell(dot, 'commuteKm')).toBe('12.4')
     expect(cell(dot, 'commuteMinutes')).toBe('35')
     expect(cell(dot, 'commuteMode')).toBe('Transit')
@@ -179,8 +199,10 @@ describe('boardRows', () => {
     captureOffer({ title: 'Dev', companyName: 'Acme' })
     const row = rowsOf(...everything())[1] ?? []
     expect(
-      ['postalAddress', 'commuteKm', 'commuteMinutes', 'commuteMode'].map((column) => cell(row, column as never))
-    ).toEqual(['', '', '', ''])
+      ['postalAddress', 'postalCode', 'city', 'latitude', 'commuteKm', 'commuteMinutes', 'commuteMode'].map((column) =>
+        cell(row, column as never)
+      )
+    ).toEqual(['', '', '', '', '', '', ''])
   })
 
   it('writes the final clients of a recruitment firm', () => {

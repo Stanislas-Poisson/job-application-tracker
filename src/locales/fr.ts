@@ -385,6 +385,11 @@ const fr: TranslationObject = {
       finalClient: 'Client final',
       place: 'Lieu',
       postalAddress: 'Adresse postale',
+      postalCode: 'Code postal',
+      city: 'Ville de l’adresse',
+      region: 'Région',
+      latitude: 'Latitude',
+      longitude: 'Longitude',
       commuteKm: 'Distance jusqu’au travail (km)',
       commuteMinutes: 'Durée jusqu’au travail (minutes)',
       commuteMode: 'En',
@@ -586,8 +591,12 @@ const fr: TranslationObject = {
     modeNone: '(non précisé)',
     save: 'Garder',
     notes: {
-      osm: 'OpenStreetMap ne sait pas faire un itinéraire à partir de deux adresses écrites en texte : il montre seulement le lieu. Choisissez un autre service dans les options pour un itinéraire.',
-      home: 'Indiquez dans les options l’adresse d’où vous partez pour obtenir un itinéraire.',
+      origin: 'Indiquez dans les options l’adresse d’où vous partez pour obtenir un itinéraire.',
+      'needs-coordinates':
+        'OpenStreetMap ne fait un itinéraire qu’à partir de positions sur une carte : donnez la position des deux bouts (l’adresse de départ dans les options, et ce lieu).',
+      'no-transit':
+        'OpenStreetMap n’a pas d’itinéraire en transports en commun : choisissez un autre mode de déplacement, ou un autre service.',
+      template: 'Votre lien n’a pas de place pour le départ ({from}) : il montre seulement le lieu.',
     },
     modes: {
       car: 'Voiture',
@@ -611,17 +620,30 @@ const fr: TranslationObject = {
       custom: 'Mon propre lien',
     },
     osmNote:
-      'OpenStreetMap montre un lieu, mais ne sait pas faire un itinéraire à partir de deux adresses écrites en texte.',
+      'OpenStreetMap montre un lieu. Pour un itinéraire il lui faut la position (latitude, longitude) des deux bouts, que vous pouvez coller dans les champs de l’adresse ; il n’a pas d’itinéraire en transports en commun.',
     custom: 'Votre lien',
     customHint:
       'Une adresse qui commence par https://, avec {to} (ou {query}) là où va la destination, et {from} là où va le départ si vous voulez un itinéraire. Exemple : https://example.org/route?a={from}&b={to}',
     customProblem: 'Ce lien est inutilisable : il doit commencer par https:// et contenir {to} ou {query}.',
     home: 'L’adresse d’où vous partez',
     homeHint:
-      'Elle reste dans ce navigateur, avec vos autres réglages et vos sauvegardes. Elle ne va au service de cartes que quand vous cliquez sur un lien d’itinéraire, et jamais dans l’export CSV.',
+      'Elle reste dans ce navigateur, avec vos autres réglages et vos sauvegardes. Elle ne va au service de cartes que quand vous cliquez sur un lien d’itinéraire, et jamais dans l’export CSV. Sa position sur une carte, si vous la donnez, permet à OpenStreetMap de faire un itinéraire.',
     mode: 'Votre mode de déplacement habituel',
   },
   cardCommute: 'Trajet',
+  address: {
+    line1: 'Adresse, ligne 1',
+    line2: 'Adresse, ligne 2',
+    line3: 'Adresse, ligne 3',
+    postalCode: 'Code postal',
+    city: 'Ville',
+    region: 'Région',
+    coordinates: 'Position sur une carte (latitude, longitude)',
+    coordinatesHint: '47.3941, 0.6848',
+    coordinatesProblem:
+      'Deux nombres : la latitude (jusqu’à 90) et la longitude (jusqu’à 180), comme une carte les donne.',
+    preview: 'Tel que le service de cartes sera interrogé',
+  },
   options: {
     protectedBackup: 'Cette sauvegarde est protégée par une phrase secrète.',
     openBackup: 'Ouvrir la sauvegarde',
