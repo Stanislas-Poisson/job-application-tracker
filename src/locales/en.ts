@@ -701,6 +701,8 @@ const en: TranslationObject = {
     },
   },
   options: {
+    symbol: 'Symbol',
+    symbolHint: '★',
     protectedBackup: 'This backup is protected by a passphrase.',
     openBackup: 'Open the backup',
     wrongPassphrase: 'The passphrase is wrong, or the file was changed. Nothing was changed.',

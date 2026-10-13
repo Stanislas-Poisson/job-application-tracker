@@ -713,6 +713,8 @@ const fr: TranslationObject = {
     },
   },
   options: {
+    symbol: 'Symbole',
+    symbolHint: '★',
     protectedBackup: 'Cette sauvegarde est protégée par une phrase secrète.',
     openBackup: 'Ouvrir la sauvegarde',
     wrongPassphrase: 'La phrase secrète est fausse, ou le fichier a été modifié. Rien n’a été changé.',

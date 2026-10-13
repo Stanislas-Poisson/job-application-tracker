@@ -438,3 +438,18 @@ footer {
     }
   }
 }
+
+// The symbol of a column or of a tag, in front of its name.
+.item-symbol {
+  margin-inline-end: 0.25em;
+}
+
+.symbol-input {
+  width: 3rem;
+  text-align: center;
+}
+
+// A line of the lists of columns and tags goes on the next line rather than out of the page, as the text gets larger.
+.status-list .row {
+  flex-wrap: wrap;
+}
