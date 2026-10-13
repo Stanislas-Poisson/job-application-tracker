@@ -326,7 +326,27 @@ const fr: TranslationObject = {
     emptied: 'La corbeille est vide.',
     confirmEmpty: 'Supprimer définitivement tout le contenu de la corbeille ?',
   },
+  backup: {
+    protect: 'Protéger les sauvegardes avec une phrase secrète',
+    protectHint:
+      'Le fichier est chiffré dans le navigateur avant d’être écrit. Personne ne peut l’ouvrir sans la phrase secrète, et une phrase perdue ne peut pas être récupérée.',
+    warning:
+      'Choisissez une phrase secrète d’au moins 8 caractères et gardez-la en lieu sûr. Si vous la perdez, les sauvegardes ne pourront plus être ouvertes : personne ne peut la récupérer, pas même l’auteur.',
+    passphrase: 'Phrase secrète',
+    passphraseAgain: 'Phrase secrète, encore',
+    set: 'Définir la phrase secrète',
+    unlock: 'Utiliser cette phrase secrète',
+    tooShort: 'La phrase secrète doit avoir au moins 8 caractères.',
+    notTheSame: 'Les deux phrases secrètes ne sont pas identiques.',
+    isSet: 'La phrase secrète est définie. Elle est gardée jusqu’à la fermeture de cette page, puis redemandée.',
+    notThePassphrase:
+      'Ce n’est pas la phrase secrète que vous avez définie. Une sauvegarde faite avec une autre ne pourrait pas être ouverte avec elle.',
+    needsPassphrase: 'Saisissez d’abord la phrase secrète.',
+  },
   options: {
+    protectedBackup: 'Cette sauvegarde est protégée par une phrase secrète.',
+    openBackup: 'Ouvrir la sauvegarde',
+    wrongPassphrase: 'La phrase secrète est fausse, ou le fichier a été modifié. Rien n’a été changé.',
     outdated:
       'Cette sauvegarde a été écrite avec une ancienne structure des données (version {version}). Elle est mise à jour quand vous la restaurez.',
     backup: 'Sauvegarde',

@@ -5,15 +5,24 @@ import { loadBackupHandle, saveBackupHandle } from '../persistence/fileHandle'
 import type { Settings } from '../settings'
 import { withChecksum } from '../utils/checksum'
 import { exportData } from './data'
+import { encryptText } from './encryption'
 
 export const BACKUP_PREFIX = 'job-application-tracker'
 
-// "job-application-tracker-2026-10-12.json"
-export const backupFileName = (day: string): string => `${BACKUP_PREFIX}-${day}.json`
+// "job-application-tracker-2026-10-12.json", and "…-2026-10-12.protected.json" for a backup with a passphrase.
+export const backupFileName = (day: string, protectedFile = false): string =>
+  `${BACKUP_PREFIX}-${day}${protectedFile ? '.protected' : ''}.json`
 
 // The text of the backup: a readable JSON file, the data and the settings, with a checksum of its content.
 export async function backupText(settings: Settings, pinia?: Pinia): Promise<string> {
   return JSON.stringify(await withChecksum(exportData(pinia, settings)), null, 2)
+}
+
+// The backup, as the text of the file to write: protected by the passphrase when there is one. The passphrase is only used
+// here to derive the key: it is not kept.
+export async function createBackup(settings: Settings, passphrase: string | null, pinia?: Pinia): Promise<string> {
+  const text = await backupText(settings, pinia)
+  return null === passphrase ? text : JSON.stringify(await encryptText(text, passphrase), null, 2)
 }
 
 // Whether there is anything worth saving: a backup of nothing is no reason to remind.
@@ -86,9 +95,9 @@ export async function backupToFile(
   text: string,
   day: string,
   environment: BackupEnvironment,
-  { forceChoice = false } = {}
+  { forceChoice = false, protectedFile = false } = {}
 ): Promise<BackupResult> {
-  const name = backupFileName(day)
+  const name = backupFileName(day, protectedFile)
 
   if (!forceChoice) {
     const known = await usableHandle(environment)

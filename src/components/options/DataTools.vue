@@ -2,15 +2,17 @@
   import { FormButton, FormInput } from '@zairakai/vue-components/Form'
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { useBackup } from '../../composables/useBackup'
   import { useFormat } from '../../composables/useFormat'
-  import { backupText, backupToFile, browserEnvironment } from '../../services/backup'
   import { type RestorePlan, importData, planRestore, settingsFromExport, wipeData } from '../../services/data'
+  import { type EncryptedFile, WrongPassphraseError, decryptText, isEncryptedFile } from '../../services/encryption'
   import { emptyTrash } from '../../services/trash'
   import { type ChecksumStatus, verifyChecksum } from '../../utils/checksum'
-  import { todayIn } from '../../utils/time'
+  import PassphraseForm from '../PassphraseForm.vue'
 
   const { t, settings, updateSettings, persistence } = useApp()
   const format = useFormat()
+  const { needs, protect, backup: backupToChosenFile } = useBackup()
 
   const message = ref('')
   const failed = ref(false)
@@ -24,11 +26,9 @@
 
   async function backup(forceChoice = false) {
     try {
-      const text = await backupText(settings)
-      const result = await backupToFile(text, todayIn(format.timeZone.value), browserEnvironment(), { forceChoice })
-      if (result.done) {
-        await updateSettings({ lastBackupAt: new Date().toISOString() })
-        say(t('options.backedUp', { name: result.name }))
+      const name = await backupToChosenFile(forceChoice)
+      if (null !== name) {
+        say(t('options.backedUp', { name }))
       }
     } catch (error) {
       say(error instanceof Error ? error.message : String(error), true)
@@ -45,17 +45,58 @@
     const file = input.files?.[0]
     input.value = ''
     pending.value = null
+    locked.value = null
+    typed.value = ''
     acknowledged.value = false
     if (!file) {
       return
     }
     try {
       const content: unknown = JSON.parse(await file.text())
-      pending.value = { content, plan: planRestore(content), checksum: await verifyChecksum(content) }
-      message.value = ''
+      if (isEncryptedFile(content)) {
+        // A protected backup: the passphrase is asked before anything can be read.
+        locked.value = content
+        message.value = ''
+        return
+      }
+      await prepare(content)
     } catch (error) {
       say(
         error instanceof SyntaxError ? t('options.notJson') : error instanceof Error ? error.message : String(error),
+        true
+      )
+    }
+  }
+
+  // Reads a backup that is not protected, and shows what restoring it would change.
+  async function prepare(content: unknown) {
+    pending.value = { content, plan: planRestore(content), checksum: await verifyChecksum(content) }
+    message.value = ''
+  }
+
+  // A protected backup waits for its passphrase. A wrong one, or a file that was changed, fails and changes nothing.
+  const locked = ref<EncryptedFile | null>(null)
+  const typed = ref('')
+
+  async function open() {
+    if (!locked.value) {
+      return
+    }
+    try {
+      const text = await decryptText(locked.value, typed.value)
+      const content: unknown = JSON.parse(text)
+      await prepare(content)
+      locked.value = null
+      typed.value = ''
+    } catch (error) {
+      say(
+        error instanceof WrongPassphraseError
+          ? t('options.wrongPassphrase')
+          : error instanceof SyntaxError
+            ? t('options.notJson')
+            : error instanceof Error
+              ? error.message
+              : String(error),
         true
       )
     }
@@ -134,6 +175,25 @@
       >{{ t('options.backupElsewhere') }}</FormButton
     >
   </div>
+  <label class="row">
+    <input
+      id="backup-protect"
+      type="checkbox"
+      :checked="settings.backupProtect"
+      @change="protect(($event.target as HTMLInputElement).checked)"
+    />
+    {{ t('backup.protect') }}
+  </label>
+  <p
+    v-if="settings.backupProtect"
+    class="muted"
+  >
+    {{ t('backup.protectHint') }}
+  </p>
+  <PassphraseForm
+    v-if="needs"
+    :mode="needs"
+  />
   <FormInput
     :model-value="settings.backupReminderDays"
     name="backupReminderDays"
@@ -162,6 +222,33 @@
       >{{ t('options.wipe') }}</FormButton
     >
   </div>
+
+  <form
+    v-if="locked"
+    id="restore-locked"
+    class="card stack"
+    @submit.prevent="open"
+  >
+    <p>{{ t('options.protectedBackup') }}</p>
+    <label>
+      {{ t('backup.passphrase') }}
+      <input
+        id="restore-passphrase"
+        v-model="typed"
+        type="password"
+        autocomplete="off"
+        required
+      />
+    </label>
+    <div class="row">
+      <FormButton type="submit">{{ t('options.openBackup') }}</FormButton>
+      <FormButton
+        type="button"
+        @click="locked = null"
+        >{{ t('options.cancel') }}</FormButton
+      >
+    </div>
+  </form>
 
   <section
     v-if="pending"
