@@ -446,3 +446,10 @@ Settings, kept with the others and in the backups: `fontFamily` (`system`, `seri
 ## Right-to-left and vertical writing
 
 The style sheets say sides as start and end, block and inline (`margin-inline-start`, `border-block-end`, `text-align: start`), never left, right, top or bottom. Stylelint refuses the physical properties (`property-disallowed-list`). With `dir="rtl"` on the root the columns of the board are mirrored; the pages are checked in e2e for a side overflow from right to left.
+
+## Typed text: storing, comparing, searching, sorting
+
+- **Stored** in one form of Unicode (NFC) for the names of companies and tags.
+- **Compared** without the case, the accents or the spaces around (`fold`): "Société Générale" and "societe generale" are the same company, "Résumé" and "resume" the same tag. The search of the board uses the same folding.
+- **Sorted** with `Intl.Collator` of the language in use: accents and case do not decide the order, numbers are ordered by their value, and each language has its own order ("ä" after "z" in Swedish).
+- **Searched**: words are cut at the spaces; in Chinese, Japanese, Thai, Lao, Khmer and Burmese, which put no space between words, the search is cut with `Intl.Segmenter` where the browser has it.
