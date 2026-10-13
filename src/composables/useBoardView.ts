@@ -19,7 +19,6 @@ export function useBoardView() {
   const view = reactive<BoardView>({ ...DEFAULT_VIEW })
   provide(VIEW_INJECTION, view)
   let loaded = false
-  let timer: ReturnType<typeof setTimeout> | undefined
 
   onMounted(async () => {
     const stored = await browserAdapter.get([VIEW_KEY])
@@ -28,18 +27,16 @@ export function useBoardView() {
   })
 
   const save = () => {
-    clearTimeout(timer)
     void browserAdapter.set({ [VIEW_KEY]: JSON.parse(JSON.stringify(view)) as BoardView })
   }
 
-  // The view is written a moment after the last change, and as plain data (a browser cannot store a proxy). A page that
-  // is left or reloaded writes it at once.
+  // The view is written as soon as it changes (once for what one action changes), and as plain data (a browser cannot store
+  // a proxy). Leaving the page writes it too, in case a change is still waiting.
   watch(
     view,
     () => {
       if (loaded) {
-        clearTimeout(timer)
-        timer = setTimeout(save, 300)
+        save()
       }
     },
     { deep: true }

@@ -17,6 +17,8 @@ export default class Interaction extends Model {
   static entity = 'interactions'
 
   declare id: string
+  // When the record last changed (UTC). Set by the persistence; null for a record that was never stamped.
+  declare updatedAt: string | null
   declare applicationId: string | null
   // The contact it was with, when the extension knows the person.
   declare contactId: string | null
@@ -44,6 +46,7 @@ export default class Interaction extends Model {
   static fields() {
     return {
       id: this.uid(),
+      updatedAt: this.string(null),
       applicationId: this.attr(null),
       contactId: this.attr(null),
       counterpart: this.string(null),

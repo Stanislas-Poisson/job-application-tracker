@@ -6,6 +6,8 @@ export default class Status extends Model {
   static entity = 'statuses'
 
   declare id: string
+  // When the record last changed (UTC). Set by the persistence; null for a record that was never stamped.
+  declare updatedAt: string | null
   declare key: string
   declare label: string
   declare order: number
@@ -18,6 +20,7 @@ export default class Status extends Model {
   static fields() {
     return {
       id: this.uid(),
+      updatedAt: this.string(null),
       key: this.string(''),
       label: this.string(''),
       order: this.number(0),

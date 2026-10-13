@@ -1,7 +1,8 @@
 import type { StorageAdapter } from './persistence/adapter'
+import { type PassphraseCheck, normalizeCheck } from './services/encryption'
 import { isCountry, normalizeEmail } from './utils/contact'
 import { CURRENCY_DISPLAYS, type CurrencyDisplay, DEFAULT_ASSUMPTIONS, isCurrency } from './utils/money'
-import { isValidTimeZone } from './utils/time'
+import { isInstant, isValidTimeZone } from './utils/time'
 
 export const LOCALES = ['auto', 'en', 'fr'] as const
 export const THEMES = ['auto', 'light', 'dark'] as const
@@ -13,6 +14,16 @@ export type Locale = (typeof LOCALES)[number]
 export type ThemeMode = (typeof THEMES)[number]
 export type Accent = (typeof ACCENTS)[number]
 export type Vision = (typeof VISIONS)[number]
+
+// Rates fetched for a home currency: one unit of a currency in that home currency.
+export interface FetchedRates {
+  home: string
+  // The day the rates are for (YYYY-MM-DD), as the service gives it.
+  date: string
+  // When they were fetched (UTC).
+  fetchedAt: string
+  rates: Record<string, number>
+}
 
 export interface Settings {
   locale: Locale
@@ -28,10 +39,22 @@ export interface Settings {
   currencyDisplay: CurrencyDisplay
   // What one unit of a currency is worth in the home currency. The user types them: nothing is fetched.
   rates: Record<string, number>
+  // Off by default. On: the rates the user did not type are fetched once a day from a free service.
+  autoRates: boolean
+  // What was fetched last: the rates, in the home currency they were fetched for.
+  autoRatesData: FetchedRates | null
   // The email addresses of the user, in lower case: they tell a message that was sent from one that was received.
   ownEmails: string[]
   workingDaysPerYear: number
   hoursPerDay: number
+  // Remind the user to back up when the last backup is older than this many days. 0 turns the reminder off.
+  backupReminderDays: number
+  // When the data was last backed up to a file (UTC), or null when it never was.
+  lastBackupAt: string | null
+  // Protect the backups with a passphrase. The passphrase itself is never kept: only a check that tells whether a passphrase
+  // typed later is the same one (an encrypted known text), so that a typing mistake does not make a backup nobody can open.
+  backupProtect: boolean
+  backupPassphraseCheck: PassphraseCheck | null
 }
 
 export const SETTINGS_KEY = 'jat:settings'
@@ -45,7 +68,13 @@ export const DEFAULT_SETTINGS: Settings = {
   homeCurrency: '',
   currencyDisplay: 'symbol',
   rates: {},
+  autoRates: false,
+  autoRatesData: null,
   ownEmails: [],
+  backupReminderDays: 30,
+  lastBackupAt: null,
+  backupProtect: false,
+  backupPassphraseCheck: null,
   ...DEFAULT_ASSUMPTIONS,
 }
 
@@ -54,7 +83,11 @@ const inRange = (min: number, max: number) => (value: unknown) =>
   'number' === typeof value && Number.isFinite(value) && min <= value && value <= max
 
 // What a setting may hold. A stored value that does not pass is replaced by the default.
-const VALID: { [K in Exclude<keyof Settings, 'rates' | 'ownEmails'>]: (value: unknown) => boolean } = {
+const VALID: {
+  [K in Exclude<keyof Settings, 'rates' | 'ownEmails' | 'autoRatesData' | 'lastBackupAt' | 'backupPassphraseCheck'>]: (
+    value: unknown
+  ) => boolean
+} = {
   locale: oneOf(LOCALES),
   theme: oneOf(THEMES),
   accent: oneOf(ACCENTS),
@@ -63,12 +96,15 @@ const VALID: { [K in Exclude<keyof Settings, 'rates' | 'ownEmails'>]: (value: un
   defaultCountry: (value) => 'auto' === value || isCountry(value),
   homeCurrency: (value) => '' === value || isCurrency(value),
   currencyDisplay: oneOf(CURRENCY_DISPLAYS),
+  autoRates: (value) => 'boolean' === typeof value,
   workingDaysPerYear: inRange(1, 366),
   hoursPerDay: inRange(1, 24),
+  backupProtect: (value) => 'boolean' === typeof value,
+  backupReminderDays: (value) => Number.isInteger(value) && inRange(0, 365)(value),
 }
 
 // The rates are a list: an entry that is not a currency, or not a positive number, is dropped and the others stay.
-function normalizeRates(value: unknown): Record<string, number> {
+export function normalizeRates(value: unknown): Record<string, number> {
   const rates: Record<string, number> = {}
   if ('object' === typeof value && null !== value) {
     for (const [code, rate] of Object.entries(value)) {
@@ -78,6 +114,25 @@ function normalizeRates(value: unknown): Record<string, number> {
     }
   }
   return rates
+}
+
+function normalizeFetched(value: unknown): FetchedRates | null {
+  if ('object' !== typeof value || null === value) {
+    return null
+  }
+  const source = value as Record<string, unknown>
+  const rates = normalizeRates(source.rates)
+  if (
+    !isCurrency(source.home) ||
+    'string' !== typeof source.date ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(source.date) ||
+    'string' !== typeof source.fetchedAt ||
+    Number.isNaN(Date.parse(source.fetchedAt)) ||
+    0 === Object.keys(rates).length
+  ) {
+    return null
+  }
+  return { home: source.home, date: source.date, fetchedAt: source.fetchedAt, rates }
 }
 
 // The addresses are a list: one that is not an address is dropped, a repeated one is kept once, and there are not more
@@ -102,7 +157,10 @@ export function normalizeSettings(stored: unknown): Settings {
   const settings: Settings = {
     ...DEFAULT_SETTINGS,
     rates: normalizeRates(source.rates),
+    autoRatesData: normalizeFetched(source.autoRatesData),
     ownEmails: normalizeEmails(source.ownEmails),
+    lastBackupAt: isInstant(source.lastBackupAt) ? source.lastBackupAt : null,
+    backupPassphraseCheck: normalizeCheck(source.backupPassphraseCheck),
   }
   for (const key of Object.keys(VALID) as (keyof typeof VALID)[]) {
     if (VALID[key](source[key])) {

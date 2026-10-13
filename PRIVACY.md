@@ -2,7 +2,7 @@
 
 Last updated: 2026-10-12
 
-**Job Application Tracker does not collect, transmit, or share any user data of any kind.** Everything you save stays in your own browser.
+**Job Application Tracker does not collect, transmit, or share any user data of any kind.** Everything you save stays in your own browser. The only network request is an option that is off by default: the exchange rates (see below).
 
 ## What the extension does
 
@@ -20,13 +20,19 @@ You can export all of it as a JSON file from the options page, import it back, o
 
 ## What it does not do
 
-- It does not send anything anywhere: there is no server, no account, no analytics, no tracker and no remote code.
+- It does not send your data anywhere: there is no server, no account, no analytics, no tracker and no remote code.
 - It does not read the pages you visit. It reads the title and the address of the page you are on once, when you open the popup, so that the form is filled; you can change both before saving.
 
 ## Permissions used
 
 - **`storage`** - to keep your data in the browser.
-- **`activeTab`** - to read the title and the address of the tab you are on, when you open the popup. The permission is given by your click on the extension button, for that tab only.
+- **`https://api.frankfurter.dev/*`** (optional) - only if you turn on the automatic exchange rates.
+- **`activeTab`** - to reach the tab you are on, when you open the popup. The permission is given by your click on the extension button, for that tab only.
+- **`scripting`** - to read that one tab at that moment: its title, its address and the data about the offer that the page itself publishes (the `JobPosting` data that job sites give to search engines). For a site that publishes no such data (LinkedIn), the main part of the page you are looking at is read as well. Nothing is read in the background, from another tab or from a page you did not open the popup on, and what is read goes nowhere: it only fills the form of the popup, which you can change before saving.
+
+## Exchange rates (optional, off by default)
+
+If you turn on "Update the rates by itself" in the options, the extension asks the browser for the permission to reach `https://api.frankfurter.dev` and fetches the reference rates of the European Central Bank, once a day at most. The request names your home currency and nothing else: no cookie, no identifier, no referrer, none of your data. Turning the option off drops the permission. The rates you type yourself always win over the fetched ones.
 
 ## Source code
 
@@ -37,3 +43,7 @@ The full source is public and MIT-licensed:
 
 Questions or concerns: open an issue at
 <https://github.com/Stanislas-Poisson/job-application-tracker/issues>
+
+## Backups protected by a passphrase
+
+If you turn on "Protect the backups with a passphrase", the backup file is encrypted in your browser (AES-GCM, key from PBKDF2) before it is written. **The passphrase is never stored and never leaves your browser.** Only a check is kept in the settings, to tell whether a passphrase you type later is the one you set. Nobody, including the author, can recover a lost passphrase or open a protected backup without it.

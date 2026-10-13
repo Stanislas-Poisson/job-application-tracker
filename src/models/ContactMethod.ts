@@ -10,6 +10,8 @@ export default class ContactMethod extends Model {
   static entity = 'contactMethods'
 
   declare id: string
+  // When the record last changed (UTC). Set by the persistence; null for a record that was never stamped.
+  declare updatedAt: string | null
   declare contactId: string
   declare type: MethodType
   // In the canonical form of its type: E.164 for a phone, lower case for an email, the address of a page.
@@ -23,6 +25,7 @@ export default class ContactMethod extends Model {
   static fields() {
     return {
       id: this.uid(),
+      updatedAt: this.string(null),
       contactId: this.attr(''),
       type: this.string('other'),
       value: this.string(''),
