@@ -6,6 +6,7 @@ import {
   ApplicationContact,
   Company,
   Contact,
+  ContactCompany,
   ContactMethod,
   Interaction,
   JobOffer,
@@ -185,6 +186,10 @@ export function addContact(
   })
   for (const method of methods) {
     useRepo(ContactMethod).save({ ...method, contactId: contact.id })
+  }
+  // The company of the offer is the first of the companies of the person.
+  if (contact.companyId) {
+    useRepo(ContactCompany).save({ contactId: contact.id, companyId: contact.companyId, title: contact.role ?? null })
   }
   useRepo(ApplicationContact).save({ applicationId, contactId: contact.id, role: link })
   return contact

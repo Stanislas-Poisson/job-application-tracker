@@ -1085,6 +1085,81 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await waitFor(async () => (await all('.application-card')).length > 1, { message: 'the search to clear' })
     })
 
+    test('a person works for several companies and helps with several applications, from either side', async () => {
+      await open('board', '.application-card')
+      const openCard = async (title) => {
+        const cards = await all('.application-card')
+        const lines = await Promise.all(cards.map((card) => card.getText()))
+        await cards[lines.findIndex((line) => line.includes(title))].click()
+        await waitFor(async () => (await all('.drawer-content')).length > 0, { message: `the drawer of ${title}` })
+      }
+      const submit = (selector) =>
+        driver.executeScript(
+          `document.querySelector('${selector}').closest('form').querySelector('button[type=submit]').click()`
+        )
+
+      await openCard('Backend developer')
+      await waitFor(async () => (await all('.drawer-content .contact-companies')).length > 0, {
+        message: 'the companies of Ada',
+      })
+      assert.match(await text('.drawer-content .contact-companies'), /Acme/)
+
+      // A second company, with a title and the first day.
+      await type('input[name=linkCompany]', 'Talent Bureau')
+      await type('input[name=linkTitle]', 'Partner')
+      await driver.executeScript(`
+        const input = document.querySelector('input[name=linkStartedOn]');
+        input.value = '2024-03-01';
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      `)
+      await submit('input[name=linkCompany]')
+      await waitFor(async () => /Talent Bureau/.test(await text('.drawer-content .contact-companies')), {
+        message: 'the second company',
+      })
+      const companies = await text('.drawer-content .contact-companies')
+      assert.match(companies, /Partner/)
+      assert.match(companies, /Acme/)
+      // The one that started last comes first.
+      assert.ok(companies.indexOf('Talent Bureau') < companies.indexOf('Acme'))
+
+      // A last day before the first is refused.
+      await type('input[name=linkCompany]', 'Backwards Inc')
+      await driver.executeScript(`
+        for (const [name, value] of [['linkStartedOn', '2024-05-01'], ['linkEndedOn', '2024-04-01']]) {
+          const input = document.querySelector('input[name=' + name + ']');
+          input.value = value;
+          input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      `)
+      await submit('input[name=linkCompany]')
+      await waitFor(async () => /cannot come before/.test(await text('.drawer-content .contact .error')), {
+        message: 'the refusal',
+      })
+
+      // The same person helps with another application: linked from the person.
+      const optionValue = await driver.executeScript(`
+        const option = [...document.querySelectorAll('select[name=linkApplication] option')].find((o) => o.textContent.includes('Follow me'));
+        return option ? option.value : null;
+      `)
+      assert.ok(optionValue, 'the other application can be chosen')
+      await choose('select[name=linkApplication]', optionValue)
+      await driver.executeScript(`
+        [...document.querySelectorAll('.drawer-content .contact-links button')].find((b) => b.textContent.trim() === 'Link').click()
+      `)
+      await waitFor(async () => /Follow me/.test(await text('.drawer-content .contact-applications')), {
+        message: 'the other application',
+      })
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      // ... and from the other application, the person is there.
+      await openCard('Follow me')
+      await waitFor(async () => (await texts('.drawer-content .contact')).some((line) => line.includes('Ada')), {
+        message: 'Ada on the other application',
+      })
+      assert.match(await text('.drawer-content .contact-applications'), /Backend developer/)
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
+
     test('a deleted application goes to the trash, and comes back from it', async () => {
       await open('board', '.application-card')
       const before = (await all('.application-card')).length
