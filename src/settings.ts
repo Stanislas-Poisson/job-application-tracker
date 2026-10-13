@@ -52,6 +52,13 @@ export interface Settings {
   followUpDays: number
   // The pay profile that estimates the net pay of the offers, or '' for none (an id of the profiles).
   payProfileId: string
+  // The address a route starts from (home), and the map service the links open. Nothing is sent by the extension: a link is
+  // built, and the browser opens it when the user clicks.
+  homeAddress: string
+  mapProvider: 'google' | 'osm' | 'apple' | 'custom'
+  // The link of a map service of their own, with {from} and {to} (the addresses) and {query} (a place), for 'custom'.
+  mapCustomTemplate: string
+  travelMode: 'car' | 'transit' | 'bike' | 'walk'
   // Notify when a reminder comes due. Off by default: it needs the permission of the browser, asked when this is turned on.
   notifyReminders: boolean
   // Keep the notification on screen until the user closes it (Chrome and Edge; Firefox does not know the option).
@@ -81,6 +88,10 @@ export const DEFAULT_SETTINGS: Settings = {
   ownEmails: [],
   followUpDays: 7,
   payProfileId: '',
+  homeAddress: '',
+  mapProvider: 'google',
+  mapCustomTemplate: '',
+  travelMode: 'car',
   notifyReminders: false,
   notifyPersistent: true,
   backupReminderDays: 30,
@@ -114,6 +125,10 @@ const VALID: {
   backupProtect: (value) => 'boolean' === typeof value,
   followUpDays: (value) => Number.isInteger(value) && inRange(1, 60)(value),
   payProfileId: (value) => 'string' === typeof value,
+  homeAddress: (value) => 'string' === typeof value && 300 >= value.length,
+  mapProvider: oneOf(['google', 'osm', 'apple', 'custom']),
+  mapCustomTemplate: (value) => 'string' === typeof value && 500 >= value.length,
+  travelMode: oneOf(['car', 'transit', 'bike', 'walk']),
   notifyReminders: (value) => 'boolean' === typeof value,
   notifyPersistent: (value) => 'boolean' === typeof value,
   backupReminderDays: (value) => Number.isInteger(value) && inRange(0, 365)(value),

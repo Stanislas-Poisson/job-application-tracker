@@ -95,6 +95,7 @@
             ['year', 'month', 'week', 'day', 'hour'].map((p) => [p, t(`salary.per.${p}`)])
           ) as never,
           kinds: { gross: t('salary.kind.gross'), net: t('salary.kind.net') },
+          modes: Object.fromEntries(['car', 'transit', 'bike', 'walk'].map((mode) => [mode, t(`place.modes.${mode}`)])),
         },
         conversion: format.conversion(),
         netEstimate: (salary) => {

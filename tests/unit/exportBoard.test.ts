@@ -21,6 +21,7 @@ const labels: ExportContext['labels'] = {
   priorities: { '0': 'None', '1': 'Low', '2': 'Medium', '3': 'High' },
   periods: { year: 'year', month: 'month', week: 'week', day: 'day', hour: 'hour' },
   kinds: { gross: 'gross', net: 'net' },
+  modes: { car: 'Car', transit: 'Transit', bike: 'Bike', walk: 'Walk' },
 }
 
 const context = (changes: Partial<ExportContext> = {}): ExportContext => ({
@@ -158,6 +159,28 @@ describe('boardRows', () => {
     const none = boardRows(everything(), context())[1] ?? []
     expect(cell(none, 'netPerYear')).toBe('')
     expect(cell(none, 'netProfile')).toBe('')
+  })
+
+  it('writes the address of the workplace and the way there', () => {
+    const application = captureOffer({ title: 'Dev', companyName: 'Acme', address: '1 rue X, 75001 Paris' })
+    useRepo(JobOffer)
+      .where('id', application.jobOfferId ?? '')
+      .update({ commuteMeters: 12_400, commuteMinutes: 35, commuteMode: 'transit' })
+    const dot = rowsOf(...everything())[1] ?? []
+    expect(cell(dot, 'postalAddress')).toBe('1 rue X, 75001 Paris')
+    expect(cell(dot, 'commuteKm')).toBe('12.4')
+    expect(cell(dot, 'commuteMinutes')).toBe('35')
+    expect(cell(dot, 'commuteMode')).toBe('Transit')
+    // The decimal mark follows the file, like the amounts.
+    expect(cell(boardRows(everything(), context({ decimal: ',' }))[1] ?? [], 'commuteKm')).toBe('12,4')
+  })
+
+  it('leaves the way there empty when nothing was kept', () => {
+    captureOffer({ title: 'Dev', companyName: 'Acme' })
+    const row = rowsOf(...everything())[1] ?? []
+    expect(
+      ['postalAddress', 'commuteKm', 'commuteMinutes', 'commuteMode'].map((column) => cell(row, column as never))
+    ).toEqual(['', '', '', ''])
   })
 
   it('writes the final clients of a recruitment firm', () => {
