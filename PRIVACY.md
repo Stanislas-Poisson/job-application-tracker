@@ -65,6 +65,10 @@ The merge reads a backup file you choose, on your computer, and adds its content
 
 The font, the size and spacing of the text, your colours and your own themes are settings. They stay in your browser, with your backups. A font you name is one installed on your computer: nothing is downloaded.
 
+## Reporting a mistake in a translation
+
+A language nobody who speaks it has checked says so in the options, with a link to report a mistake. The link only opens a new issue on GitHub in your browser, with the code of the language in it. The extension sends nothing: what you write there, with your own GitHub account, is yours to decide.
+
 ## A language of your own
 
 If you add a language from a file, the file is read on your computer, checked, and kept in your browser. Nothing is downloaded or sent.

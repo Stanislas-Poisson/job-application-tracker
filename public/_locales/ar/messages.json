@@ -1,0 +1,11 @@
+{
+  "extName": {
+    "message": "Job Application Tracker"
+  },
+  "extShortName": {
+    "message": "Job Tracker"
+  },
+  "extDescription": {
+    "message": "يحفظ إعلانات الوظائف التي رأيتها ويتابع كل طلب. كل شيء يبقى في متصفحك."
+  }
+}

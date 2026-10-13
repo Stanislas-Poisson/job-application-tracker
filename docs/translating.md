@@ -11,11 +11,22 @@ everyone with the next version, like a fix.
 3. A text that depends on a number has a form for each plural category of the language (`zero`, `one`, `two`, `few`, `many`,
    `other`). `other` is always there. English and French have `one` and `other`; Russian needs `one`, `few`, `many` and `other`; Arabic
    all six. The categories of a language are listed by `new Intl.PluralRules('<code>').resolvedOptions().pluralCategories`.
-4. Add the language to the table in `src/languages.ts` (its code, its name in itself, `ltr` or `rtl`, its script), to `LOCALES` in
-   `src/settings.ts` and to `src/i18n.ts`.
+4. Add the language to the table in `src/languages.ts` (its code, its name in itself, `ltr` or `rtl`, its script, and `reviewed`),
+   to `LOCALES` in `src/i18n.ts` and to `SHIPPED` in `src/customLanguage.ts`. A test checks that the three lists agree.
 5. Translate the name and the description of the store listing in `public/_locales/<code>/messages.json` (the description is 132
    characters at most).
 6. Open a pull request into `develop`, with the three checks green (`npm run quality`).
+
+## Checked or not
+
+The extension comes in English, French, Spanish, German, Italian, Portuguese (Portugal), Dutch and Arabic. English and French are
+written and read by the author. The others were translated without a person who speaks them reading the result, so they are marked
+`reviewed: false` in `src/languages.ts`: the options say so under the language list, with a link that opens a pre-filled "Translation
+mistake" issue on GitHub (`.github/ISSUE_TEMPLATE/translation.yml`). The link holds the code of the language and nothing of the
+user's data; the extension sends nothing.
+
+When a person who speaks the language has read it, set `reviewed: true` in the pull request that holds their corrections: the notice
+goes away for that language.
 
 ## What to keep in mind
 

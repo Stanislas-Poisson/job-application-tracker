@@ -8,7 +8,7 @@ The texts, the images and the answers to the questions of the stores. The name a
 - **Name:** Job Application Tracker
 - **Short name:** Job Tracker
 - **Category:** Chrome Web Store: Productivity. Edge: Productivity. Firefox: Organizer (and the tag "job search").
-- **Languages of the listing:** English (default) and French.
+- **Languages of the listing:** English (default), French, Spanish, German, Italian, Portuguese (Portugal), Dutch and Arabic.
 
 ## Short description (132 characters at most)
 
