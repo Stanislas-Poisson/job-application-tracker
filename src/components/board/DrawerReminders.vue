@@ -3,6 +3,7 @@
   import { FormButton, FormInput } from '@zairakai/vue-components/Form'
   import { computed, reactive } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { hasText, useDirtyGuard } from '../../composables/useDirty'
   import { useFormat } from '../../composables/useFormat'
   import type { Application } from '../../models'
   import { addReminder, setReminderDone } from '../../services/applications'
@@ -15,6 +16,7 @@
 
   // The time is typed in the time zone of the settings, and stored in UTC.
   const form = reactive({ title: '', due: inDaysAt(7, 9, format.timeZone.value) })
+  useDirtyGuard(() => hasText(form.title))
 
   // What is still to do first, by date, then what is done.
   const reminders = computed(() =>

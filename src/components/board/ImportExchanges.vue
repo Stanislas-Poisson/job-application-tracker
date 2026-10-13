@@ -3,6 +3,7 @@
   import { useRepo } from 'pinia-orm'
   import { computed, reactive, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { hasText, useDirtyGuard } from '../../composables/useDirty'
   import { useFormat } from '../../composables/useFormat'
   import { type Application, Contact } from '../../models'
   import { CHANNELS, DIRECTIONS, type Direction } from '../../models/Interaction'
@@ -38,6 +39,7 @@
     text: '',
   })
   const rows = ref<Row[]>([])
+  useDirtyGuard(() => hasText(pasted.text))
   const message = ref('')
   const failed = ref(false)
 
