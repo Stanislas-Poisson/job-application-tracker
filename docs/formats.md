@@ -196,13 +196,14 @@ A restore is for a loss (a lost profile, a reinstall, a new computer): it **repl
 
 ## Versions of the structure
 
-The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **3** now.
+The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **4** now.
 
 | Version | What changed |
 | :--- | :--- |
 | 1 | The first structure. Data written before the version was kept with it is read as version 1. |
 | 2 | Every record has `updatedAt`, the moment of its last change (UTC, null when it was never stamped), and there is a `trash` for deleted records. |
 | 3 | Companies can be tied to one another (`companyRelations`). |
+| 4 | A person can work for several companies (`contactCompanies`). The company a contact had becomes a first link. |
 
 - **Older data is brought up to date.** A migration turns the data of version N into the data of N + 1, one step at a time. It runs on the storage when a page opens (the result is saved with the new version) and on a backup file when it is read, so an old backup can still be restored. The preview says when a backup is old.
 - **Newer data is left alone.** If the storage or a file was written by a newer structure than this version knows, nothing is read, nothing is written and nothing is replaced: a page says so, and a restore is refused. A version that makes no sense (0, a word, none in a file) is refused too.
@@ -321,3 +322,13 @@ Only these two kinds are stored, each in one direction; "parent of" is the oppos
 - **Where it shows.** The drawer of an application has a section for the company of its offer, with its links, to add or remove. The **card** tells who the offer is really for (`Hire Co → Big Bank`), the **search** finds an offer by any company it is tied to, and the **export** has a column for the final clients.
 - **How it is added.** By the name of the other company, found whatever its case, or made when it is new. The four ways to say it ("recruits for", "is recruited by", "subsidiary of", "parent of") are stored in the right direction.
 - **What is refused.** A company tied to itself, the same link twice, a kind nobody knows, and a link that would **close a circle** (A is a subsidiary of B, B of C, then C of A). Nothing is made when the link is refused: a new company is not left behind.
+
+## People, companies and applications
+
+A person is tied to **companies** and to **applications**, from either side.
+
+- **Companies.** A person can work, or have worked, for several companies, one after the other or at the same time (a recruiter in two firms). Each is a link (`ContactCompany`) with the company, the **title** they have there, and a **period**: the first and the last day, as plain dates, both optional. No last day means it goes on. The company is given by its name, found whatever its case, or made when it is new.
+- **The main company.** `Contact.companyId` is kept as the person's main company, in step with the links after every change: the one they work for now (the latest start first), or, when they left them all, the one they left last, or none. It is what the rest of the extension has always read.
+- **What is refused.** No name, a date that is not a date, a last day before the first, and the same company from the same first day twice. Nothing is made when a link is refused.
+- **Applications.** A person is linked to as many applications as needed, with the part they play (recruiter, interviewer…). In the drawer of an application the contacts section links a person who is known already to another application, and shows from the person every application they are tied to. Unlinking takes one link off and keeps the person.
+- **Meeting a person adds the first link**: the company of the offer, with the title typed for the person.

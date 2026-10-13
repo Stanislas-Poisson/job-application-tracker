@@ -5,7 +5,7 @@
 // How to change the structure: add a function to MIGRATIONS that turns the data of version N into the data of N + 1,
 // raise SCHEMA_VERSION to N + 1, and add a test with a file of version N. The functions only ever go up one step.
 
-export const SCHEMA_VERSION = 3
+export const SCHEMA_VERSION = 4
 export const SCHEMA_KEY = 'jat:schema'
 
 // The records of every kind of data, by entity name, as they are stored.
@@ -26,6 +26,25 @@ export const MIGRATIONS: Record<number, Migration> = {
   },
   // 2 -> 3: companies can be tied to one another (a recruitment firm and the final client, a subsidiary and its parent).
   2: (data) => ({ ...data, companyRelations: data.companyRelations ?? [] }),
+  // 3 -> 4: a person can work for several companies. The company a contact had becomes a first link, with the title the
+  // contact had; its id comes from the contact, so that running the step twice makes no second one.
+  3: (data) => {
+    const existing = data.contactCompanies ?? []
+    const have = new Set(existing.map((link) => String(link.id)))
+    const made = (data.contacts ?? [])
+      .filter((contact) => 'string' === typeof contact.companyId && '' !== contact.companyId)
+      .map((contact) => ({
+        id: `cc_${String(contact.id)}`,
+        updatedAt: null,
+        contactId: contact.id,
+        companyId: contact.companyId,
+        title: contact.role ?? null,
+        startedOn: null,
+        endedOn: null,
+      }))
+      .filter((link) => !have.has(link.id))
+    return { ...data, contactCompanies: [...existing, ...made] }
+  },
 }
 
 // Whether data of that version can be read: a number from 1 to the current version.
