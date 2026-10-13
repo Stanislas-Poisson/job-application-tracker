@@ -4,32 +4,60 @@
   import { computed, nextTick, reactive, ref, watch } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { useDirtyGuard } from '../../composables/useDirty'
-  import { type Application, JobOffer } from '../../models'
-  import { TRAVEL_MODES, type TravelMode, canRoute, formatCommute, placeLink, routeLink } from '../../services/maps'
+  import { useFormat } from '../../composables/useFormat'
+  import { type Application, JobOffer, type JobOffer as Offer } from '../../models'
+  import { type AddressParts, emptyAddress, formatAddress, normalizeAddress } from '../../services/address'
+  import { offerAddressFields } from '../../services/applications'
+  import {
+    TRAVEL_MODES,
+    type TravelMode,
+    formatCommute,
+    placeFrom,
+    placeLink,
+    routeIssue,
+    routeLink,
+  } from '../../services/maps'
+  import AddressFields from '../AddressFields.vue'
 
   const props = defineProps<{ application: Application }>()
 
   const { t, settings } = useApp()
+  const format = useFormat()
 
   const offer = computed(() => props.application.jobOffer)
+
+  // The address of an offer as fields.
+  const addressOf = (source: Offer | null | undefined): AddressParts =>
+    normalizeAddress({
+      line1: source?.addressLine1,
+      line2: source?.addressLine2,
+      line3: source?.addressLine3,
+      postalCode: source?.postalCode,
+      city: source?.city,
+      region: source?.region,
+      country: source?.country,
+      latitude: source?.latitude,
+      longitude: source?.longitude,
+    })
 
   // The way there is kept in metres and minutes; the form shows kilometres and minutes.
   const kilometres = (meters: number | null | undefined) => (null == meters ? '' : String(meters / 1000))
   const stored = computed(() => ({
-    address: offer.value?.address ?? '',
+    address: addressOf(offer.value),
     km: kilometres(offer.value?.commuteMeters),
     minutes: null == offer.value?.commuteMinutes ? '' : String(offer.value.commuteMinutes),
     mode: offer.value?.commuteMode ?? '',
   }))
-  const form = reactive({ address: '', km: '', minutes: '', mode: '' })
-  watch(
-    () => props.application.id,
-    () => Object.assign(form, stored.value),
-    { immediate: true }
-  )
+  const form = reactive({ address: emptyAddress(), km: '', minutes: '', mode: '' })
+  const load = () => Object.assign(form, { ...stored.value, address: { ...stored.value.address } })
+  watch(() => props.application.id, load, { immediate: true })
 
-  const dirty = computed(() =>
-    (Object.keys(stored.value) as (keyof typeof form)[]).some((key) => form[key] !== stored.value[key])
+  const dirty = computed(
+    () =>
+      JSON.stringify(normalizeAddress(form.address)) !== JSON.stringify(stored.value.address) ||
+      form.km !== stored.value.km ||
+      form.minutes !== stored.value.minutes ||
+      form.mode !== stored.value.mode
   )
   useDirtyGuard(() => dirty.value)
   const problem = ref('')
@@ -39,23 +67,23 @@
     ...Object.fromEntries(TRAVEL_MODES.map((mode) => [mode, t(`place.modes.${mode}`)])),
   }))
 
-  // The links use what is typed, saved or not, so that an address can be tried before it is kept.
+  // The links use what is typed, saved or not, so that an address can be tried before it is kept. With no postal address the
+  // place the offer names (the city, as the offer says it) is what is shown.
   const choice = computed(() => ({
     provider: settings.mapProvider,
     customTemplate: settings.mapCustomTemplate,
     mode: ('' === form.mode ? settings.travelMode : form.mode) as TravelMode,
   }))
-  const place = computed(() => placeLink(form.address, choice.value))
-  const route = computed(() => routeLink(settings.homeAddress, form.address, choice.value))
-  const routeNote = computed<'' | 'osm' | 'home'>(() => {
-    if ('' === form.address.trim()) {
-      return ''
-    }
-    if (!canRoute(choice.value)) {
-      return 'osm'
-    }
-    return '' === settings.homeAddress.trim() ? 'home' : ''
-  })
+  const destination = computed(() =>
+    placeFrom(normalizeAddress(form.address), format.locale.value, offer.value?.location ?? '')
+  )
+  const origin = computed(() => placeFrom(normalizeAddress(settings.home), format.locale.value))
+  const place = computed(() => placeLink(destination.value, choice.value))
+  const route = computed(() => routeLink(origin.value, destination.value, choice.value))
+  const issue = computed(() => routeIssue(origin.value, destination.value, choice.value))
+  // What is said about the route: nothing when there is one, nothing when there is no destination yet.
+  const routeNote = computed(() => (null === issue.value || 'destination' === issue.value ? '' : issue.value))
+  const oneLine = computed(() => formatAddress(normalizeAddress(form.address), format.locale.value))
 
   const number = (text: string): number | null => {
     const value = Number(text.trim().replace(',', '.'))
@@ -80,17 +108,19 @@
     if (!offer.value) {
       return
     }
+    const address = normalizeAddress(form.address)
     useRepo(JobOffer)
       .where('id', offer.value.id)
       .update({
-        address: '' === form.address.trim() ? null : form.address.trim(),
+        ...offerAddressFields(address),
+        country: '' === address.country ? null : address.country,
         commuteMeters: null === km ? null : Math.round(km * 1000),
         commuteMinutes: minutes,
         commuteMode: '' === form.mode ? null : form.mode,
       })
     // The form shows what was kept, once the drawer has the new values.
     await nextTick()
-    Object.assign(form, stored.value)
+    load()
   }
 
   const saved = computed(() => formatCommute(offer.value?.commuteMeters ?? null, offer.value?.commuteMinutes ?? null))
@@ -103,12 +133,17 @@
       class="stack"
       @submit.prevent="save"
     >
-      <FormInput
+      <AddressFields
         v-model="form.address"
-        name="address"
-        :label="t('place.address')"
-        :placeholder="t('place.addressHint')"
+        prefix="address"
       />
+      <p
+        v-if="'' !== oneLine"
+        class="muted"
+        id="address-line"
+      >
+        {{ t('address.preview') }}: {{ oneLine }}
+      </p>
       <div class="row">
         <a
           v-if="place"

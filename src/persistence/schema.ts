@@ -5,7 +5,7 @@
 // How to change the structure: add a function to MIGRATIONS that turns the data of version N into the data of N + 1,
 // raise SCHEMA_VERSION to N + 1, and add a test with a file of version N. The functions only ever go up one step.
 
-export const SCHEMA_VERSION = 6
+export const SCHEMA_VERSION = 7
 export const SCHEMA_KEY = 'jat:schema'
 
 // The records of every kind of data, by entity name, as they are stored.
@@ -57,6 +57,25 @@ export const MIGRATIONS: Record<number, Migration> = {
       commuteMode: null,
       ...offer,
     })),
+  }),
+  // 6 -> 7: the address of an offer is in fields. The one that was kept as a line becomes the first line: nothing is guessed
+  // from it. The coordinates start empty.
+  6: (data) => ({
+    ...data,
+    jobOffers: (data.jobOffers ?? []).map((offer) => {
+      const { address, ...rest } = offer
+      return {
+        addressLine1: 'string' === typeof address && '' !== address.trim() ? address : null,
+        addressLine2: null,
+        addressLine3: null,
+        postalCode: null,
+        city: null,
+        region: null,
+        latitude: null,
+        longitude: null,
+        ...rest,
+      }
+    }),
   }),
 }
 

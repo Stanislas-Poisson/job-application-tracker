@@ -13,7 +13,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 20))
 
 describe('the version of the structure', () => {
   it('is a number of its own, with a migration for every step up to it', () => {
-    expect(SCHEMA_VERSION).toBe(6)
+    expect(SCHEMA_VERSION).toBe(7)
     for (let version = 1; version < SCHEMA_VERSION; version++) {
       expect(MIGRATIONS[version]).toBeTypeOf('function')
     }
@@ -86,21 +86,50 @@ describe('the version of the structure', () => {
     expect(migrate({}, 3).contactCompanies).toEqual([])
   })
 
-  it('goes from version 5 to version 6 by giving the offers an address and a way there, and keeps what they have', () => {
+  it('goes from version 6 to version 7: the address kept as a line becomes the first line, and nothing is guessed from it', () => {
     const next = migrate(
       {
         jobOffers: [
-          { id: 'o1', title: 'Dev' },
-          { id: 'o2', address: '1 rue X', commuteMinutes: 20 },
+          { id: 'o1', address: '1 rue X, 75001 Paris' },
+          { id: 'o2', address: '  ' },
+          { id: 'o3' },
+          { id: 'o4', city: 'Lyon' },
         ],
       },
-      5
+      6
     )
+    const blank = {
+      addressLine2: null,
+      addressLine3: null,
+      postalCode: null,
+      city: null,
+      region: null,
+      latitude: null,
+      longitude: null,
+    }
     expect(next.jobOffers).toEqual([
+      { id: 'o1', addressLine1: '1 rue X, 75001 Paris', ...blank },
+      { id: 'o2', addressLine1: null, ...blank },
+      { id: 'o3', addressLine1: null, ...blank },
+      { id: 'o4', addressLine1: null, ...blank, city: 'Lyon' },
+    ])
+    expect(next.jobOffers?.every((offer) => !('address' in offer))).toBe(true)
+    expect(migrate({}, 6).jobOffers).toEqual([])
+  })
+
+  it('goes from version 5 to version 6 by giving the offers an address and a way there, and keeps what they have', () => {
+    // The step on its own: the later steps change the same offers.
+    const next = MIGRATIONS[5]?.({
+      jobOffers: [
+        { id: 'o1', title: 'Dev' },
+        { id: 'o2', address: '1 rue X', commuteMinutes: 20 },
+      ],
+    })
+    expect(next?.jobOffers).toEqual([
       { id: 'o1', title: 'Dev', address: null, commuteMeters: null, commuteMinutes: null, commuteMode: null },
       { id: 'o2', address: '1 rue X', commuteMeters: null, commuteMinutes: 20, commuteMode: null },
     ])
-    expect(migrate({}, 5).jobOffers).toEqual([])
+    expect(MIGRATIONS[5]?.({}).jobOffers).toEqual([])
   })
 
   it('goes from version 4 to version 5 by adding the pay profiles, and keeps those there are', () => {
