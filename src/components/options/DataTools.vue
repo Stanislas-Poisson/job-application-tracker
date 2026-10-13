@@ -6,6 +6,7 @@
   import { backupText, backupToFile, browserEnvironment } from '../../services/backup'
   import { type RestorePlan, importData, planRestore, settingsFromExport, wipeData } from '../../services/data'
   import { emptyTrash } from '../../services/trash'
+  import { type ChecksumStatus, verifyChecksum } from '../../utils/checksum'
   import { todayIn } from '../../utils/time'
 
   const { t, settings, updateSettings, persistence } = useApp()
@@ -23,7 +24,7 @@
 
   async function backup(forceChoice = false) {
     try {
-      const text = backupText(settings)
+      const text = await backupText(settings)
       const result = await backupToFile(text, todayIn(format.timeZone.value), browserEnvironment(), { forceChoice })
       if (result.done) {
         await updateSettings({ lastBackupAt: new Date().toISOString() })
@@ -35,19 +36,22 @@
   }
 
   // The backup the user chose, read and compared with what is stored, waiting for the answer. Nothing is applied yet.
-  const pending = ref<{ content: unknown; plan: RestorePlan } | null>(null)
+  const pending = ref<{ content: unknown; plan: RestorePlan; checksum: ChecksumStatus } | null>(null)
+  // A file whose checksum does not match is restored only when the user says they want it anyway.
+  const acknowledged = ref(false)
 
   async function choose(event: Event) {
     const input = event.target as HTMLInputElement
     const file = input.files?.[0]
     input.value = ''
     pending.value = null
+    acknowledged.value = false
     if (!file) {
       return
     }
     try {
       const content: unknown = JSON.parse(await file.text())
-      pending.value = { content, plan: planRestore(content) }
+      pending.value = { content, plan: planRestore(content), checksum: await verifyChecksum(content) }
       message.value = ''
     } catch (error) {
       say(
@@ -58,7 +62,7 @@
   }
 
   async function restore() {
-    if (!pending.value) {
+    if (!pending.value || ('invalid' === pending.value.checksum && !acknowledged.value)) {
       return
     }
     try {
@@ -173,6 +177,23 @@
       · {{ pending.plan.hasSettings ? t('options.withSettings') : t('options.withoutSettings') }}
     </p>
     <p
+      id="restore-checksum"
+      :class="'invalid' === pending.checksum ? 'error' : 'muted'"
+    >
+      {{ t(`options.checksum.${pending.checksum}`) }}
+    </p>
+    <label
+      v-if="'invalid' === pending.checksum"
+      class="row"
+    >
+      <input
+        id="restore-acknowledge"
+        v-model="acknowledged"
+        type="checkbox"
+      />
+      {{ t('options.checksum.acknowledge') }}
+    </label>
+    <p
       v-if="pending.plan.outdated"
       class="muted"
     >
@@ -209,6 +230,7 @@
       <FormButton
         id="restore-apply"
         type="button"
+        :disabled="'invalid' === pending.checksum && !acknowledged"
         @click="restore"
         >{{ t('options.restoreApply') }}</FormButton
       >
