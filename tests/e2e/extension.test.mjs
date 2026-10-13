@@ -755,6 +755,79 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       fs.unlinkSync(file)
     })
 
+    test('a backup protected by a passphrase hides the data, and is opened with the passphrase only', async () => {
+      const PASSPHRASE = 'correct horse battery'
+      await open('options', '#backup-protect')
+      // The file picker of the system cannot be driven: a fake one keeps what is written.
+      await driver.executeScript(`
+        window.__written = null;
+        window.showSaveFilePicker = async () => ({
+          name: 'backup.json',
+          createWritable: async () => ({ write: async (text) => { window.__written = text }, close: async () => {} }),
+        });
+      `)
+
+      await css('#backup-protect').then((box) => box.click())
+      await waitFor(async () => (await all('.passphrase-setup')).length > 0, { message: 'the form of the passphrase' })
+      assert.match(await text('.passphrase-setup'), /cannot be opened/)
+
+      // Too short, then not the same twice, then good.
+      await type('.passphrase-setup input[name=passphrase]', 'short')
+      await type('.passphrase-setup input[name=passphraseAgain]', 'short')
+      await driver.executeScript(`document.querySelector('.passphrase-setup').requestSubmit()`)
+      await waitFor(async () => (await all('.passphrase-setup .error')).length > 0, { message: 'a message' })
+
+      await type('.passphrase-setup input[name=passphrase]', PASSPHRASE)
+      await type('.passphrase-setup input[name=passphraseAgain]', `${PASSPHRASE}x`)
+      await driver.executeScript(`document.querySelector('.passphrase-setup').requestSubmit()`)
+      await waitFor(async () => /not the same/.test(await text('.passphrase-setup .error')), {
+        message: 'the mismatch',
+      })
+
+      await type('.passphrase-setup input[name=passphraseAgain]', PASSPHRASE)
+      await driver.executeScript(`document.querySelector('.passphrase-setup').requestSubmit()`)
+      await waitFor(async () => (await all('.passphrase-setup')).length === 0, { message: 'the passphrase to be set' })
+
+      // The backup is written encrypted: the offers saved earlier are not readable in it.
+      await css('#backup-now').then((button) => button.click())
+      const written = await waitFor(async () => driver.executeScript('return window.__written'), {
+        message: 'the backup',
+      })
+      const file = JSON.parse(written)
+      assert.equal(file.format, 'encrypted')
+      assert.equal(file.kdf.name, 'PBKDF2')
+      assert.ok(file.kdf.iterations >= 600000)
+      assert.ok(!written.includes('Backend developer'))
+      assert.ok(!written.includes('Acme'))
+
+      // Restoring: the passphrase is asked, a wrong one changes nothing, the right one shows the preview.
+      const protectedFile = path.join(os.tmpdir(), `jat-protected-${Date.now()}.json`)
+      fs.writeFileSync(protectedFile, written)
+      await open('options', 'input[type=file]')
+      await css('input[type=file]').then((input) => input.sendKeys(protectedFile))
+      await waitFor(async () => (await all('#restore-locked')).length > 0, { message: 'the passphrase prompt' })
+
+      await type('#restore-passphrase', 'a wrong passphrase')
+      await driver.executeScript(`document.querySelector('#restore-locked').requestSubmit()`)
+      await waitFor(async () => (await all('.error')).length > 0, { message: 'the error' })
+      assert.match(await text('.error'), /wrong/)
+      assert.equal((await all('#restore-preview')).length, 0)
+
+      await type('#restore-passphrase', PASSPHRASE)
+      await driver.executeScript(`document.querySelector('#restore-locked').requestSubmit()`)
+      await waitFor(async () => (await all('#restore-preview')).length > 0, { message: 'the preview' })
+      assert.match(await text('#restore-checksum'), /checksum matches/)
+      assert.match(await text('#restore-preview'), /Applications/)
+      fs.unlinkSync(protectedFile)
+
+      // Back to plain backups for the rest of the tests.
+      await open('options', '#backup-protect')
+      await css('#backup-protect').then((box) => box.click())
+      await waitFor(async () => !(await css('#backup-protect').then((box) => box.isSelected())), {
+        message: 'the switch to go off',
+      })
+    })
+
     test('a deleted application goes to the trash, and comes back from it', async () => {
       await open('board', '.application-card')
       const before = (await all('.application-card')).length
