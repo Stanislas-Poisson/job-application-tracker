@@ -3,7 +3,9 @@ import {
   ACCENT_SWATCHES,
   COLOUR_BLIND_PALETTE,
   SHAPES,
+  SPACINGS,
   applyAppearance,
+  fontStack,
   statusColor,
   statusShape,
 } from '../../src/appearance'
@@ -55,10 +57,91 @@ describe('settings', () => {
   })
 })
 
+const LOOKS = {
+  customThemes: [] as never[],
+  customThemeId: '',
+  fontFamily: 'system',
+  fontCustom: '',
+  textScale: 100,
+  textSpacing: 'default',
+  density: 'comfortable',
+  motion: 'auto',
+} as const
+
+describe('text appearance', () => {
+  it('writes the size as a share of the usual one, and the spacing in the terms of WCAG', () => {
+    const root = document.createElement('html')
+    applyAppearance(root, {
+      ...LOOKS,
+      theme: 'auto',
+      accent: 'blue',
+      vision: 'standard',
+      textScale: 150,
+      textSpacing: 'wcag',
+    })
+    expect(root.style.fontSize).toBe('150%')
+    expect(root.style.getPropertyValue('--jat-line-height')).toBe('1.5')
+    expect(root.style.getPropertyValue('--jat-letter-spacing')).toBe('0.12em')
+    expect(root.style.getPropertyValue('--jat-word-spacing')).toBe('0.16em')
+    // The usual spacing leaves the line height to the font.
+    applyAppearance(root, { ...LOOKS, theme: 'auto', accent: 'blue', vision: 'standard' })
+    expect(root.style.getPropertyValue('--jat-line-height')).toBe('normal')
+    expect(SPACINGS.wcag).toEqual({ line: 1.5, letter: 0.12, word: 0.16 })
+  })
+
+  it('writes the density and the movement', () => {
+    const root = document.createElement('html')
+    applyAppearance(root, {
+      ...LOOKS,
+      theme: 'auto',
+      accent: 'blue',
+      vision: 'standard',
+      density: 'compact',
+      motion: 'reduce',
+    })
+    expect(root.getAttribute('data-density')).toBe('compact')
+    expect(root.getAttribute('data-motion')).toBe('reduce')
+  })
+
+  it('always follows the chosen font by the system fonts, so that every script keeps its letters', () => {
+    expect(fontStack('system', '')).toMatch(/^system-ui/)
+    expect(fontStack('serif', '')).toMatch(/^Georgia.*serif.*system-ui/)
+    expect(fontStack('mono', '')).toMatch(/monospace.*system-ui/)
+    expect(fontStack('custom', ' Lexend ')).toBe('"Lexend", system-ui, -apple-system, "Segoe UI", sans-serif')
+    // A custom font with no name is the system font.
+    expect(fontStack('custom', '')).toMatch(/^system-ui/)
+  })
+
+  it('keeps only valid choices, and a font name that cannot break out of a style', () => {
+    const read = (patch: Record<string, unknown>) => normalizeSettings({ ...DEFAULT_SETTINGS, ...patch })
+    expect(
+      read({ textScale: 175, fontFamily: 'serif', density: 'compact', motion: 'reduce', textSpacing: 'widest' })
+    ).toMatchObject({
+      textScale: 175,
+      fontFamily: 'serif',
+      density: 'compact',
+      motion: 'reduce',
+      textSpacing: 'widest',
+    })
+    expect(read({ textScale: 133, fontFamily: 'comic', density: 'tiny', motion: 'x', textSpacing: 'y' })).toMatchObject(
+      {
+        textScale: 100,
+        fontFamily: 'system',
+        density: 'comfortable',
+        motion: 'auto',
+        textSpacing: 'default',
+      }
+    )
+    expect(read({ fontCustom: 'Atkinson Hyperlegible' }).fontCustom).toBe('Atkinson Hyperlegible')
+    expect(read({ fontCustom: 'x"; } body { display:none' }).fontCustom).toBe('')
+    expect(read({ fontCustom: 'a'.repeat(101) }).fontCustom).toBe('')
+  })
+})
+
 describe('appearance', () => {
   it('writes the choices on the root element', () => {
     const root = document.createElement('html')
-    applyAppearance(root, { theme: 'dark', accent: 'teal', vision: 'high-contrast' })
+    applyAppearance(root, { ...LOOKS, theme: 'dark', accent: 'teal', vision: 'high-contrast' })
 
     expect(root.getAttribute('data-theme')).toBe('dark')
     expect(root.getAttribute('data-accent')).toBe('teal')
@@ -67,8 +150,8 @@ describe('appearance', () => {
 
   it('leaves the theme to the system when it is "auto"', () => {
     const root = document.createElement('html')
-    applyAppearance(root, { theme: 'dark', accent: 'blue', vision: 'standard' })
-    applyAppearance(root, { theme: 'auto', accent: 'blue', vision: 'standard' })
+    applyAppearance(root, { ...LOOKS, theme: 'dark', accent: 'blue', vision: 'standard' })
+    applyAppearance(root, { ...LOOKS, theme: 'auto', accent: 'blue', vision: 'standard' })
 
     expect(root.hasAttribute('data-theme')).toBe(false)
   })

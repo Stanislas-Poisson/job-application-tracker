@@ -20,7 +20,7 @@
   import { downloadText } from '../../utils/download'
   import { todayIn } from '../../utils/time'
 
-  const { t, persistence, settings } = useApp()
+  const { t, tn, persistence, settings } = useApp()
   const format = useFormat()
   const { view, clearFilters } = useBoardView()
 
@@ -134,7 +134,7 @@
       <a
         id="export-csv"
         href="#"
-        :title="t('export.hint', { count: visible.length })"
+        :title="tn('export.hint', visible.length)"
         @click.prevent="exportCsv"
         >{{ t('export.link') }}</a
       >
@@ -182,7 +182,7 @@
 
 <style lang="scss">
   .toolbar {
-    margin-bottom: 1rem;
+    margin-block-end: 1rem;
   }
 
   .board {
@@ -191,6 +191,6 @@
     grid-auto-columns: minmax(15rem, 1fr);
     gap: 0.75rem;
     overflow-x: auto;
-    padding-bottom: 0.5rem;
+    padding-block-end: 0.5rem;
   }
 </style>

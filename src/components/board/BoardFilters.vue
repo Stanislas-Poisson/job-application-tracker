@@ -4,13 +4,17 @@
   import { computed } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { useProvidedView } from '../../composables/useBoardView'
+  import { useFormat } from '../../composables/useFormat'
   import { Company, Source, Tag } from '../../models'
   import { DEFAULT_DIRECTION, SORTS, type Sort, type SortDirection, activeFilters } from '../../services/boardQuery'
+  import { collatorFor } from '../../utils/text'
+  import ItemSymbol from '../ItemSymbol.vue'
 
   defineProps<{ shown: number; total: number }>()
   const emit = defineEmits<{ clear: [] }>()
 
   const { t } = useApp()
+  const format = useFormat()
   const view = useProvidedView()
 
   const tags = computed(() => useRepo(Tag).orderBy('name').get())
@@ -27,7 +31,7 @@
     ...Object.fromEntries(
       useRepo(Company)
         .all()
-        .sort((a, b) => a.name.localeCompare(b.name))
+        .sort((a, b) => collatorFor(format.locale.value).compare(a.name, b.name))
         .map((company) => [company.id, company.name])
     ),
   }))
@@ -113,6 +117,7 @@
                 :aria-pressed="view.tagIds.includes(tag.id)"
                 @click="toggleTag(tag.id)"
               >
+                <ItemSymbol :symbol="tag.symbol" />
                 {{ tag.name }}
               </button>
             </li>

@@ -1,3 +1,4 @@
+import { type CustomTheme, normalizeThemes } from './customTheme'
 import type { StorageAdapter } from './persistence/adapter'
 import { type AddressParts, emptyAddress, normalizeAddress } from './services/address'
 import { type PassphraseCheck, normalizeCheck } from './services/encryption'
@@ -26,11 +27,33 @@ export interface FetchedRates {
   rates: Record<string, number>
 }
 
+export const FONT_FAMILIES = ['system', 'serif', 'mono', 'custom'] as const
+export type FontFamily = (typeof FONT_FAMILIES)[number]
+export const TEXT_SPACINGS = ['default', 'wide', 'wcag', 'widest'] as const
+export type TextSpacing = (typeof TEXT_SPACINGS)[number]
+export const DENSITIES = ['comfortable', 'compact'] as const
+export type Density = (typeof DENSITIES)[number]
+export const MOTIONS = ['auto', 'reduce'] as const
+export type Motion = (typeof MOTIONS)[number]
+export const TEXT_SCALES = [80, 90, 100, 110, 125, 150, 175, 200] as const
+
 export interface Settings {
   locale: Locale
   theme: ThemeMode
   accent: Accent
   vision: Vision
+  // The themes of the user's own, and the one in use ("" for none).
+  customThemes: CustomTheme[]
+  customThemeId: string
+  // How the text looks: the font, its size in percent of the usual one, the spacing (see appearance.ts), the density of the
+  // interface and whether the movement is reduced.
+  fontFamily: FontFamily
+  // A font installed on the machine, used when fontFamily is "custom".
+  fontCustom: string
+  textScale: number
+  textSpacing: TextSpacing
+  density: Density
+  motion: Motion
   // "auto" is the time zone of the browser, or a name of the IANA database (Europe/Paris).
   timeZone: string
   // The country a phone number typed without a country code is read in: "auto" is the one of the language of the browser.
@@ -80,6 +103,14 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'auto',
   accent: 'slate',
   vision: 'standard',
+  customThemes: [],
+  customThemeId: '',
+  fontFamily: 'system',
+  fontCustom: '',
+  textScale: 100,
+  textSpacing: 'default',
+  density: 'comfortable',
+  motion: 'auto',
   timeZone: 'auto',
   defaultCountry: 'auto',
   homeCurrency: '',
@@ -112,7 +143,7 @@ const VALID: {
   [
     K in Exclude<
       keyof Settings,
-      'rates' | 'ownEmails' | 'autoRatesData' | 'lastBackupAt' | 'backupPassphraseCheck' | 'home'
+      'rates' | 'ownEmails' | 'autoRatesData' | 'lastBackupAt' | 'backupPassphraseCheck' | 'home' | 'customThemes'
     >
   ]: (value: unknown) => boolean
 } = {
@@ -120,6 +151,14 @@ const VALID: {
   theme: oneOf(THEMES),
   accent: oneOf(ACCENTS),
   vision: oneOf(VISIONS),
+  customThemeId: (value) => 'string' === typeof value && 64 >= value.length,
+  fontFamily: oneOf(FONT_FAMILIES),
+  // The name of a font goes into a style: letters, digits, spaces, dots, dashes and underscores only.
+  fontCustom: (value) => 'string' === typeof value && 100 >= value.length && /^[\p{L}\p{N} ._-]*$/u.test(value),
+  textScale: (value) => (TEXT_SCALES as readonly unknown[]).includes(value),
+  textSpacing: oneOf(TEXT_SPACINGS),
+  density: oneOf(DENSITIES),
+  motion: oneOf(MOTIONS),
   timeZone: (value) => 'auto' === value || isValidTimeZone(value),
   defaultCountry: (value) => 'auto' === value || isCountry(value),
   homeCurrency: (value) => '' === value || isCurrency(value),
@@ -192,6 +231,7 @@ export function normalizeSettings(stored: unknown): Settings {
   const settings: Settings = {
     ...DEFAULT_SETTINGS,
     rates: normalizeRates(source.rates),
+    customThemes: normalizeThemes(source.customThemes),
     autoRatesData: normalizeFetched(source.autoRatesData),
     ownEmails: normalizeEmails(source.ownEmails),
     lastBackupAt: isInstant(source.lastBackupAt) ? source.lastBackupAt : null,
@@ -207,6 +247,9 @@ export function normalizeSettings(stored: unknown): Settings {
     if (VALID[key](source[key])) {
       ;(settings[key] as unknown) = source[key]
     }
+  }
+  if (!settings.customThemes.some((theme) => theme.id === settings.customThemeId)) {
+    settings.customThemeId = ''
   }
   return settings
 }
