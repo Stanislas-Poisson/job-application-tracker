@@ -9,6 +9,7 @@
   import { type Application, CompanyRelation, Journey } from '../../models'
   import { finalClientsOf } from '../../services/companyRelations'
   import { formatDuration, preferredJourney, totalMinutes } from '../../services/journeys'
+  import ItemSymbol from '../ItemSymbol.vue'
 
   const props = defineProps<{ application: Application }>()
   const emit = defineEmits<{ open: [] }>()
@@ -88,6 +89,7 @@
         class="tag-chip"
         :style="{ '--tag': tag.color }"
       >
+        <ItemSymbol :symbol="tag.symbol" />
         <span dir="auto">{{ tag.name }}</span>
       </li>
     </ul>

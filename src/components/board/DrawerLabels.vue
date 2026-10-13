@@ -6,6 +6,7 @@
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
   import { type Application, Tag } from '../../models'
   import { PRIORITIES, TagError, setPriority, tagEntityByName, toggleFavorite, untagEntity } from '../../services/tags'
+  import ItemSymbol from '../ItemSymbol.vue'
 
   const props = defineProps<{ application: Application }>()
 
@@ -67,6 +68,7 @@
           class="tag-chip"
           :style="{ '--tag': tag.color }"
         >
+          <ItemSymbol :symbol="tag.symbol" />
           <span dir="auto">{{ tag.name }}</span>
           <button
             type="button"

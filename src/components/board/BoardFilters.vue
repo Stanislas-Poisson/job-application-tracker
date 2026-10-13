@@ -6,6 +6,7 @@
   import { useProvidedView } from '../../composables/useBoardView'
   import { Company, Source, Tag } from '../../models'
   import { DEFAULT_DIRECTION, SORTS, type Sort, type SortDirection, activeFilters } from '../../services/boardQuery'
+  import ItemSymbol from '../ItemSymbol.vue'
 
   defineProps<{ shown: number; total: number }>()
   const emit = defineEmits<{ clear: [] }>()
@@ -113,6 +114,7 @@
                 :aria-pressed="view.tagIds.includes(tag.id)"
                 @click="toggleTag(tag.id)"
               >
+                <ItemSymbol :symbol="tag.symbol" />
                 {{ tag.name }}
               </button>
             </li>

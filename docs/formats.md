@@ -200,7 +200,7 @@ A restore is for a loss (a lost profile, a reinstall, a new computer): it **repl
 
 ## Versions of the structure
 
-The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **8** now.
+The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **9** now.
 
 | Version | What changed |
 | :--- | :--- |
@@ -210,6 +210,7 @@ The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/pe
 | 4 | A person can work for several companies (`contactCompanies`). The company a contact had becomes a first link. |
 | 5 | Pay profiles to estimate the net pay (`payProfiles`). |
 | 6 | An offer has the address of its workplace and the way there (`address`, `commuteMeters`, `commuteMinutes`, `commuteMode`). |
+| 9 | A column (`statuses`) and a tag (`tags`) have a `symbol` (one character, or null). |
 | 8 | The way to work is a list of journeys in legs (`journeys`); the distance, the time and the means kept in an offer become a journey of one leg. |
 | 7 | The address is in fields (lines 1 to 3, postal code, city, region, position). The line that was kept becomes the first line; nothing is guessed from it. |
 
@@ -433,3 +434,7 @@ A process of its own, different from the restore: the restore replaces what is s
 ## Text appearance
 
 Settings, kept with the others and in the backups: `fontFamily` (`system`, `serif`, `monospace` as `mono`, `custom`), `fontCustom` (the name of a font installed on the computer, letters, digits, spaces, dots, dashes and underscores only, 100 characters at most, so that it cannot break out of a style), `textScale` (80, 90, 100, 110, 125, 150, 175 or 200, in percent of the usual size, written on the root so every size in `rem` follows), `textSpacing` (`default`, `wide`, `wcag` for line height 1.5, letters 0.12 em and words 0.16 em, `widest`), `density` (`comfortable`, `compact`) and `motion` (`auto` follows the system, `reduce` forces it). The chosen font is always followed by the system fonts so that every script keeps a font that has its letters. No font is shipped: the fonts made for easier reading are used when installed, by name.
+
+## The symbol of a column or a tag
+
+`symbol` on `statuses` and `tags`: one character (a letter, a sign, an emoji; a sequence such as a flag or a joined emoji counts as one; 16 UTF-16 units at most) or null. What is typed after the first character is dropped. It is shown in front of the name, hidden from screen readers (the name is the text that is read). When it is none, or when the fonts of the computer cannot draw it, the default shape of the colour-blind modes is shown (nothing in the standard mode).
