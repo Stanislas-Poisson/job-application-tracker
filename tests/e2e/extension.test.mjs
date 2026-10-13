@@ -1160,6 +1160,71 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
     })
 
+    test('a pay profile estimates the net pay of an offer, and says it is an estimate', async () => {
+      const submit = () => driver.executeScript(`document.querySelector('#pay-profile-form').requestSubmit()`)
+
+      await open('options', '#new-pay-profile')
+      await css('#new-pay-profile').then((button) => button.click())
+      await waitFor(async () => (await all('#pay-profile-form')).length > 0, { message: 'the form of the profile' })
+
+      // A rate out of range is refused, and nothing is saved.
+      await type('input[name=payName]', 'Test US')
+      await type('input[name=payCurrency]', 'USD')
+      await type('input[name=lineLabel0]', 'Tax')
+      await type('input[name=lineRate0]', '500')
+      await submit()
+      await waitFor(async () => /0 to 100/.test(await text('#pay-profile-form .error')), { message: 'the refusal' })
+      assert.equal((await all('#pay-profiles')).length, 0)
+
+      // A good one: 20% of the gross.
+      await type('input[name=lineRate0]', '20')
+      await submit()
+      await waitFor(async () => (await all('#pay-profiles')).length > 0, { message: 'the profile in the list' })
+      assert.match(await text('#pay-profiles'), /Test US/)
+
+      // It is the one used to compare the offers.
+      await driver.executeScript(`
+        [...document.querySelectorAll('#pay-profiles li')].find((li) => li.textContent.includes('Test US')).querySelector('input[type=radio]').click()
+      `)
+
+      // An example can be added, and is named as an illustration.
+      await choose('select[name=payExample]', 'flat')
+      await driver.executeScript(
+        `[...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Add this example').click()`
+      )
+      await waitFor(async () => /Flat rate \(example\)/.test(await text('#pay-profiles')), { message: 'the example' })
+
+      // The offer of the board (4 000 - 5 000 USD a month, gross): 48 000 - 60 000 a year, 20% less.
+      await open('board', '.application-card')
+      const cards = await all('.application-card')
+      const lines = await Promise.all(cards.map((card) => card.getText()))
+      await cards[lines.findIndex((line) => /Backend developer/.test(line))].click()
+      await waitFor(async () => (await all('#net-estimate')).length > 0, { message: 'the estimate' })
+      const estimate = await text('#net-estimate')
+      assert.match(estimate, /About \$3,200 - \$4,000 net per month/)
+      assert.match(estimate, /Test US/)
+      assert.match(estimate, /estimate, not a promise/)
+
+      // The calculation can be shown, line by line.
+      await driver.executeScript(`document.querySelector('#net-estimate .link-button').click()`)
+      await waitFor(async () => (await all('#net-estimate table')).length > 0, { message: 'the calculation' })
+      assert.match(await text('#net-estimate table'), /Tax/)
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      // Without a profile there is no estimate.
+      await open('options', '#pay-profiles')
+      await driver.executeScript(`
+        [...document.querySelectorAll('#pay-profiles li')].find((li) => li.textContent.includes('No estimate')).querySelector('input[type=radio]').click()
+      `)
+      await open('board', '.application-card')
+      const again = await all('.application-card')
+      const texts2 = await Promise.all(again.map((card) => card.getText()))
+      await again[texts2.findIndex((line) => /Backend developer/.test(line))].click()
+      await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
+      assert.equal((await all('#net-estimate')).length, 0)
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
+
     test('a deleted application goes to the trash, and comes back from it', async () => {
       await open('board', '.application-card')
       const before = (await all('.application-card')).length

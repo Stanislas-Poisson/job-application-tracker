@@ -5,7 +5,7 @@
 // How to change the structure: add a function to MIGRATIONS that turns the data of version N into the data of N + 1,
 // raise SCHEMA_VERSION to N + 1, and add a test with a file of version N. The functions only ever go up one step.
 
-export const SCHEMA_VERSION = 4
+export const SCHEMA_VERSION = 5
 export const SCHEMA_KEY = 'jat:schema'
 
 // The records of every kind of data, by entity name, as they are stored.
@@ -45,6 +45,8 @@ export const MIGRATIONS: Record<number, Migration> = {
       .filter((link) => !have.has(link.id))
     return { ...data, contactCompanies: [...existing, ...made] }
   },
+  // 4 -> 5: pay profiles, to estimate the net pay of a gross pay.
+  4: (data) => ({ ...data, payProfiles: data.payProfiles ?? [] }),
 }
 
 // Whether data of that version can be read: a number from 1 to the current version.
