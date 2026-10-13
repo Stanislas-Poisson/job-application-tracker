@@ -1,4 +1,4 @@
-import { createTranslator, resolveLocale } from '../i18n'
+import { createTranslator, pluralText, resolveLocale } from '../i18n'
 import { SCHEMA_KEY, SCHEMA_VERSION, keyOf } from '../persistence'
 import type { StorageAdapter } from '../persistence/adapter'
 import {
@@ -107,7 +107,7 @@ export async function checkReminders(env: BackgroundEnv): Promise<CheckResult> {
       const shown = due.slice(0, GROUP_OVER).map((reminder) => `- ${reminder.title}`)
       const more = due.length - shown.length
       const message = [
-        translator.__('notify.many', { count: due.length }),
+        pluralText(translator, locale, 'notify.many', due.length),
         ...shown,
         0 < more ? translator.__('notify.more', { count: more }) : '',
       ]

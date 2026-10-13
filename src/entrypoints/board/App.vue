@@ -20,7 +20,7 @@
   import { downloadText } from '../../utils/download'
   import { todayIn } from '../../utils/time'
 
-  const { t, persistence, settings } = useApp()
+  const { t, tn, persistence, settings } = useApp()
   const format = useFormat()
   const { view, clearFilters } = useBoardView()
 
@@ -134,7 +134,7 @@
       <a
         id="export-csv"
         href="#"
-        :title="t('export.hint', { count: visible.length })"
+        :title="tn('export.hint', visible.length)"
         @click.prevent="exportCsv"
         >{{ t('export.link') }}</a
       >
