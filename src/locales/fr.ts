@@ -353,8 +353,19 @@ const fr: TranslationObject = {
   reminders: {
     title: 'Rappels',
     followUpDays: 'Suggérer une relance ce nombre de jours après la candidature',
+    notify: 'Me prévenir quand un rappel est échu',
+    notifyHint:
+      'Une notification de votre système, dans votre langue et votre fuseau horaire. Un clic ouvre la candidature. Plusieurs rappels échus ensemble font une seule notification. Cela demande la permission du navigateur, et la rend quand vous désactivez l’option.',
+    denied: 'Le navigateur n’a pas donné la permission. Les notifications restent désactivées.',
+    persistent: 'Garder la notification affichée jusqu’à ce que je la ferme',
+    badgeHint: 'L’icône de l’extension indique combien de rappels sont échus et non faits, avec ou sans notifications.',
     followUpHint:
       'Une fois que vous avez postulé, la candidature propose un rappel de relance à 9 h du matin, dans votre fuseau horaire. Rien n’est ajouté tant que vous n’acceptez pas.',
+  },
+  notify: {
+    many: '{count} rappels sont échus',
+    more: 'et {count} de plus',
+    title: 'Rappel',
   },
   options: {
     protectedBackup: 'Cette sauvegarde est protégée par une phrase secrète.',

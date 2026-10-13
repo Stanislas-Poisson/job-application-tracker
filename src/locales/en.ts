@@ -349,8 +349,20 @@ const en: TranslationObject = {
   reminders: {
     title: 'Reminders',
     followUpDays: 'Suggest a follow-up this many days after applying',
+    notify: 'Notify me when a reminder is due',
+    notifyHint:
+      'A notification of your system, written in your language and your time zone. Clicking it opens the application. Many reminders that come due together make one notification. It asks the permission of the browser, and gives it back when you turn this off.',
+    denied: 'The browser did not give the permission. The notifications stay off.',
+    persistent: 'Keep the notification on screen until I close it',
+    badgeHint:
+      'The icon of the extension shows how many reminders are due and not done, with or without notifications.',
     followUpHint:
       'Once you have applied, the application offers a reminder to follow up at 9 in the morning, in your time zone. Nothing is added until you accept.',
+  },
+  notify: {
+    many: '{count} reminders are due',
+    more: 'and {count} more',
+    title: 'Reminder',
   },
   options: {
     protectedBackup: 'This backup is protected by a passphrase.',
