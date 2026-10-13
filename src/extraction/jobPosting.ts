@@ -1,4 +1,4 @@
-import { type Salary, type SalaryPeriod, isCurrency, toMinor } from '../utils/money'
+import { type Salary, type SalaryPeriod, currencyDigits, isCurrency, toMinor } from '../utils/money'
 import { postedDay } from '../utils/time'
 
 // What a page told us about an offer, in the form the capture service takes. A missing piece is left out.
@@ -59,7 +59,29 @@ const text = (value: unknown): string | undefined => {
   return undefined
 }
 
-const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', '#39': "'" }
+const ENTITIES: Record<string, string> = {
+  amp: '&',
+  lt: '<',
+  gt: '>',
+  quot: '"',
+  apos: "'",
+  nbsp: ' ',
+  rsquo: '’',
+  lsquo: '‘',
+  hellip: '…',
+  ndash: '–',
+  mdash: '—',
+}
+
+// "&amp;", "&#233;" and "&#xE9;" into the character. What is not known is left as it was written.
+function decodeEntity(whole: string, name: string): string {
+  const code = /^#x([\da-f]+)$/i.exec(name)?.[1] ?? /^#(\d+)$/.exec(name)?.[1]
+  if (undefined !== code) {
+    const point = Number.parseInt(code, name.startsWith('#x') || name.startsWith('#X') ? 16 : 10)
+    return 0 < point && 0x10ffff >= point ? String.fromCodePoint(point) : whole
+  }
+  return ENTITIES[name] ?? whole
+}
 
 // The description is HTML in most pages: keep the text, with a line break where a block ends.
 export function htmlToText(html: string): string {
@@ -67,7 +89,7 @@ export function htmlToText(html: string): string {
     .replace(/<\s*(br|\/p|\/div|\/li|\/h[1-6]|\/tr)\s*\/?>/gi, '\n')
     .replace(/<li[^>]*>/gi, '- ')
     .replace(/<[^>]+>/g, '')
-    .replace(/&(#?\w+);/g, (whole, name: string) => ENTITIES[name] ?? whole)
+    .replace(/&(#?\w+);/g, decodeEntity)
     .replace(/[ \t\f\v]+/g, ' ')
     .replace(/ ?\n ?/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
@@ -91,24 +113,32 @@ function place(posting: Json): { location?: string; country?: string } {
   if (!isObject(address)) {
     return { location: text(address) }
   }
-  const parts = [
-    address.addressLocality,
-    address.addressRegion,
-    isObject(address.addressCountry) ? address.addressCountry.name : address.addressCountry,
-  ]
+  const country = countryCode(address.addressCountry)
+  // A country given as a code (FR) is kept apart: the board shows its name. A country given as a name stays in the text.
+  const named =
+    undefined === country
+      ? [isObject(address.addressCountry) ? address.addressCountry.name : address.addressCountry]
+      : []
+  const parts = [address.addressLocality, address.addressRegion, ...named]
     .map(text)
     .filter((part): part is string => undefined !== part)
-  const country = countryCode(address.addressCountry)
+    // Some sites repeat the city as the region.
+    .filter((part, index, all) => part !== all[index - 1])
   return { location: 0 < parts.length ? parts.join(', ') : undefined, country }
 }
 
 const PERIODS: Record<string, SalaryPeriod> = {
   YEAR: 'year',
+  YEARLY: 'year',
   ANNUAL: 'year',
   MONTH: 'month',
+  MONTHLY: 'month',
   WEEK: 'week',
+  WEEKLY: 'week',
   DAY: 'day',
+  DAILY: 'day',
   HOUR: 'hour',
+  HOURLY: 'hour',
 }
 
 function salaryOf(posting: Json): Salary | undefined {
@@ -142,8 +172,33 @@ function salaryOf(posting: Json): Salary | undefined {
     return undefined
   }
   const unit = (text(amounts.unitText) ?? text(base.unitText))?.toUpperCase()
-  // Whether the amount is gross or net is almost never said: it is left for the user.
-  return { min, max, currency, period: unit ? (PERIODS[unit] ?? null) : null, kind: null }
+  const period = unit ? (PERIODS[unit] ?? null) : null
+  // A yearly salary under 1 000 is a salary in thousands that the site did not say so (30 for 30 000): it is not
+  // guessed, it is left out.
+  if ('year' === period && 1000 > (max ?? min ?? 0) / 10 ** currencyDigits(currency)) {
+    return undefined
+  }
+  // Some sites also write the salary as a text ("80 - 85 k€ brut annuel"), which is where gross or net is said.
+  const written = 'string' === typeof amounts.value ? amounts.value : ''
+  const kind = /\b(brut|gross)\b/i.test(written) ? 'gross' : /\bnet\b/i.test(written) ? 'net' : null
+  return { min, max, currency, period, kind }
+}
+
+// The values schema.org knows for employmentType, readable. A value of the site (CDI, Stage) is kept as it is.
+const CONTRACTS: Record<string, string> = {
+  FULL_TIME: 'Full time',
+  PART_TIME: 'Part time',
+  CONTRACTOR: 'Contractor',
+  TEMPORARY: 'Temporary',
+  INTERN: 'Internship',
+  VOLUNTEER: 'Volunteer',
+  PER_DIEM: 'Per diem',
+  OTHER: 'Other',
+}
+
+const contractLabel = (value: unknown): string | undefined => {
+  const raw = text(value)
+  return raw ? (CONTRACTS[raw.toUpperCase()] ?? raw) : undefined
 }
 
 function workModeOf(posting: Json): ReadOffer['workMode'] {
@@ -163,7 +218,7 @@ export function offerFromJobPosting(posting: Json, zone: string): ReadOffer {
     ...place(posting),
     contractType:
       asList(posting.employmentType as string | string[])
-        .map(text)
+        .map(contractLabel)
         .filter(Boolean)
         .join(', ') || undefined,
     workMode: workModeOf(posting),

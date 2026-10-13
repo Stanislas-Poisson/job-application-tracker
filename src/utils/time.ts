@@ -203,6 +203,7 @@ export function postedDay(value: unknown, zone: string): string | null {
   const moment = new Date(
     String(text)
       .replace(' ', 'T')
+      .replace(/\s+(?=[+-]\d{2}:?\d{0,2}$)/, '')
       .replace(/([+-]\d{2})$/, '$1:00')
       .replace(/([+-]\d{2})(\d{2})$/, '$1:$2')
   )
