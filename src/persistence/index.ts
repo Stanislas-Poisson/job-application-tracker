@@ -72,12 +72,19 @@ export function createPersistence(
         .map((record) => record.$toJson())
     )
 
+  // Loads what the storage holds for these models, except what is the page's own write coming back: the storage tells a
+  // page about every write, its own included, and by then the page may have changed again. Reading its own write back
+  // would put the older data over that change before it is written. A write of another page is different from what this page
+  // knows, and is loaded.
   const load = async (models: typeof MODELS) => {
     const stored = await adapter.get(models.map((model) => keyOf(model.entity)))
     loading = true
     try {
       for (const model of models) {
         const records = (stored[keyOf(model.entity)] as unknown[] | undefined) ?? []
+        if (JSON.stringify(records) === known.get(model.entity)) {
+          continue
+        }
         useRepo(model, pinia).fresh(records as never[])
         known.set(model.entity, dump(model))
       }
