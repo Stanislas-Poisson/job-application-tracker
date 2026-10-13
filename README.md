@@ -70,7 +70,7 @@ Each page of the extension has its own store. The one truth is `chrome.storage.l
 
 ## Privacy
 
-Nothing leaves your browser, except if you turn on the optional automatic exchange rates (off by default, see [PRIVACY.md](PRIVACY.md)). The extension asks for two permissions: `storage`, to keep your data, and `activeTab`, to read the title and the address of the page you are on when you open the popup. See [PRIVACY.md](PRIVACY.md).
+Nothing leaves your browser, except if you turn on the optional automatic exchange rates (off by default, see [PRIVACY.md](PRIVACY.md)). The extension asks for three permissions: `storage`, to keep your data, and `activeTab` with `scripting`, to read the page you are on, only when you open the popup on it. See [PRIVACY.md](PRIVACY.md).
 
 ## To do
 

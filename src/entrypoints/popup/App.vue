@@ -5,14 +5,21 @@
   import AppFooter from '../../components/AppFooter.vue'
   import AppHeader from '../../components/AppHeader.vue'
   import { useApp } from '../../composables/useApp'
+  import { type ReadOffer } from '../../extraction/jobPosting'
+  import { collectSnapshot } from '../../extraction/page'
+  import { readSnapshot } from '../../extraction/read'
   import { Status } from '../../models'
   import { addNote, captureOffer } from '../../services/applications'
+  import { resolveTimeZone } from '../../utils/time'
 
-  const { t, persistence } = useApp()
+  const { t, persistence, settings } = useApp()
 
   const form = reactive({ title: '', company: '', url: '', location: '', statusKey: '', note: '' })
   const state = ref<'idle' | 'saving' | 'saved'>('idle')
   const problem = ref('')
+  // What the page said beyond the fields of the form (the date, the salary, the description). It is saved with them.
+  const read = ref<ReadOffer>({})
+  const found = computed(() => ['postedOn', 'salary', 'contractType', 'description'].filter((key) => key in read.value))
 
   const statuses = computed(() => useRepo(Status).orderBy('order').get())
   const statusOptions = computed(() => Object.fromEntries(statuses.value.map((status) => [status.key, status.label])))
@@ -27,10 +34,27 @@
         form.url = tab.url
         form.title = tab.title ?? ''
       }
+      await readPage(tab?.id)
     } catch {
       // The tab cannot be read (a browser page): the user types the offer.
     }
   })
+
+  // Reads the page the user is looking at, once, because the popup was opened on it (activeTab). Nothing is read in the
+  // background and nothing leaves the browser.
+  async function readPage(tabId: number | undefined) {
+    if (undefined === tabId) {
+      return
+    }
+    const [result] = await browser.scripting.executeScript({ target: { tabId }, func: collectSnapshot })
+    if (!result?.result) {
+      return
+    }
+    read.value = readSnapshot(result.result, resolveTimeZone(settings.timeZone))
+    form.title = read.value.title ?? form.title
+    form.company = read.value.companyName ?? form.company
+    form.location = read.value.location ?? form.location
+  }
 
   async function save() {
     problem.value = ''
@@ -45,6 +69,12 @@
       companyName: form.company,
       url: form.url || null,
       location: form.location || null,
+      country: read.value.country ?? null,
+      contractType: read.value.contractType ?? null,
+      workMode: read.value.workMode ?? null,
+      description: read.value.description ?? null,
+      postedOn: read.value.postedOn ?? null,
+      salary: read.value.salary ?? null,
       statusKey: form.statusKey,
     })
     if ('' !== form.note.trim()) {
@@ -57,6 +87,7 @@
 
   function another() {
     Object.assign(form, { title: '', company: '', url: '', location: '', note: '' })
+    read.value = {}
     state.value = 'idle'
   }
 </script>
@@ -125,6 +156,12 @@
         name="location"
         :label="t('fields.location')"
       />
+      <p
+        v-if="0 < found.length"
+        class="muted"
+      >
+        {{ t('popup.found', { list: found.map((key) => t(`popup.foundKeys.${key}`)).join(', ') }) }}
+      </p>
       <FormSelect
         v-model="form.statusKey"
         name="status"
