@@ -141,6 +141,15 @@ When the popup opens on a page, the extension reads that page once and fills the
 
 - When a page has no `JobPosting` data, or leaves a piece out, the OpenGraph tags and the title of the page fill the title (`og:title`, then the page title without the name of the site after a `|`) and the description (`og:description`, then `description`). The name of the site is never taken for the company.
 - The data is found at the root of a script, in a list, or in an `@graph`. A script that is not valid JSON is skipped. The first `JobPosting` of the page is used.
+- Checked on saved pages of APEC, Cadremploi, Free-Work, HelloWork, JobTeaser, Meteojob, Monster, Welcome to the Jungle and ZipRecruiter. What they showed, and how it is read:
+  - `unitText` is written `YEAR`, `YEARLY`, `ANNUAL`, `MONTHLY`, `DAILY`…: all are understood.
+  - Amounts come as numbers or as strings (`"80000.00"`), and an empty `QuantitativeValue` is no salary.
+  - A site may also write the salary as text (`80 - 85 k€ brut annuel`): it is where gross or net is read from.
+  - **A yearly salary under 1 000 (30 for 30 000) is left out**, because the site did not say it is in thousands, and a guess would be a wrong figure. A day rate is not checked this way.
+  - The place is the first of the list. A country given as a code (`FR`) is kept apart and shown by its name; one given as a name stays in the text. A region equal to the city is not repeated.
+  - The contract of schema.org (`FULL_TIME`, `CONTRACTOR`…) is written readably; the contract of a site (`CDI`) is kept as it is.
+  - HTML entities left in a description (`&#233;`) are decoded.
+  - **The currency is the one of the page**: a French offer on ZipRecruiter says `USD`. The extension does not correct it, the user can.
 - Nothing is invented: a piece the page does not give stays empty, and the user can change every field before saving.
 - **Report a reading that broke**: the popup has a link that opens a new issue on GitHub, filled with the host name of the site, the version of the extension, and which pieces were read and which were not. The user reads it and sends it by hand. The same report can be opened as an e-mail for someone with no GitHub account (GitHub cannot turn an e-mail into an issue; `REPORT_EMAIL` in `src/extraction/report.ts` is a placeholder until a dedicated address exists). The extension sends nothing, and the issue holds nothing of the offer (not the address, which may carry a name or a token).
 

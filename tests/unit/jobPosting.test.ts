@@ -1,3 +1,4 @@
+import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { findJobPostings, htmlToText, offerFromJobPosting } from '../../src/extraction/jobPosting'
 import { readOpenGraph, readSnapshot, titleFromPage } from '../../src/extraction/read'
@@ -69,9 +70,9 @@ describe('offerFromJobPosting', () => {
     expect(offerFromJobPosting(posting, PARIS)).toEqual({
       title: 'Senior developer',
       companyName: 'Acme',
-      location: 'Paris, IDF, FR',
+      location: 'Paris, IDF',
       country: 'FR',
-      contractType: 'FULL_TIME, CONTRACTOR',
+      contractType: 'Full time, Contractor',
       workMode: 'remote',
       description: 'Build things & ship.\n- PHP\n- Vue',
       // 22:30 UTC is 00:30 the next day in Paris.
@@ -208,5 +209,109 @@ describe('reportMailto', () => {
     expect(decodeURIComponent(link)).toContain('Read: title')
     expect(link).not.toContain('secret')
     expect(link).not.toContain('+')
+  })
+})
+
+// What real sites publish, seen on saved pages: their quirks are the cases below.
+describe('real-world postings', () => {
+  const read = (extra: object) => offerFromJobPosting({ '@type': 'JobPosting', title: 'Dev', ...extra }, PARIS)
+
+  it('reads YEARLY, MONTHLY and DAILY as periods', () => {
+    const salary = (unitText: string) =>
+      read({ baseSalary: { currency: 'EUR', value: { minValue: 5000, unitText } } }).salary?.period
+    expect(salary('YEARLY')).toBe('year')
+    expect(salary('MONTHLY')).toBe('month')
+    expect(salary('DAILY')).toBe('day')
+  })
+
+  it('reads a salary given as strings with decimals and says gross from the text', () => {
+    const offer = read({
+      baseSalary: {
+        currency: 'EUR',
+        value: { minValue: '80000.00', maxValue: '85000.00', unitText: 'YEAR', value: '80 - 85 k€ brut annuel' },
+      },
+    })
+    expect(offer.salary).toEqual({ min: 8_000_000, max: 8_500_000, currency: 'EUR', period: 'year', kind: 'gross' })
+    expect(
+      read({ baseSalary: { currency: 'EUR', value: { value: 'about 3000 net', unitText: 'MONTH' } } }).salary
+    ).toBeUndefined()
+  })
+
+  it('leaves out a yearly salary in thousands that is not said so (30 for 30 000)', () => {
+    const baseSalary = { currency: 'EUR', value: { minValue: 30, maxValue: 32, unitText: 'YEARLY' } }
+    expect(read({ baseSalary }).salary).toBeUndefined()
+    // A day rate of 30 is plausible: only a year is checked.
+    expect(
+      read({ baseSalary: { ...baseSalary, value: { ...baseSalary.value, unitText: 'DAILY' } } }).salary
+    ).toBeDefined()
+  })
+
+  it('keeps a lowest salary alone and an empty one out', () => {
+    expect(
+      read({ baseSalary: { currency: 'EUR', value: { minValue: 55000, maxValue: null, unitText: 'YEARLY' } } }).salary
+    ).toMatchObject({
+      min: 5_500_000,
+      max: null,
+      period: 'year',
+    })
+    expect(read({ baseSalary: { currency: 'EUR', value: { '@type': 'QuantitativeValue' } } }).salary).toBeUndefined()
+  })
+
+  it('does not repeat the city as the region, and keeps a country given as a name', () => {
+    const place = (address: object) => read({ jobLocation: { address } }).location
+    expect(
+      place({ addressLocality: 'ST LAURENT BLANGY', addressRegion: 'ST LAURENT BLANGY', addressCountry: 'FR' })
+    ).toBe('ST LAURENT BLANGY')
+    expect(place({ addressLocality: 'Estrées-Mons', addressRegion: 'Hauts-de-France', addressCountry: 'France' })).toBe(
+      'Estrées-Mons, Hauts-de-France, France'
+    )
+  })
+
+  it('reads a list of places by its first one', () => {
+    expect(
+      read({ jobLocation: [{ address: { addressLocality: 'Courbevoie' } }, { address: { addressLocality: 'Lyon' } }] })
+        .location
+    ).toBe('Courbevoie')
+  })
+
+  it('decodes the entities left in a description', () => {
+    expect(
+      read({ description: 'D&#233;veloppeur&#183;se &#x41;ngular &amp; Vue &hellip; &unknown;' }).description
+    ).toBe('Développeur·se Angular & Vue … &unknown;')
+  })
+
+  it('writes the contract of schema.org readably and keeps the one of a site', () => {
+    expect(read({ employmentType: 'FULL_TIME' }).contractType).toBe('Full time')
+    expect(read({ employmentType: ['CONTRACTOR'] }).contractType).toBe('Contractor')
+    expect(read({ employmentType: 'CDI' }).contractType).toBe('CDI')
+  })
+
+  it('reads a date with an offset written with a space (APEC)', () => {
+    expect(read({ datePosted: '2026-10-07 21:07:54 +0200' }).postedOn).toBe('2026-10-07')
+  })
+})
+
+// The pages saved by hand stay out of the repository: this runs on the machine that has them.
+const PAGES = '/home/zairakai/code/datas/pages/'
+const OFFERS = [
+  'apec',
+  'cadreemploi',
+  'freework',
+  'hellowork',
+  'jobteaser',
+  'meteojob',
+  'monster',
+  'welcolmetothejungle',
+  'ziprecruteur',
+]
+describe.skipIf(!existsSync(`${PAGES}apec.html`))('the saved pages of real sites', () => {
+  it.each(OFFERS)('%s gives at least a title, a company and a description', (site) => {
+    const page = readFileSync(`${PAGES}${site}.html`, 'utf8')
+    const jsonLd = [...page.matchAll(/<script[^>]*ld\+json[^>]*>([\s\S]*?)<\/script>/g)].map((match) => match[1] ?? '')
+    const offer = readSnapshot({ url: 'https://example.com/', title: '', jsonLd, meta: {} }, PARIS)
+    expect(offer.title).toBeTruthy()
+    expect(offer.companyName).toBeTruthy()
+    expect(offer.description?.length).toBeGreaterThan(100)
+    expect(offer.description).not.toMatch(/&#\d+;/)
   })
 })
