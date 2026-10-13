@@ -6,9 +6,9 @@
   import { computed } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { useFormat } from '../../composables/useFormat'
-  import { type Application, CompanyRelation } from '../../models'
+  import { type Application, CompanyRelation, Journey } from '../../models'
   import { finalClientsOf } from '../../services/companyRelations'
-  import { formatCommute } from '../../services/maps'
+  import { formatDuration, preferredJourney, totalMinutes } from '../../services/journeys'
 
   const props = defineProps<{ application: Application }>()
   const emit = defineEmits<{ open: [] }>()
@@ -25,8 +25,12 @@
     return company ? finalClientsOf(company.id).map((client) => client.name) : []
   })
 
-  // The way there, when the user kept what they found on a map.
-  const commute = computed(() => formatCommute(offer.value?.commuteMeters ?? null, offer.value?.commuteMinutes ?? null))
+  // The way there: the time of the preferred journey, when the user kept one.
+  const commute = computed(() => {
+    useRepo(Journey).all()
+    const journey = offer.value ? preferredJourney(offer.value.id) : null
+    return journey ? formatDuration(totalMinutes(journey.legs)) : ''
+  })
 
   // A reminder that is not done and is past its date.
   const overdue = computed(() =>
