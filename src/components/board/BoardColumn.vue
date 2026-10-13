@@ -88,7 +88,7 @@
     }
 
     .count {
-      margin-left: auto;
+      margin-inline-start: auto;
       color: var(--zk-muted);
       font-weight: 400;
     }
