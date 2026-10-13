@@ -36,6 +36,8 @@ export interface Persistence {
 }
 
 export interface PersistenceOptions {
+  // How long to wait for more changes before writing. 0 (the default) writes at the end of the current turn of the event
+  // loop: what one action changes goes out in one write, and nothing waits on a timer that a closing page could cut short.
   delay?: number
   // The moment it is now, for the tests.
   now?: () => Date
@@ -53,7 +55,7 @@ export interface PersistenceOptions {
 export function createPersistence(
   pinia: Pinia,
   adapter: StorageAdapter,
-  { delay = 150, now = () => new Date() }: PersistenceOptions = {}
+  { delay = 0, now = () => new Date() }: PersistenceOptions = {}
 ): Persistence {
   // What each model looked like when it was last loaded or saved, to save only the models that changed
   // and to ignore the echo of our own writes.
@@ -70,12 +72,19 @@ export function createPersistence(
         .map((record) => record.$toJson())
     )
 
+  // Loads what the storage holds for these models, except what is the page's own write coming back: the storage tells a
+  // page about every write, its own included, and by then the page may have changed again. Reading its own write back
+  // would put the older data over that change before it is written. A write of another page is different from what this page
+  // knows, and is loaded.
   const load = async (models: typeof MODELS) => {
     const stored = await adapter.get(models.map((model) => keyOf(model.entity)))
     loading = true
     try {
       for (const model of models) {
         const records = (stored[keyOf(model.entity)] as unknown[] | undefined) ?? []
+        if (JSON.stringify(records) === known.get(model.entity)) {
+          continue
+        }
         useRepo(model, pinia).fresh(records as never[])
         known.set(model.entity, dump(model))
       }

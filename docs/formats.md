@@ -251,3 +251,9 @@ The protected file is still JSON, with a small readable header, so that the way 
 - A protected backup is named `…-2026-10-13.protected.json`. Restoring one asks for the passphrase first; a wrong passphrase, or a file that was changed, fails and changes nothing. Once opened it goes through the same preview and checksum as any backup.
 - Turning the switch off forgets the check and the passphrase of the page. The backups already written keep the passphrase they were written with.
 - A format test opens a file written once with fixed values: if it cannot be opened any more, a backup somebody kept could not be either.
+
+## When changes are written
+
+**Every change is written at once**: a creation, a change, a deletion, a move, a setting, the view of the board. There is no "save" to forget and no delay to wait for. The persistence writes at the end of the turn of the event loop in which the change was made, so what one action changes (an application with its offer, its company and its history) goes out in one write, and nothing depends on a timer that a closing page could cut short. A page that is closed also writes whatever is still waiting.
+
+A screen that must say "saved" waits for the write (`persistence.flush()`), but no action needs it to be safe.
