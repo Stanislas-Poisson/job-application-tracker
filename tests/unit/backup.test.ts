@@ -1,4 +1,6 @@
+import { useRepo } from 'pinia-orm'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { Application } from '../../src/models'
 import { captureOffer } from '../../src/services/applications'
 import {
   type BackupEnvironment,
@@ -6,11 +8,20 @@ import {
   backupFileName,
   backupText,
   backupToFile,
+  createBackup,
   forgetBackupFile,
   hasData,
 } from '../../src/services/backup'
 import { exportData, importData, settingsFromExport } from '../../src/services/data'
+import {
+  type EncryptedFile,
+  WrongPassphraseError,
+  decryptText,
+  isEncryptedFile,
+  makeCheck,
+} from '../../src/services/encryption'
 import { DEFAULT_SETTINGS, type Settings, normalizeSettings } from '../../src/settings'
+import { verifyChecksum } from '../../src/utils/checksum'
 import { freshStore } from './helpers'
 
 const settings = (changes: Partial<Settings> = {}): Settings => ({ ...DEFAULT_SETTINGS, ...changes })
@@ -210,5 +221,56 @@ describe('backupToFile', () => {
     const env = environment()
     await forgetBackupFile(env)
     expect(env.saveHandle).toHaveBeenCalledWith(null)
+  })
+})
+
+describe('a backup protected by a passphrase', () => {
+  const PASSPHRASE = 'correct horse battery'
+
+  beforeEach(() => {
+    freshStore()
+  })
+
+  it('is named differently, and is plain without a passphrase', async () => {
+    expect(backupFileName('2026-10-13', true)).toBe('job-application-tracker-2026-10-13.protected.json')
+    expect(backupFileName('2026-10-13')).toBe('job-application-tracker-2026-10-13.json')
+    captureOffer({ title: 'One', companyName: 'Acme' })
+    expect(await createBackup(settings(), null)).toContain('"Acme"')
+  })
+
+  it('hides the data, and gives it back with the passphrase, checksum included', async () => {
+    captureOffer({ title: 'Secret job', companyName: 'Acme' })
+    const text = await createBackup(settings({ theme: 'dark' }), PASSPHRASE)
+
+    expect(text).not.toContain('Acme')
+    expect(text).not.toContain('Secret job')
+    const file: unknown = JSON.parse(text)
+    expect(isEncryptedFile(file)).toBe(true)
+
+    const plain: unknown = JSON.parse(await decryptText(file as EncryptedFile, PASSPHRASE))
+    expect(await verifyChecksum(plain)).toBe('valid')
+    expect(settingsFromExport(plain)).toMatchObject({ theme: 'dark' })
+
+    freshStore({ seed: false })
+    importData(plain)
+    expect(useRepo(Application).all()).toHaveLength(1)
+  })
+
+  it('cannot be opened with another passphrase', async () => {
+    const file = JSON.parse(await createBackup(settings(), PASSPHRASE)) as EncryptedFile
+    await expect(decryptText(file, 'another passphrase')).rejects.toBeInstanceOf(WrongPassphraseError)
+  })
+
+  it('keeps the check of the passphrase in the settings, and nothing that holds the passphrase', async () => {
+    const check = await makeCheck(PASSPHRASE, { iterations: 100_000 })
+    const kept = normalizeSettings({ backupProtect: true, backupPassphraseCheck: check })
+    expect(kept).toMatchObject({ backupProtect: true, backupPassphraseCheck: check })
+    expect(JSON.stringify(kept)).not.toContain('horse')
+    expect(normalizeSettings({ backupProtect: 'yes', backupPassphraseCheck: { nope: 1 } })).toMatchObject({
+      backupProtect: false,
+      backupPassphraseCheck: null,
+    })
+    // It goes with the settings of a backup, so that a new browser asks for the same passphrase.
+    expect(JSON.parse(await backupText(kept)).settings.backupPassphraseCheck).toEqual(check)
   })
 })

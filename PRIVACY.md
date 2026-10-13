@@ -43,3 +43,7 @@ The full source is public and MIT-licensed:
 
 Questions or concerns: open an issue at
 <https://github.com/Stanislas-Poisson/job-application-tracker/issues>
+
+## Backups protected by a passphrase
+
+If you turn on "Protect the backups with a passphrase", the backup file is encrypted in your browser (AES-GCM, key from PBKDF2) before it is written. **The passphrase is never stored and never leaves your browser.** Only a check is kept in the settings, to tell whether a passphrase you type later is the one you set. Nobody, including the author, can recover a lost passphrase or open a protected backup without it.

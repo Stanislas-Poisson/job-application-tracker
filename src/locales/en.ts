@@ -323,7 +323,26 @@ const en: TranslationObject = {
     emptied: 'The trash is empty.',
     confirmEmpty: 'Delete everything in the trash for good?',
   },
+  backup: {
+    protect: 'Protect the backups with a passphrase',
+    protectHint:
+      'The file is encrypted in the browser before it is written. Nobody can open it without the passphrase, and a lost passphrase cannot be recovered.',
+    warning:
+      'Choose a passphrase of at least 8 characters, and keep it somewhere safe. If you lose it, the backups cannot be opened: nobody can recover it, not even the author.',
+    passphrase: 'Passphrase',
+    passphraseAgain: 'Passphrase again',
+    set: 'Set the passphrase',
+    unlock: 'Use this passphrase',
+    tooShort: 'The passphrase needs at least 8 characters.',
+    notTheSame: 'The two passphrases are not the same.',
+    isSet: 'The passphrase is set. It is kept until you close this page, and asked again next time.',
+    notThePassphrase: 'This is not the passphrase you set. A backup made with another one could not be opened with it.',
+    needsPassphrase: 'Type the passphrase first.',
+  },
   options: {
+    protectedBackup: 'This backup is protected by a passphrase.',
+    openBackup: 'Open the backup',
+    wrongPassphrase: 'The passphrase is wrong, or the file was changed. Nothing was changed.',
     outdated:
       'This backup was written with an older structure of the data (version {version}). It is brought up to date when you restore it.',
     backup: 'Backup',

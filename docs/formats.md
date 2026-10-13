@@ -226,3 +226,28 @@ A backup carries `checksum`: `sha256:` and the SHA-256 of the **canonical form**
 
 - A restore checks it and says so in the preview: it **matches**, it is **absent** (an older backup: nothing tells whether it was changed), or it **does not match**. A file that does not match is not refused: the button stays off until the user ticks that they know it was changed and want it anyway (they may have edited it on purpose).
 - It catches an edit or damage that nobody meant. It is **not** a protection against a change made on purpose, because whoever changes the file can compute it again. A backup protected by a passphrase is authenticated by its encryption (see the ticket of the passphrase).
+
+### Protecting a backup with a passphrase
+
+A switch in the options ("Protect the backups with a passphrase") encrypts the backup in the browser before it is written. It is offered, never forced.
+
+The protected file is still JSON, with a small readable header, so that the way of encrypting can change later without losing the old files:
+
+```json
+{
+  "app": "job-application-tracker",
+  "format": "encrypted",
+  "version": 1,
+  "kdf": { "name": "PBKDF2", "hash": "SHA-256", "iterations": 600000, "salt": "…" },
+  "cipher": { "name": "AES-GCM", "iv": "…" },
+  "data": "…"
+}
+```
+
+- **Key:** PBKDF2 with SHA-256, 600 000 iterations (what OWASP advises) and a random salt of 16 bytes, giving a 256-bit key. The passphrase is normalised (NFKC), so `é` typed with one key or two is the same passphrase.
+- **Encryption:** AES-GCM with a random 12-byte nonce, on the whole backup (its checksum included). GCM also authenticates: **a changed byte, a changed header or a wrong passphrase makes the decryption fail**, and the header is part of what is authenticated. The two causes cannot be told apart, and are not.
+- **A file cannot ask for anything:** a header with fewer than 100 000 or more than 5 000 000 iterations, another algorithm or a newer version is refused before anything is computed, so a file cannot make the browser compute for hours or use a weak derivation.
+- **The passphrase is never kept.** It is typed twice when set, with the warning that a lost passphrase cannot be recovered, by anyone. It stays in the memory of the page until it is closed, and is asked again in the next page. What is kept in the settings is only a **check**: a known text encrypted with the passphrase, to tell whether a passphrase typed later is the one that was set, so that a typing mistake does not produce a backup nobody can open. It is no easier to attack than a backup file.
+- A protected backup is named `…-2026-10-13.protected.json`. Restoring one asks for the passphrase first; a wrong passphrase, or a file that was changed, fails and changes nothing. Once opened it goes through the same preview and checksum as any backup.
+- Turning the switch off forgets the check and the passphrase of the page. The backups already written keep the passphrase they were written with.
+- A format test opens a file written once with fixed values: if it cannot be opened any more, a backup somebody kept could not be either.
