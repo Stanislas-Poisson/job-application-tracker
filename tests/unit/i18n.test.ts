@@ -1,8 +1,18 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { SHIPPED } from '../../src/customLanguage'
 import { createTranslator, resolveLocale } from '../../src/i18n'
+import { LANGUAGES } from '../../src/languages'
+import ar from '../../src/locales/ar'
+import de from '../../src/locales/de'
 import en from '../../src/locales/en'
+import es from '../../src/locales/es'
 import fr from '../../src/locales/fr'
+import it2 from '../../src/locales/it'
+import nl from '../../src/locales/nl'
+import pt from '../../src/locales/pt'
+
+const OTHERS = { fr, es, de, it: it2, nl, pt, ar } as Record<string, unknown>
 
 const CATEGORIES = ['zero', 'one', 'two', 'few', 'many', 'other']
 
@@ -34,16 +44,27 @@ const placeholders = (value: unknown): string[] => {
 }
 
 describe('translations', () => {
-  it('has the same keys in English and in French', () => {
-    expect(paths(fr as Record<string, unknown>).sort()).toEqual(paths(en as Record<string, unknown>).sort())
+  it('has the same keys in every language as in English', () => {
+    for (const [code, messages] of Object.entries(OTHERS)) {
+      expect(paths(messages as Record<string, unknown>).sort(), code).toEqual(
+        paths(en as Record<string, unknown>).sort()
+      )
+    }
+  })
+
+  it('lists the languages it comes with in one place, and the table matches the files', () => {
+    expect(LANGUAGES.map((language) => language.code).sort()).toEqual([...SHIPPED].sort())
+    expect(Object.keys(OTHERS).concat('en').sort()).toEqual([...SHIPPED].sort())
   })
 
   it('has the same placeholders in every language as in English, and a plural text has an "other" form', () => {
     for (const path of paths(en as Record<string, unknown>)) {
       const english = valueAt(en as Record<string, unknown>, path)
-      const french = valueAt(fr as Record<string, unknown>, path)
-      expect(placeholders(french), path).toEqual(placeholders(english))
-      expect(isPlural(english) === isPlural(french), path).toBe(true)
+      for (const [code, messages] of Object.entries(OTHERS)) {
+        const other = valueAt(messages as Record<string, unknown>, path)
+        expect(placeholders(other), `${code} ${path}`).toEqual(placeholders(english))
+        expect(isPlural(english) === isPlural(other), `${code} ${path}`).toBe(true)
+      }
     }
   })
 
@@ -66,13 +87,33 @@ describe('translations', () => {
     }
   })
 
+  it('has the plural forms its language needs in every text that has them, and no empty text', () => {
+    for (const [code, messages] of Object.entries(OTHERS)) {
+      const needed = 'ar' === code ? ['zero', 'one', 'two', 'few', 'many', 'other'] : ['one', 'other']
+      for (const path of paths(messages as Record<string, unknown>)) {
+        const value = valueAt(messages as Record<string, unknown>, path)
+        if (isPlural(value)) {
+          expect(Object.keys(value), `${code} ${path}`).toEqual(expect.arrayContaining(needed))
+        }
+        const texts = isPlural(value) ? Object.values(value) : [String(value)]
+        for (const text of texts) {
+          expect(text.trim(), `${code} ${path}`).not.toBe('')
+        }
+      }
+    }
+  })
+
   it('follows the language of the browser, with English as the fallback', () => {
     expect(resolveLocale('auto', 'fr-FR')).toBe('fr')
-    expect(resolveLocale('auto', 'de-DE')).toBe('en')
+    expect(resolveLocale('auto', 'de-DE')).toBe('de')
+    expect(resolveLocale('auto', 'pt-BR')).toBe('pt')
+    expect(resolveLocale('auto', 'ja-JP')).toBe('en')
     expect(resolveLocale('fr', 'en-US')).toBe('fr')
   })
 
   it('translates', () => {
+    expect(createTranslator('es', 'en').__('nav.board')).toBe('Tablero')
+    expect(createTranslator('ar', 'en').__('nav.board')).toBe('اللوحة')
     expect(createTranslator('fr', 'en').__('nav.board')).toBe('Tableau')
     expect(createTranslator('en', 'fr').__('nav.board')).toBe('Board')
   })

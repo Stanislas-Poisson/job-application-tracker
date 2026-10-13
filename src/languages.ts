@@ -9,11 +9,19 @@ export interface Language {
   dir: 'ltr' | 'rtl'
   // The script, as ISO 15924 names it (Latn, Arab, Hebr, Hans…).
   script: string
+  // Whether a person who speaks the language has checked the texts. A language that was not checked says so in the options.
+  reviewed: boolean
 }
 
 export const LANGUAGES: readonly Language[] = [
-  { code: 'en', name: 'English', dir: 'ltr', script: 'Latn' },
-  { code: 'fr', name: 'Français', dir: 'ltr', script: 'Latn' },
+  { code: 'en', name: 'English', dir: 'ltr', script: 'Latn', reviewed: true },
+  { code: 'fr', name: 'Français', dir: 'ltr', script: 'Latn', reviewed: true },
+  { code: 'es', name: 'Español', dir: 'ltr', script: 'Latn', reviewed: false },
+  { code: 'de', name: 'Deutsch', dir: 'ltr', script: 'Latn', reviewed: false },
+  { code: 'it', name: 'Italiano', dir: 'ltr', script: 'Latn', reviewed: false },
+  { code: 'pt', name: 'Português', dir: 'ltr', script: 'Latn', reviewed: false },
+  { code: 'nl', name: 'Nederlands', dir: 'ltr', script: 'Latn', reviewed: false },
+  { code: 'ar', name: 'العربية', dir: 'rtl', script: 'Arab', reviewed: false },
 ]
 
 // The scripts written from right to left: the direction of a language that is not in the table follows its script.

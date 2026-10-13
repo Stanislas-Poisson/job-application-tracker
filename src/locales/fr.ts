@@ -124,7 +124,7 @@ const fr: TranslationObject = {
       offer: 'Offre',
       rejected: 'Refusé',
     },
-    sources: { other: 'Autre' },
+    sourceOther: 'Autre',
   },
   activity: {
     created: 'Enregistrée',
@@ -816,7 +816,7 @@ const fr: TranslationObject = {
       json: 'Ce fichier n’est pas du JSON valide.',
       'not-a-language':
         'Ce fichier n’est pas un fichier de langue de cette extension. Téléchargez d’abord le fichier à traduire.',
-      code: 'Le code de la langue n’est pas valide : écrivez-le comme es ou pt-BR.',
+      code: 'Le code de la langue n’est pas valide : écrivez-le comme sv ou pt-BR.',
       shipped: 'Cette langue est déjà dans l’extension et ne peut pas être remplacée.',
       name: 'Le nom de la langue manque, est trop long, ou contient ce qui n’est pas permis.',
       dir: 'Le sens est ltr (de gauche à droite) ou rtl (de droite à gauche).',
@@ -934,6 +934,9 @@ const fr: TranslationObject = {
     restore: 'Restaurer',
     title: 'Options',
     languageAuto: 'Comme le navigateur',
+    languageUnreviewed:
+      'Cette traduction n’a pas été relue par une personne qui parle la langue. Elle peut contenir des erreurs.',
+    languageReport: 'Signaler une erreur dans cette traduction',
     language: 'Langue',
     statuses: 'Colonnes du tableau',
     statusesHint: 'Une colonne est un statut. Renommez-les, changez leur couleur ou leur ordre, ou ajoutez les vôtres.',

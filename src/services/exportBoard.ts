@@ -186,6 +186,12 @@ export function boardCsv(
   return UTF8_BOM + toCsv(boardRows(applications, { ...context, decimal: ';' === separator ? ',' : '.' }), separator)
 }
 
+// A language that writes numbers with a decimal comma gets a file with semicolons, which is what its spreadsheets open.
+export function csvSeparator(locale: string): ',' | ';' {
+  const decimal = new Intl.NumberFormat(locale).formatToParts(1.5).find((part) => 'decimal' === part.type)?.value
+  return ',' === decimal ? ';' : ','
+}
+
 export const exportFileName = (day: string): string => `job-application-tracker-board-${day}.csv`
 
 // The address of an offer as fields.

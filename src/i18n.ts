@@ -1,11 +1,20 @@
 import { createI18n } from '@zairakai/js-i18n'
+import ar from './locales/ar'
+import de from './locales/de'
 import en from './locales/en'
+import es from './locales/es'
 import fr from './locales/fr'
+import it from './locales/it'
+import nl from './locales/nl'
+import pt from './locales/pt'
 import type { Locale } from './settings'
 
 import { installed } from './customLanguages'
 
-export const SUPPORTED = ['en', 'fr'] as const
+// The texts of the languages the extension comes with. A language is added here, in LANGUAGES, and in SHIPPED.
+const LOCALES = { en, fr, es, de, it, pt, nl, ar }
+
+export const SUPPORTED = Object.keys(LOCALES)
 
 // Every language the extension can show: the ones it has, and the ones the user added from a file.
 export const availableLocales = (): string[] => [...SUPPORTED, ...installed.value.map((language) => language.code)]
@@ -47,7 +56,7 @@ const customMessages = () =>
   Object.fromEntries(installed.value.map((language) => [language.code, merged(en, language.messages)]))
 
 export function createTranslator(setting: Locale = 'auto', browserLanguage: string = navigator.language) {
-  return createI18n({ en, fr, ...customMessages() } as never, resolveLocale(setting, browserLanguage))
+  return createI18n({ ...LOCALES, ...customMessages() } as never, resolveLocale(setting, browserLanguage))
 }
 
 // Gives a translator the texts of a language added after it was made.

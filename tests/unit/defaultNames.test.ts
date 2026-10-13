@@ -17,7 +17,7 @@ describe('defaultNamePath', () => {
   })
 
   it('translates only "Other" among the sources, a brand is the same everywhere', () => {
-    expect(defaultNamePath('sources', { key: 'other', label: 'Other' })).toBe('defaults.sources.other')
+    expect(defaultNamePath('sources', { key: 'other', label: 'Other' })).toBe('defaults.sourceOther')
     expect(defaultNamePath('sources', { key: 'linkedin', label: 'LinkedIn' })).toBeNull()
   })
 

@@ -11,5 +11,5 @@ export function defaultNamePath(kind: 'statuses' | 'sources', record: Named): st
   if (original?.label !== record.label || ('sources' === kind && 'other' !== record.key)) {
     return null
   }
-  return `defaults.${kind}.${record.key}`
+  return 'statuses' === kind ? `defaults.statuses.${record.key}` : 'defaults.sourceOther'
 }

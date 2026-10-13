@@ -359,3 +359,11 @@ describe('boardCsv', () => {
     expect(exportFileName('2026-10-13')).toBe('job-application-tracker-board-2026-10-13.csv')
   })
 })
+
+describe('csvSeparator', () => {
+  it('uses a semicolon where the decimal mark is a comma', async () => {
+    const { csvSeparator } = await import('../../src/services/exportBoard')
+    expect(['fr', 'de', 'es', 'it', 'pt', 'nl'].map((locale) => csvSeparator(locale))).toEqual(Array(6).fill(';'))
+    expect(['en', 'ja'].map((locale) => csvSeparator(locale))).toEqual([',', ','])
+  })
+})
