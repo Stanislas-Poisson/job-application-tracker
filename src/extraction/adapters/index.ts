@@ -1,5 +1,6 @@
 import type { ReadOffer } from '../jobPosting'
 import type { PageSnapshot } from '../page'
+import { readGlassdoor } from './glassdoor'
 import { readLinkedIn } from './linkedin'
 import { readTalent } from './talent'
 
@@ -12,6 +13,7 @@ export interface Adapter {
 }
 
 const LINKEDIN: Adapter = { name: 'linkedin', needsBody: true, read: readLinkedIn }
+const GLASSDOOR: Adapter = { name: 'glassdoor', needsBody: true, read: (doc) => readGlassdoor(doc) }
 const TALENT: Adapter = { name: 'talent', needsBody: false, read: (_doc, snapshot) => readTalent(snapshot) }
 
 // The adapter of a page, found from its address. Null when the generic reading is all there is.
@@ -28,6 +30,9 @@ export function adapterFor(url: string): Adapter | null {
   }
   if (('talent.com' === host || host.endsWith('.talent.com')) && address.pathname.startsWith('/view')) {
     return TALENT
+  }
+  if (/(^|\.)glassdoor\.[a-z.]+$/.test(host)) {
+    return GLASSDOOR
   }
   return null
 }
