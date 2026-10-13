@@ -130,10 +130,12 @@
     await persistence.flush()
   }
 
-  function remove() {
+  // A deletion is written at once: closing the tab right after must not bring the application back.
+  async function remove() {
     if (window.confirm(t('drawer.confirmDelete'))) {
       deleteApplication(props.application.id)
       emit('deleted')
+      await persistence.flush()
     }
   }
 </script>
