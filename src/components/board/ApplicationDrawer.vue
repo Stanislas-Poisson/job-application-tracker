@@ -98,7 +98,7 @@
 
     li {
       padding: 0.4rem 0;
-      border-bottom: 1px solid var(--zk-border);
+      border-block-end: 1px solid var(--zk-border);
     }
   }
 </style>

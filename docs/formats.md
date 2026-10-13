@@ -442,3 +442,7 @@ Settings, kept with the others and in the backups: `fontFamily` (`system`, `seri
 ## Languages
 
 `src/languages.ts` describes each language: its code, its name in its own language, its direction (`ltr` or `rtl`) and its script (ISO 15924). The page writes `lang` and `dir` on its root element from the language in use (the setting, or the language of the browser when it is one the extension has, else English). Names, notes and text typed by the user carry `dir="auto"` so that a name in another script keeps its order. Adding a language is one line in the table and one file of texts.
+
+## Right-to-left and vertical writing
+
+The style sheets say sides as start and end, block and inline (`margin-inline-start`, `border-block-end`, `text-align: start`), never left, right, top or bottom. Stylelint refuses the physical properties (`property-disallowed-list`). With `dir="rtl"` on the root the columns of the board are mirrored; the pages are checked in e2e for a side overflow from right to left.
