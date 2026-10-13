@@ -18,6 +18,7 @@ import {
 import type { ActivityType } from '../models/Activity'
 import type { ContactRole } from '../models/ApplicationContact'
 import type { WorkMode } from '../models/JobOffer'
+import type { Salary } from '../utils/money'
 import { isInstant, isPlainDate } from '../utils/time'
 import { type ContactInput, normalizeContactInput } from './contacts'
 
@@ -26,11 +27,14 @@ export interface CaptureInput {
   companyName: string
   url?: string | null
   location?: string | null
+  // The ISO 3166-1 country of the place, when it is known.
+  country?: string | null
   contractType?: string | null
   workMode?: WorkMode | null
   description?: string | null
   // The day the offer was published, as a plain date (YYYY-MM-DD).
   postedOn?: string | null
+  salary?: Salary | null
   // The key of the status the application starts in. The first column when it is missing or unknown.
   statusKey?: string
 }
@@ -92,10 +96,16 @@ export function captureOffer(input: CaptureInput): Application {
     title: input.title.trim(),
     url: input.url ?? null,
     location: input.location ?? null,
+    country: input.country ?? null,
     contractType: input.contractType ?? null,
     workMode: input.workMode ?? null,
     description: input.description ?? null,
     postedOn: input.postedOn ?? null,
+    salaryMin: input.salary?.min ?? null,
+    salaryMax: input.salary?.max ?? null,
+    salaryCurrency: input.salary?.currency ?? null,
+    salaryPeriod: input.salary?.period ?? null,
+    salaryKind: input.salary?.kind ?? null,
   })
 
   const position = nextPosition(status?.id ?? null)
