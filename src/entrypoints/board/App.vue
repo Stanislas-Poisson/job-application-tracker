@@ -10,9 +10,10 @@
   import { useApp } from '../../composables/useApp'
   import { useBoardView } from '../../composables/useBoardView'
   import { useFormat } from '../../composables/useFormat'
-  import { Application, Status } from '../../models'
+  import { Application, CompanyRelation, Status } from '../../models'
   import { moveApplication } from '../../services/applications'
   import { queryApplications } from '../../services/boardQuery'
+  import { finalClientsOf, linksOf } from '../../services/companyRelations'
   import { COLUMNS, boardCsv, exportFileName } from '../../services/exportBoard'
   import { downloadText } from '../../utils/download'
   import { todayIn } from '../../utils/time'
@@ -61,6 +62,7 @@
       now: new Date(),
       locale: format.locale.value,
       conversion: format.conversion(),
+      related: (companyId) => (useRepo(CompanyRelation).all(), linksOf(companyId).map((link) => link.other.name)),
     })
   )
 
@@ -94,6 +96,7 @@
           kinds: { gross: t('salary.kind.gross'), net: t('salary.kind.net') },
         },
         conversion: format.conversion(),
+        finalClients: (companyId) => finalClientsOf(companyId).map((client) => client.name),
         statusLabel: (statusId) => (statusId ? (names[statusId] ?? '') : ''),
       },
       'fr' === format.locale.value ? ';' : ','

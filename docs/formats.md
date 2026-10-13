@@ -196,12 +196,13 @@ A restore is for a loss (a lost profile, a reinstall, a new computer): it **repl
 
 ## Versions of the structure
 
-The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **2** now.
+The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **3** now.
 
 | Version | What changed |
 | :--- | :--- |
 | 1 | The first structure. Data written before the version was kept with it is read as version 1. |
 | 2 | Every record has `updatedAt`, the moment of its last change (UTC, null when it was never stamped), and there is a `trash` for deleted records. |
+| 3 | Companies can be tied to one another (`companyRelations`). |
 
 - **Older data is brought up to date.** A migration turns the data of version N into the data of N + 1, one step at a time. It runs on the storage when a page opens (the result is saved with the new version) and on a backup file when it is read, so an old backup can still be restored. The preview says when a backup is old.
 - **Newer data is left alone.** If the storage or a file was written by a newer structure than this version knows, nothing is read, nothing is written and nothing is replaced: a page says so, and a restore is refused. A version that makes no sense (0, a word, none in a file) is refused too.
@@ -305,3 +306,18 @@ How it keeps to the point:
 - **The separator follows the language.** A comma, with a decimal point (`45000.50`); in French a semicolon, with a decimal comma (`45000,50`), which is what the spreadsheets of those countries read. The file starts with the mark of UTF-8, so that accents are read as such.
 - **Nothing runs as a formula.** A text that starts with `=`, `+`, `-` or `@` (an offer called `=HYPERLINK(...)`) would be run by a spreadsheet on the machine of whoever opens the file: such a text gets a quote in front and stays text.
 - The file is read back by the CSV reader of the imports.
+
+## Companies tied to one another
+
+A company can be tied to another: a **recruitment firm** that hires for a **final client**, or a **subsidiary** and its parent. A relation is a record of its own (`CompanyRelation`: `fromId`, `toId`, `kind`), so a company keeps its own record whatever it is tied to.
+
+| Kind (stored) | Told from the first company | Told from the second one |
+| :--- | :--- | :--- |
+| `recruits_for` | "Recruits for X" | "Is recruited by X" |
+| `subsidiary_of` | "Subsidiary of X" | "Parent of X" |
+
+Only these two kinds are stored, each in one direction; "parent of" is the opposite of "subsidiary of" and is not stored a second time, so the two cannot contradict each other.
+
+- **Where it shows.** The drawer of an application has a section for the company of its offer, with its links, to add or remove. The **card** tells who the offer is really for (`Hire Co → Big Bank`), the **search** finds an offer by any company it is tied to, and the **export** has a column for the final clients.
+- **How it is added.** By the name of the other company, found whatever its case, or made when it is new. The four ways to say it ("recruits for", "is recruited by", "subsidiary of", "parent of") are stored in the right direction.
+- **What is refused.** A company tied to itself, the same link twice, a kind nobody knows, and a link that would **close a circle** (A is a subsidiary of B, B of C, then C of A). Nothing is made when the link is refused: a new company is not left behind.
