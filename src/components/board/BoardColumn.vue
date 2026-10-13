@@ -3,6 +3,7 @@
   import { statusColor, statusShape } from '../../appearance'
   import { useApp } from '../../composables/useApp'
   import type { Application, Status } from '../../models'
+  import { symbolToShow } from '../../services/symbol'
   import ApplicationCard from './ApplicationCard.vue'
 
   const props = defineProps<{ status: Status; applications: Application[]; index: number }>()
@@ -13,7 +14,8 @@
   const over = ref(false)
   // In a colour-blind mode the colour comes from a safe palette and a shape goes with it.
   const color = computed(() => statusColor(props.status.color, props.index, settings.vision))
-  const shape = computed(() => statusShape(props.index, settings.vision))
+  // The symbol of the user, or else the shape of the colour-blind modes.
+  const shape = computed(() => symbolToShow(props.status.symbol, statusShape(props.index, settings.vision)))
 
   function onDrop(event: DragEvent) {
     over.value = false
@@ -86,7 +88,7 @@
     }
 
     .count {
-      margin-left: auto;
+      margin-inline-start: auto;
       color: var(--zk-muted);
       font-weight: 400;
     }

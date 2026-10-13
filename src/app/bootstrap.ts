@@ -5,6 +5,7 @@ import { applyAppearance } from '../appearance'
 import '../assets/main.scss'
 import { warnBeforeLeaving } from '../composables/useDirty'
 import { createTranslator, resolveLocale } from '../i18n'
+import { applyLanguage } from '../languages'
 import { createPersistence } from '../persistence'
 import { browserAdapter } from '../persistence/adapter'
 import { refreshRates } from '../services/rates'
@@ -18,6 +19,8 @@ export async function mountApp(root: Component, selector = '#app') {
 
   // The look is on the page before anything is drawn, and follows the settings.
   watchEffect(() => applyAppearance(document.documentElement, settings))
+  // The language and the direction of the page follow the language chosen.
+  watchEffect(() => applyLanguage(document.documentElement, resolveLocale(settings.locale, navigator.language)))
 
   const persistence = createPersistence(pinia, browserAdapter)
   await persistence.ready

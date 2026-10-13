@@ -1,11 +1,16 @@
 <script setup lang="ts">
   import { FormSelect } from '@zairakai/vue-components/Form'
   import { useApp } from '../../composables/useApp'
+  import { LANGUAGES } from '../../languages'
   import type { Locale } from '../../settings'
 
   const { t, settings, updateSettings } = useApp()
 
-  const options = { auto: 'Auto', en: 'English', fr: 'Français' }
+  // Each language is named in itself.
+  const options = {
+    auto: t('options.languageAuto'),
+    ...Object.fromEntries(LANGUAGES.map((language) => [language.code, language.name])),
+  }
 </script>
 
 <template>

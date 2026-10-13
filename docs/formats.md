@@ -200,7 +200,7 @@ A restore is for a loss (a lost profile, a reinstall, a new computer): it **repl
 
 ## Versions of the structure
 
-The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **8** now.
+The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **9** now.
 
 | Version | What changed |
 | :--- | :--- |
@@ -210,6 +210,7 @@ The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/pe
 | 4 | A person can work for several companies (`contactCompanies`). The company a contact had becomes a first link. |
 | 5 | Pay profiles to estimate the net pay (`payProfiles`). |
 | 6 | An offer has the address of its workplace and the way there (`address`, `commuteMeters`, `commuteMinutes`, `commuteMode`). |
+| 9 | A column (`statuses`) and a tag (`tags`) have a `symbol` (one character, or null). |
 | 8 | The way to work is a list of journeys in legs (`journeys`); the distance, the time and the means kept in an offer become a journey of one leg. |
 | 7 | The address is in fields (lines 1 to 3, postal code, city, region, position). The line that was kept becomes the first line; nothing is guessed from it. |
 
@@ -419,3 +420,48 @@ An offer keeps any number of **journeys**, each a list of **legs** found by the 
 - **One journey per direction is the preferred one** (the first one made; the user can change it; when it is deleted the shortest takes its place). The card shows the time of the preferred outbound journey, and the CSV has its time, its distance, the journey in words and the time of the preferred way back.
 - **No time or distance is computed by the extension**: it would need a service to find the way. The user does the search on the map and keeps the result.
 - Stored in `journeys` (`id`, `updatedAt`, `jobOfferId`, `direction`, `name`, `preferred`, `legs`). Before structure version 8 the distance, time and means kept in an offer are turned into a journey of one leg (`jy_<offer id>`), the preferred outbound one.
+
+## Bringing two computers together
+
+A process of its own, different from the restore: the restore replaces what is stored after a loss, the merge **adds** the data of another computer's backup to the data stored here. Nothing is deleted.
+
+- **A preview** shows, per kind of data, what is in the file, what would be added, what would be replaced by a more recent version, what is kept as it is here and what is the same. The user must accept the risk of duplicates before it can be applied. The settings are not merged.
+- **A record on both sides** (same id) keeps its most recent version, by `updatedAt` (UTC); a record never stamped is the oldest, and on a tie the one stored here stays.
+- **The default columns and sources** (`status_<key>`, `source_<key>`, but with a random id in older installs) are matched by their `key`, not doubled, and the applications, activities and offers of the file that point to them follow.
+- **A deletion is not a record that is missing.** What was deleted here (it is in the trash) is not brought back from the file. What was deleted on the other computer is not deleted here: the trash of the file is not merged.
+- **Duplicates are possible**: a company, contact or tag created on both computers has two ids, so it is there twice. The preview counts the likely ones (same company name, same contact name, same address of an offer) and the user merges them by hand.
+
+## Text appearance
+
+Settings, kept with the others and in the backups: `fontFamily` (`system`, `serif`, `monospace` as `mono`, `custom`), `fontCustom` (the name of a font installed on the computer, letters, digits, spaces, dots, dashes and underscores only, 100 characters at most, so that it cannot break out of a style), `textScale` (80, 90, 100, 110, 125, 150, 175 or 200, in percent of the usual size, written on the root so every size in `rem` follows), `textSpacing` (`default`, `wide`, `wcag` for line height 1.5, letters 0.12 em and words 0.16 em, `widest`), `density` (`comfortable`, `compact`) and `motion` (`auto` follows the system, `reduce` forces it). The chosen font is always followed by the system fonts so that every script keeps a font that has its letters. No font is shipped: the fonts made for easier reading are used when installed, by name.
+
+## The symbol of a column or a tag
+
+`symbol` on `statuses` and `tags`: one character (a letter, a sign, an emoji; a sequence such as a flag or a joined emoji counts as one; 16 UTF-16 units at most) or null. What is typed after the first character is dropped. It is shown in front of the name, hidden from screen readers (the name is the text that is read). When it is none, or when the fonts of the computer cannot draw it, the default shape of the colour-blind modes is shown (nothing in the standard mode).
+
+## Languages
+
+`src/languages.ts` describes each language: its code, its name in its own language, its direction (`ltr` or `rtl`) and its script (ISO 15924). The page writes `lang` and `dir` on its root element from the language in use (the setting, or the language of the browser when it is one the extension has, else English). Names, notes and text typed by the user carry `dir="auto"` so that a name in another script keeps its order. Adding a language is one line in the table and one file of texts.
+
+## Right-to-left and vertical writing
+
+The style sheets say sides as start and end, block and inline (`margin-inline-start`, `border-block-end`, `text-align: start`), never left, right, top or bottom. Stylelint refuses the physical properties (`property-disallowed-list`). With `dir="rtl"` on the root the columns of the board are mirrored; the pages are checked in e2e for a side overflow from right to left.
+
+## Typed text: storing, comparing, searching, sorting
+
+- **Stored** in one form of Unicode (NFC) for the names of companies and tags.
+- **Compared** without the case, the accents or the spaces around (`fold`): "Société Générale" and "societe generale" are the same company, "Résumé" and "resume" the same tag. The search of the board uses the same folding.
+- **Sorted** with `Intl.Collator` of the language in use: accents and case do not decide the order, numbers are ordered by their value, and each language has its own order ("ä" after "z" in Swedish).
+- **Searched**: words are cut at the spaces; in Chinese, Japanese, Thai, Lao, Khmer and Burmese, which put no space between words, the search is cut with `Intl.Segmenter` where the browser has it.
+
+## Plurals and numbers
+
+A text that depends on a number is an object in the file of texts, with a form for each plural category of the language (`zero`, `one`, `two`, `few`, `many`, `other`), and `other` is always there: `labels.usage.one`, `labels.usage.other`. `tn(path, count)` picks the form with `Intl.PluralRules` of the language (English and French: one and other, Russian: one, few, many, Arabic: all six) and writes `{count}` with `Intl.NumberFormat` of the language, so with its digits. A form a language does not write falls back to `other`. Dates and amounts already use `Intl.DateTimeFormat` and `Intl.NumberFormat`, so a locale that carries a calendar (`-u-ca-islamic`, `-u-ca-buddhist`, `-u-ca-japanese`) or digits (`-u-nu-arab`) is followed.
+
+## Your own themes
+
+Settings `customThemes` (at most 20: `id`, `name` of 60 characters at most, and the colours `light` and `dark`) and `customThemeId` (the one in use, empty for none; an id that is gone is none). A set of colours has `background`, `surface`, `text`, `primary` (the accent), `onPrimary`, `success`, `warning`, `error` and `border`, each of six hexadecimal digits; anything else is the default for that colour, so that nothing but a colour can reach a style sheet.
+
+The theme in use is a style sheet of its own (`#jat-custom-theme`, last in the head), written from the colours: the light set always, the dark set when the page is dark (chosen, or the system's when the theme is left to the system). It wins over the accent and the vision modes, since a custom theme comes with its own colours. The contrast of the pairs that matter is measured as WCAG 2 does (relative luminance): text on background and on surface, text on the accent and the error colour at 4.5 to 1; the accent, the borders, success and warning at 3 to 1. The correction moves a colour toward black or white, keeping its hue, by the smallest step that reaches the ratio.
+
+A theme is exported as a small JSON file (`app: "job-application-tracker-theme"`, the name and the two sets, no id); importing one gives it a new id. The themes are in the settings, so they are in the backups.

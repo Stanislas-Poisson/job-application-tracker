@@ -8,7 +8,7 @@
   import { TRASH_DAYS } from '../../persistence'
   import { emptyTrash, listTrash, restoreFromTrash } from '../../services/trash'
 
-  const { t, persistence } = useApp()
+  const { t, tn, persistence } = useApp()
   const format = useFormat()
 
   const message = ref('')
@@ -18,7 +18,7 @@
   async function restore(batch: string) {
     const count = restoreFromTrash(batch)
     await persistence.flush()
-    message.value = t('trash.restored', { count })
+    message.value = tn('trash.restored', count)
   }
 
   async function empty() {
@@ -52,7 +52,7 @@
       <span>
         <strong>{{ t(`options.entities.${group.entity}`) }}</strong>
         <template v-if="'' !== group.label"> · {{ group.label }}</template>
-        <template v-if="0 < group.related"> · {{ t('trash.related', { count: group.related }) }}</template>
+        <template v-if="0 < group.related"> · {{ tn('trash.related', group.related) }}</template>
         <span class="muted"> · {{ format.instant(group.deletedAt) }}</span>
       </span>
       <FormButton

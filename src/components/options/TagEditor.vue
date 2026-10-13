@@ -4,9 +4,10 @@
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { Tag } from '../../models'
+  import { normalizeSymbol } from '../../services/symbol'
   import { TagError, createTag, deleteTag, recolorTag, renameTag, tagUsage } from '../../services/tags'
 
-  const { t } = useApp()
+  const { t, tn } = useApp()
 
   const name = ref('')
   const problem = ref('')
@@ -34,8 +35,15 @@
     })
   }
 
+  // One character: what is typed after the first is dropped, and the field shows what was kept.
+  function setSymbol(tag: Tag, input: HTMLInputElement) {
+    const symbol = normalizeSymbol(input.value)
+    input.value = symbol ?? ''
+    useRepo(Tag).where('id', tag.id).update({ symbol })
+  }
+
   function remove(tag: Tag) {
-    if (0 === tagUsage(tag.id) || window.confirm(t('labels.confirmDelete', { count: tagUsage(tag.id) }))) {
+    if (0 === tagUsage(tag.id) || window.confirm(tn('labels.confirmDelete', tagUsage(tag.id)))) {
       deleteTag(tag.id)
     }
   }
@@ -62,13 +70,23 @@
         :aria-label="t('options.color')"
         @change="attempt(() => recolorTag(tag.id, ($event.target as HTMLInputElement).value))"
       />
+      <input
+        class="symbol-input"
+        type="text"
+        :name="`symbol-${tag.id}`"
+        :value="tag.symbol ?? ''"
+        :aria-label="t('options.symbol')"
+        :placeholder="t('options.symbolHint')"
+        maxlength="16"
+        @change="setSymbol(tag, $event.target as HTMLInputElement)"
+      />
       <FormInput
         :model-value="tag.name"
         :name="`tag-${tag.id}`"
         :field="false"
         @update:model-value="attempt(() => renameTag(tag.id, String($event)))"
       />
-      <span class="muted">{{ t('labels.usage', { count: tagUsage(tag.id) }) }}</span>
+      <span class="muted">{{ tn('labels.usage', tagUsage(tag.id)) }}</span>
       <FormButton
         type="button"
         @click="remove(tag)"

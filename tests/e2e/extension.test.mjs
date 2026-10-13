@@ -42,6 +42,15 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
     await element.clear()
     await element.sendKeys(value)
   }
+  // The page is loaded and has drawn something: a script run during a navigation finds no document.
+  const loaded = () =>
+    waitFor(
+      async () =>
+        (await driver.executeScript(
+          `return document.readyState === 'complete' && !!document.documentElement && !!document.body && document.body.children.length > 0`
+        )) === true,
+      { message: 'the page to be loaded' }
+    )
   const choose = (selector, value) =>
     driver.executeScript(
       `const select = document.querySelector(arguments[0]);
@@ -156,7 +165,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await open('options', '.status-list li')
 
       await type('input[name=newStatus]', 'Phone screen')
-      await (await all('form button[type=submit]'))[0].click()
+      await driver.executeScript(`document.querySelector('input[name=newStatus]').form.requestSubmit()`)
       await waitFor(async () => (await all('.status-list li')).length === 7, { message: 'the new column' })
 
       const buttons = await all('.status-list li:last-child button')
@@ -703,8 +712,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const empty = { app: 'job-application-tracker', schema: 1, exportedAt: '2026-10-01T08:00:00.000Z', data: {} }
       fs.writeFileSync(file, JSON.stringify(empty))
 
-      await open('options', 'input[type=file]')
-      await css('input[type=file]').then((input) => input.sendKeys(file))
+      await open('options', '#restore-file')
+      await css('#restore-file').then((input) => input.sendKeys(file))
       await waitFor(async () => (await all('#restore-preview')).length > 0, { message: 'the preview' })
 
       const preview = await text('#restore-preview')
@@ -723,12 +732,292 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       // A file that is not a backup says so and changes nothing.
       fs.writeFileSync(file, JSON.stringify({ hello: 'world' }))
-      await open('options', 'input[type=file]')
-      await css('input[type=file]').then((input) => input.sendKeys(file))
+      await open('options', '#restore-file')
+      await css('#restore-file').then((input) => input.sendKeys(file))
       await waitFor(async () => (await all('.error')).length > 0, { message: 'the error' })
       assert.match(await text('.error'), /not an export/)
       assert.equal((await all('#restore-preview')).length, 0)
       fs.unlinkSync(file)
+    })
+
+    test('the data of another computer is previewed, needs the risk of duplicates to be accepted, then is added without removing anything', async () => {
+      const file = path.join(os.tmpdir(), `jat-merge-${Date.now()}.json`)
+      const other = {
+        app: 'job-application-tracker',
+        schema: 8,
+        exportedAt: '2026-10-01T08:00:00.000Z',
+        data: { companies: [{ id: 'company_other_computer', name: 'Other Computer Co' }] },
+      }
+      fs.writeFileSync(file, JSON.stringify(other))
+      await open('options', '#merge-file')
+      await css('#merge-file').then((input) => input.sendKeys(file))
+      await waitFor(async () => (await all('#merge-preview')).length > 0, { message: 'the merge preview' })
+      assert.match(await text('#merge-preview'), /Companies/)
+      assert.match(await text('#merge-preview'), /1 will be added/)
+      // The risk is accepted first.
+      assert.equal(await css('#merge-apply').then((button) => button.isEnabled()), false)
+      await css('#merge-understood').then((box) => box.click())
+      await waitFor(async () => css('#merge-apply').then((button) => button.isEnabled()), {
+        message: 'the button to be enabled',
+      })
+      await css('#merge-apply').then((button) => button.click())
+      try {
+        await waitFor(async () => (await all('#merge-preview')).length === 0, { message: 'the merge to be applied' })
+      } catch (error) {
+        throw new Error(
+          `${error.message} / page says: ${(await all('.error')).length ? await text('.error') : 'nothing'}`
+        )
+      }
+
+      const names = await waitFor(
+        async () => {
+          const companies = await driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get(null, (items) => done(items['jat:companies'] || []));
+          `)
+          return companies.some((company) => company.name === 'Other Computer Co') && companies
+        },
+        { message: 'the company of the other computer to be kept' }
+      )
+      assert.ok(names.length >= 1)
+      // Nothing was removed.
+      await open('board', '.column')
+      assert.ok((await all('.application-card')).length > 0)
+      fs.unlinkSync(file)
+    })
+
+    test('the text can be as large as 200% with the widest spacing, and the options page still holds', async () => {
+      await open('options', 'select[name=textScale]')
+      await choose('select[name=textScale]', '200')
+      await choose('select[name=textSpacing]', 'widest')
+      await choose('select[name=density]', 'compact')
+      await waitFor(
+        async () =>
+          (await driver.executeScript(`return getComputedStyle(document.documentElement).fontSize`)) === '32px',
+        { message: 'the size to be applied' }
+      )
+      assert.equal(await driver.executeScript(`return document.documentElement.dataset.density`), 'compact')
+      // Nothing sticks out of the page on the side.
+      const overflow = await driver.executeScript(
+        `return document.documentElement.scrollWidth - document.documentElement.clientWidth`
+      )
+      assert.ok(overflow <= 1, `the page is ${overflow}px too wide`)
+
+      // The choice is kept: another page opens with it.
+      await open('board', '.column')
+      assert.equal(await driver.executeScript(`return getComputedStyle(document.documentElement).fontSize`), '32px')
+
+      // And back to the usual look.
+      await open('options', 'select[name=textScale]')
+      await choose('select[name=textScale]', '100')
+      await choose('select[name=textSpacing]', 'default')
+      await choose('select[name=density]', 'comfortable')
+      await waitFor(
+        async () =>
+          (await driver.executeScript(`return getComputedStyle(document.documentElement).fontSize`)) === '16px',
+        { message: 'the usual size to be back' }
+      )
+    })
+
+    test('a column gets a symbol of the user, hidden from screen readers, and one character is kept', async () => {
+      const setSymbol = (value) =>
+        driver.executeScript(
+          `const input = document.querySelector('input[name=symbol-status_applied]'); input.value = arguments[0]; input.dispatchEvent(new Event('change', { bubbles: true }))`,
+          value
+        )
+      await open('options', 'input[name=symbol-status_applied]')
+      // What follows the first character is dropped, and the field shows what was kept.
+      await setSymbol('ab')
+      await waitFor(
+        async () =>
+          (await driver.executeScript(`return document.querySelector('input[name=symbol-status_applied]').value`)) ===
+          'a',
+        { message: 'one character kept' }
+      )
+      await setSymbol('★')
+      await waitFor(
+        async () =>
+          (await driver.executeScript(`return document.querySelector('input[name=symbol-status_applied]').value`)) ===
+          '★',
+        { message: 'the symbol' }
+      )
+
+      await open('board', '.column')
+      await waitFor(
+        async () =>
+          (await driver.executeScript(
+            `return [...document.querySelectorAll('.column h2 .shape')].some((s) => s.textContent === '★' && s.getAttribute('aria-hidden') === 'true')`
+          )) === true,
+        { message: 'the symbol in front of the column' }
+      )
+
+      // Back to none: the column has its dot again.
+      await open('options', 'input[name=symbol-status_applied]')
+      await setSymbol('')
+      await open('board', '.column')
+      await waitFor(
+        async () =>
+          (await driver.executeScript(
+            `return ![...document.querySelectorAll('.column h2 .shape')].some((s) => s.textContent === '★')`
+          )) === true,
+        { message: 'the symbol to be gone' }
+      )
+    })
+
+    test('the page tells its language and direction, and the language list names each language in itself', async () => {
+      await open('options', 'select[name=language]')
+      const names = await driver.executeScript(
+        `return [...document.querySelectorAll('select[name=language] option')].map((o) => o.textContent.trim())`
+      )
+      assert.ok(names.includes('English') && names.includes('Français'), names.join(', '))
+      await choose('select[name=language]', 'fr')
+      await waitFor(async () => (await driver.executeScript(`return document.documentElement.lang`)) === 'fr', {
+        message: 'lang to be fr',
+      })
+      assert.equal(await driver.executeScript(`return document.documentElement.dir`), 'ltr')
+      await choose('select[name=language]', 'en')
+      await waitFor(async () => (await driver.executeScript(`return document.documentElement.lang`)) === 'en', {
+        message: 'lang to be en',
+      })
+    })
+
+    test('the pages hold when the writing runs from right to left', async () => {
+      for (const page of ['options', 'popup']) {
+        await open(page, 'body')
+        await loaded()
+        await driver.executeScript(`document.documentElement.dir = 'rtl'`)
+        const overflow = await driver.executeScript(
+          `return document.documentElement.scrollWidth - document.documentElement.clientWidth`
+        )
+        assert.ok(overflow <= 1, `${page} is ${overflow}px too wide from right to left`)
+      }
+      await open('board', '.column')
+      await loaded()
+      await driver.executeScript(`document.documentElement.dir = 'rtl'`)
+      // The first column is at the start of the line, which is now on the right.
+      const side = await driver.executeScript(`
+        const columns = [...document.querySelectorAll('.column')];
+        return columns[0].getBoundingClientRect().left > columns[columns.length - 1].getBoundingClientRect().left;
+      `)
+      assert.equal(side, true, 'the columns are mirrored')
+    })
+
+    test('the pages hold with long accented texts, from right to left, and with tall letters: nothing is cut or sticks out', async () => {
+      // A pseudo-language made on the page: every text 40% longer and accented, as German or Finnish can be.
+      const stretch = `
+        const accents = { a: 'à', e: 'é', i: 'î', o: 'ô', u: 'ü', c: 'ç', n: 'ñ', A: 'Å', E: 'É', O: 'Ö', U: 'Ü' };
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        for (const node of nodes) {
+          const text = node.nodeValue;
+          if (!text.trim() || node.parentElement.closest('script, style')) continue;
+          const accented = text.replace(/[aeioucnAEOU]/g, (c) => accents[c]);
+          const extra = Math.ceil(text.trim().length * 0.4);
+          node.nodeValue = accented + ' ' + 'xyzwv'.repeat(Math.ceil(extra / 5)).slice(0, extra);
+        }
+        document.documentElement.style.lineHeight = '1.9';
+      `
+      // What is cut: an element that hides what does not fit, or that has a fixed width its text goes out of.
+      const check = `
+        const problems = [];
+        const page = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+        if (page > 1) problems.push('page ' + page + 'px too wide');
+        for (const el of document.body.querySelectorAll('*')) {
+          const style = getComputedStyle(el);
+          if (style.display === 'none' || !el.textContent.trim()) continue;
+          const hides = ['hidden', 'clip'].includes(style.overflowX) || style.textOverflow === 'ellipsis';
+          if (hides && el.scrollWidth > el.clientWidth + 1 && !el.closest('select, option, input, textarea')) {
+            problems.push((el.className || el.tagName) + ' cuts its text (' + el.scrollWidth + ' > ' + el.clientWidth + ')');
+          }
+        }
+        return problems.slice(0, 8);
+      `
+      // The check sees a text that is cut: a control, made on purpose, must be found.
+      await open('options', 'body')
+      await loaded()
+      await driver.executeScript(`
+        const cut = document.createElement('div');
+        cut.id = 'cut-control';
+        cut.style.cssText = 'width:20px;overflow:hidden;white-space:nowrap';
+        cut.textContent = 'a text much longer than twenty pixels';
+        document.body.append(cut);
+      `)
+      const control = await driver.executeScript(check)
+      assert.ok(
+        control.some((problem) => /cut-control|DIV/.test(problem)),
+        `the control was not found: ${control}`
+      )
+      await driver.executeScript(`document.getElementById('cut-control').remove()`)
+
+      for (const dir of ['ltr', 'rtl']) {
+        for (const page of ['options', 'popup', 'board']) {
+          await open(page, page === 'board' ? '.column' : 'body')
+          await loaded()
+          await driver.executeScript(`document.documentElement.dir = '${dir}'`)
+          await driver.executeScript(stretch)
+          const problems = await driver.executeScript(check)
+          assert.deepEqual(
+            problems.filter((problem) => !(page === 'board' && /^page /.test(problem))),
+            [],
+            `${page} (${dir})`
+          )
+        }
+      }
+    })
+
+    test('a custom theme changes the colours at once, warns about a contrast that is too low, and corrects it', async () => {
+      await open('options', 'select[name=theme]')
+      await driver.executeScript('window.confirm = () => true')
+      await choose('select[name=theme]', 'light')
+      await type('input[name=newTheme]', 'Warm')
+      await driver.executeScript(`document.querySelector('input[name=newTheme]').form.requestSubmit()`)
+      await waitFor(async () => (await all('#theme-editor')).length > 0, { message: 'the theme editor' })
+      const setColor = (name, value) =>
+        driver.executeScript(
+          `const input = document.querySelector('input[name="' + arguments[0] + '"]'); input.value = arguments[1]; input.dispatchEvent(new Event('change', { bubbles: true }))`,
+          name,
+          value
+        )
+      const background = () => driver.executeScript(`return getComputedStyle(document.body).backgroundColor`)
+
+      await setColor('light-background', '#ffeecc')
+      await waitFor(async () => (await background()) === 'rgb(255, 238, 204)', {
+        message: 'the background of the theme',
+      })
+
+      // A text that is too light on that background: a warning, then a correction.
+      await setColor('light-text', '#eeeeee')
+      await waitFor(async () => (await all('#theme-issues-light')).length > 0, { message: 'the contrast warning' })
+      assert.match(await text('#theme-issues-light'), /Text on Background/)
+      for (let tries = 0; tries < 4 && (await all('#theme-issues-light')).length > 0; tries++) {
+        await driver.executeScript(`document.querySelector('#theme-issues-light .theme-correct').click()`)
+        await driver.sleep(150)
+      }
+      await waitFor(async () => (await all('#theme-issues-light')).length === 0, {
+        message: 'the contrast to be corrected',
+      })
+
+      // Back to the standard themes: the colours go back.
+      await choose('select[name=customTheme]', '')
+      await waitFor(async () => (await background()) !== 'rgb(255, 238, 204)', { message: 'the standard colours' })
+
+      // Another page uses the theme too.
+      await choose(
+        'select[name=customTheme]',
+        await driver.executeScript(`return document.querySelector('select[name=customTheme] option:last-child').value`)
+      )
+      await open('board', '.column')
+      assert.equal(await background(), 'rgb(255, 238, 204)')
+
+      // Delete it and leave things as they were.
+      await open('options', '#theme-editor')
+      await driver.executeScript('window.confirm = () => true')
+      await driver.executeScript(
+        `[...document.querySelectorAll('#theme-editor button')].find((b) => b.textContent.trim() === 'Delete this theme').click()`
+      )
+      await waitFor(async () => (await all('#theme-editor')).length === 0, { message: 'the theme to be deleted' })
+      await choose('select[name=theme]', 'auto')
     })
 
     test('the checksum of a backup is checked: a file that was changed needs an explicit yes', async () => {
@@ -750,8 +1039,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const file = path.join(os.tmpdir(), `jat-checksum-${Date.now()}.json`)
       const backup = { app: 'job-application-tracker', schema: 2, exportedAt: '2026-10-01T08:00:00.000Z', data: {} }
       const pick = async () => {
-        await open('options', 'input[type=file]')
-        await css('input[type=file]').then((input) => input.sendKeys(file))
+        await open('options', '#restore-file')
+        await css('#restore-file').then((input) => input.sendKeys(file))
         await waitFor(async () => (await all('#restore-preview')).length > 0, { message: 'the preview' })
       }
 
@@ -823,8 +1112,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       // Restoring: the passphrase is asked, a wrong one changes nothing, the right one shows the preview.
       const protectedFile = path.join(os.tmpdir(), `jat-protected-${Date.now()}.json`)
       fs.writeFileSync(protectedFile, written)
-      await open('options', 'input[type=file]')
-      await css('input[type=file]').then((input) => input.sendKeys(protectedFile))
+      await open('options', '#restore-file')
+      await css('#restore-file').then((input) => input.sendKeys(protectedFile))
       await waitFor(async () => (await all('#restore-locked')).length > 0, { message: 'the passphrase prompt' })
 
       await type('#restore-passphrase', 'a wrong passphrase')

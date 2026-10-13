@@ -4,19 +4,25 @@
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
+  import { useFormat } from '../../composables/useFormat'
   import { type Application, Tag } from '../../models'
   import { PRIORITIES, TagError, setPriority, tagEntityByName, toggleFavorite, untagEntity } from '../../services/tags'
+  import { collatorFor } from '../../utils/text'
+  import ItemSymbol from '../ItemSymbol.vue'
 
   const props = defineProps<{ application: Application }>()
 
   const { t } = useApp()
+  const format = useFormat()
 
   const name = ref('')
   useDirtyGuard(() => hasText(name.value))
   const problem = ref('')
 
   const known = computed(() => useRepo(Tag).orderBy('name').get())
-  const tags = computed(() => [...(props.application.tags ?? [])].sort((a, b) => a.name.localeCompare(b.name)))
+  const tags = computed(() =>
+    [...(props.application.tags ?? [])].sort((a, b) => collatorFor(format.locale.value).compare(a.name, b.name))
+  )
   const priorityOptions = computed(() =>
     Object.fromEntries(PRIORITIES.map((level) => [String(level), t(`labels.priorities.${level}`)]))
   )
@@ -67,6 +73,7 @@
           class="tag-chip"
           :style="{ '--tag': tag.color }"
         >
+          <ItemSymbol :symbol="tag.symbol" />
           <span dir="auto">{{ tag.name }}</span>
           <button
             type="button"

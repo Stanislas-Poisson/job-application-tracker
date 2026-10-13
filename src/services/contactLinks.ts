@@ -1,6 +1,7 @@
 import { useRepo } from 'pinia-orm'
 import { Application, ApplicationContact, Company, Contact, ContactCompany } from '../models'
 import type { ContactRole } from '../models/ApplicationContact'
+import { sameText } from '../utils/text'
 import { isPlainDate } from '../utils/time'
 import { findOrCreateCompany } from './applications'
 
@@ -66,10 +67,9 @@ export function addCompanyLink(contactId: string, companyName: string, input: Co
     throw new ContactLinkError('order')
   }
 
-  const wanted = companyName.trim().toLowerCase()
   const known = useRepo(Company)
     .all()
-    .find((company) => company.name.trim().toLowerCase() === wanted)
+    .find((company) => sameText(company.name, companyName))
   if (known && companiesOf(contactId).some((link) => link.companyId === known.id && link.startedOn === startedOn)) {
     throw new ContactLinkError('twice')
   }

@@ -20,6 +20,7 @@ import type { ActivityType } from '../models/Activity'
 import type { ContactRole } from '../models/ApplicationContact'
 import type { WorkMode } from '../models/JobOffer'
 import type { Salary } from '../utils/money'
+import { nfc, sameText } from '../utils/text'
 import { isInstant, isPlainDate } from '../utils/time'
 import { type AddressParts, normalizeAddress } from './address'
 import { type ContactInput, normalizeContactInput } from './contacts'
@@ -96,9 +97,8 @@ export function logActivity(applicationId: string, type: ActivityType, title: st
 // The company with that name, whatever its case, or a new one.
 export function findOrCreateCompany(name: string): Company {
   const companies = useRepo(Company)
-  const wanted = name.trim().toLowerCase()
-  const existing = companies.all().find((company) => company.name.trim().toLowerCase() === wanted)
-  return existing ?? companies.save({ name: name.trim() })
+  const existing = companies.all().find((company) => sameText(company.name, name))
+  return existing ?? companies.save({ name: nfc(name.trim()) })
 }
 
 // Saves an offer the user is looking at and starts following it: the company, the offer, the application.

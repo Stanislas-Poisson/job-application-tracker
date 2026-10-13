@@ -6,11 +6,12 @@
   import { useFormat } from '../../composables/useFormat'
   import { type RestorePlan, importData, planRestore, settingsFromExport, wipeData } from '../../services/data'
   import { type EncryptedFile, WrongPassphraseError, decryptText, isEncryptedFile } from '../../services/encryption'
+  import { type MergePlan, mergeData, planMerge } from '../../services/mergeData'
   import { emptyTrash } from '../../services/trash'
   import { type ChecksumStatus, verifyChecksum } from '../../utils/checksum'
   import PassphraseForm from '../PassphraseForm.vue'
 
-  const { t, settings, updateSettings, persistence } = useApp()
+  const { t, tn, settings, updateSettings, persistence } = useApp()
   const format = useFormat()
   const { needs, protect, backup: backupToChosenFile } = useBackup()
 
@@ -40,14 +41,22 @@
   // A file whose checksum does not match is restored only when the user says they want it anyway.
   const acknowledged = ref(false)
 
-  async function choose(event: Event) {
+  // What the file chosen is for: to put back after a loss (replaces what is stored), or to bring together with it.
+  const target = ref<'restore' | 'merge'>('restore')
+  const merging = ref<{ content: unknown; plan: MergePlan; checksum: ChecksumStatus } | null>(null)
+  const understood = ref(false)
+
+  async function choose(event: Event, purpose: 'restore' | 'merge' = 'restore') {
     const input = event.target as HTMLInputElement
     const file = input.files?.[0]
     input.value = ''
+    target.value = purpose
     pending.value = null
+    merging.value = null
     locked.value = null
     typed.value = ''
     acknowledged.value = false
+    understood.value = false
     if (!file) {
       return
     }
@@ -70,7 +79,12 @@
 
   // Reads a backup that is not protected, and shows what restoring it would change.
   async function prepare(content: unknown) {
-    pending.value = { content, plan: planRestore(content), checksum: await verifyChecksum(content) }
+    const checksum = await verifyChecksum(content)
+    if ('merge' === target.value) {
+      merging.value = { content, plan: planMerge(content), checksum }
+    } else {
+      pending.value = { content, plan: planRestore(content), checksum }
+    }
     message.value = ''
   }
 
@@ -119,6 +133,28 @@
       say(error instanceof Error ? error.message : String(error), true)
     }
   }
+
+  function merge() {
+    if (!merging.value || !understood.value || ('invalid' === merging.value.checksum && !acknowledged.value)) {
+      return
+    }
+    try {
+      mergeData(merging.value.content)
+      merging.value = null
+      say(t('options.merged'))
+    } catch (error) {
+      say(error instanceof Error ? error.message : String(error), true)
+    }
+  }
+
+  const mergeRows = computed(
+    () => merging.value?.plan.models.filter((model) => 'trash' !== model.entity && 0 < model.incoming) ?? []
+  )
+  const mergeSum = (key: 'added' | 'updated') => mergeRows.value.reduce((total, row) => total + row[key], 0)
+  const duplicateCount = computed(() => {
+    const found = merging.value?.plan.duplicates
+    return found ? found.companies + found.contacts + found.jobOffers : 0
+  })
 
   // The kinds of data the restore touches, with their counts.
   const rows = computed(
@@ -211,9 +247,10 @@
     <label class="row">
       {{ t('options.import') }}
       <input
+        id="restore-file"
         type="file"
         accept="application/json,.json"
-        @change="choose"
+        @change="choose($event, 'restore')"
       />
     </label>
     <FormButton
@@ -222,6 +259,97 @@
       >{{ t('options.wipe') }}</FormButton
     >
   </div>
+
+  <h3>{{ t('options.merge') }}</h3>
+  <p class="muted">{{ t('options.mergeHint') }}</p>
+  <label class="row">
+    {{ t('options.mergeChoose') }}
+    <input
+      id="merge-file"
+      type="file"
+      accept="application/json,.json"
+      @change="choose($event, 'merge')"
+    />
+  </label>
+
+  <section
+    v-if="merging"
+    id="merge-preview"
+    class="card stack"
+  >
+    <p
+      id="merge-checksum"
+      :class="'invalid' === merging.checksum ? 'error' : 'muted'"
+    >
+      {{ t(`options.checksum.${merging.checksum}`) }}
+    </p>
+    <label
+      v-if="'invalid' === merging.checksum"
+      class="row"
+    >
+      <input
+        v-model="acknowledged"
+        type="checkbox"
+      />
+      {{ t('options.checksum.acknowledge') }}
+    </label>
+    <table>
+      <thead>
+        <tr>
+          <th>{{ t('options.colData') }}</th>
+          <th>{{ t('options.colBackup') }}</th>
+          <th>{{ t('options.colNew') }}</th>
+          <th>{{ t('options.mergeUpdated') }}</th>
+          <th>{{ t('options.mergeKept') }}</th>
+          <th>{{ t('options.colSame') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="row in mergeRows"
+          :key="row.entity"
+        >
+          <td>{{ t(`options.entities.${row.entity}`) }}</td>
+          <td>{{ row.incoming }}</td>
+          <td>{{ row.added }}</td>
+          <td>{{ row.updated }}</td>
+          <td>{{ row.kept + row.deleted + row.matched }}</td>
+          <td>{{ row.same }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>{{ t('options.mergeSummary', { added: mergeSum('added'), updated: mergeSum('updated') }) }}</p>
+    <p
+      v-if="0 < duplicateCount"
+      id="merge-duplicates"
+      class="error"
+    >
+      {{ tn('options.mergeDuplicates', duplicateCount) }}
+    </p>
+    <p class="muted">{{ t('options.mergeWarning') }}</p>
+    <label class="row">
+      <input
+        id="merge-understood"
+        v-model="understood"
+        type="checkbox"
+      />
+      {{ t('options.mergeUnderstood') }}
+    </label>
+    <div class="row">
+      <FormButton
+        id="merge-apply"
+        type="button"
+        :disabled="!understood || ('invalid' === merging.checksum && !acknowledged)"
+        @click="merge"
+        >{{ t('options.mergeApply') }}</FormButton
+      >
+      <FormButton
+        type="button"
+        @click="merging = null"
+        >{{ t('options.cancel') }}</FormButton
+      >
+    </div>
+  </section>
 
   <form
     v-if="locked"
