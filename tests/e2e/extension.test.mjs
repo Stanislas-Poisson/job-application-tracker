@@ -810,6 +810,51 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       )
     })
 
+    test('a column gets a symbol of the user, hidden from screen readers, and one character is kept', async () => {
+      const setSymbol = (value) =>
+        driver.executeScript(
+          `const input = document.querySelector('input[name=symbol-status_applied]'); input.value = arguments[0]; input.dispatchEvent(new Event('change', { bubbles: true }))`,
+          value
+        )
+      await open('options', 'input[name=symbol-status_applied]')
+      // What follows the first character is dropped, and the field shows what was kept.
+      await setSymbol('ab')
+      await waitFor(
+        async () =>
+          (await driver.executeScript(`return document.querySelector('input[name=symbol-status_applied]').value`)) ===
+          'a',
+        { message: 'one character kept' }
+      )
+      await setSymbol('★')
+      await waitFor(
+        async () =>
+          (await driver.executeScript(`return document.querySelector('input[name=symbol-status_applied]').value`)) ===
+          '★',
+        { message: 'the symbol' }
+      )
+
+      await open('board', '.column')
+      await waitFor(
+        async () =>
+          (await driver.executeScript(
+            `return [...document.querySelectorAll('.column h2 .shape')].some((s) => s.textContent === '★' && s.getAttribute('aria-hidden') === 'true')`
+          )) === true,
+        { message: 'the symbol in front of the column' }
+      )
+
+      // Back to none: the column has its dot again.
+      await open('options', 'input[name=symbol-status_applied]')
+      await setSymbol('')
+      await open('board', '.column')
+      await waitFor(
+        async () =>
+          (await driver.executeScript(
+            `return ![...document.querySelectorAll('.column h2 .shape')].some((s) => s.textContent === '★')`
+          )) === true,
+        { message: 'the symbol to be gone' }
+      )
+    })
+
     test('the checksum of a backup is checked: a file that was changed needs an explicit yes', async () => {
       const canonical = (value) =>
         JSON.stringify(

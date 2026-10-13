@@ -10,6 +10,8 @@ export default class Tag extends Model {
   declare name: string
   // A colour as #rrggbb. It is a help to the eye: the name is always written.
   declare color: string
+  // A symbol of the user's, shown in front of the name (see services/symbol.ts).
+  declare symbol: string | null
   declare createdAt: string
 
   static fields() {
@@ -18,6 +20,7 @@ export default class Tag extends Model {
       updatedAt: this.string(null),
       name: this.string(''),
       color: this.string('#0072b2'),
+      symbol: this.string(null),
       createdAt: this.string(() => new Date().toISOString()),
     }
   }

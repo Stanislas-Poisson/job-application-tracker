@@ -5,7 +5,7 @@
 // How to change the structure: add a function to MIGRATIONS that turns the data of version N into the data of N + 1,
 // raise SCHEMA_VERSION to N + 1, and add a test with a file of version N. The functions only ever go up one step.
 
-export const SCHEMA_VERSION = 8
+export const SCHEMA_VERSION = 9
 export const SCHEMA_KEY = 'jat:schema'
 
 // The records of every kind of data, by entity name, as they are stored.
@@ -104,6 +104,12 @@ export const MIGRATIONS: Record<number, Migration> = {
     })
     return { ...data, jobOffers, journeys: [...existing, ...made] }
   },
+  // 8 -> 9: a column and a tag can have a symbol of the user's. None to begin with.
+  8: (data) => ({
+    ...data,
+    statuses: (data.statuses ?? []).map((status) => ({ symbol: null, ...status })),
+    tags: (data.tags ?? []).map((tag) => ({ symbol: null, ...tag })),
+  }),
 }
 
 // Whether data of that version can be read: a number from 1 to the current version.

@@ -13,7 +13,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 20))
 
 describe('the version of the structure', () => {
   it('is a number of its own, with a migration for every step up to it', () => {
-    expect(SCHEMA_VERSION).toBe(8)
+    expect(SCHEMA_VERSION).toBe(9)
     for (let version = 1; version < SCHEMA_VERSION; version++) {
       expect(MIGRATIONS[version]).toBeTypeOf('function')
     }
@@ -84,6 +84,22 @@ describe('the version of the structure', () => {
     // Run again on its own result: nothing is made twice.
     expect(migrate(v4, 3).contactCompanies).toHaveLength(1)
     expect(migrate({}, 3).contactCompanies).toEqual([])
+  })
+
+  it('goes from version 8 to version 9: a column and a tag get a symbol, none to begin with, and keep the one they have', () => {
+    const next = MIGRATIONS[8]?.({
+      statuses: [
+        { id: 's1', label: 'A' },
+        { id: 's2', symbol: '★' },
+      ],
+      tags: [{ id: 't1', name: 'x' }],
+    })
+    expect(next?.statuses).toEqual([
+      { symbol: null, id: 's1', label: 'A' },
+      { id: 's2', symbol: '★' },
+    ])
+    expect(next?.tags).toEqual([{ symbol: null, id: 't1', name: 'x' }])
+    expect(MIGRATIONS[8]?.({})?.statuses).toEqual([])
   })
 
   it('goes from version 7 to version 8: a distance, a time and a means become a journey of one leg, once', () => {

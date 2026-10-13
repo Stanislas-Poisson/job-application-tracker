@@ -5,6 +5,7 @@
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { Application, Status } from '../../models'
+  import { normalizeSymbol } from '../../services/symbol'
 
   const { t, persistence } = useApp()
 
@@ -24,6 +25,13 @@
 
   function recolor(status: Status, color: string) {
     useRepo(Status).where('id', status.id).update({ color })
+  }
+
+  // One character: what is typed after the first is dropped, and the field shows what was kept.
+  function setSymbol(status: Status, input: HTMLInputElement) {
+    const symbol = normalizeSymbol(input.value)
+    input.value = symbol ?? ''
+    useRepo(Status).where('id', status.id).update({ symbol })
   }
 
   function setFinal(status: Status, isFinal: boolean) {
@@ -82,6 +90,16 @@
         :value="status.color"
         :aria-label="t('options.color')"
         @change="recolor(status, ($event.target as HTMLInputElement).value)"
+      />
+      <input
+        class="symbol-input"
+        type="text"
+        :name="`symbol-${status.id}`"
+        :value="status.symbol ?? ''"
+        :aria-label="t('options.symbol')"
+        :placeholder="t('options.symbolHint')"
+        maxlength="16"
+        @change="setSymbol(status, $event.target as HTMLInputElement)"
       />
       <FormInput
         :model-value="status.label"
