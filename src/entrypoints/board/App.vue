@@ -4,6 +4,7 @@
   import AppFooter from '../../components/AppFooter.vue'
   import AppHeader from '../../components/AppHeader.vue'
   import ApplicationDrawer from '../../components/board/ApplicationDrawer.vue'
+  import BackupReminder from '../../components/board/BackupReminder.vue'
   import BoardColumn from '../../components/board/BoardColumn.vue'
   import BoardFilters from '../../components/board/BoardFilters.vue'
   import { useApp } from '../../composables/useApp'
@@ -67,6 +68,8 @@
         >{{ t('nav.options') }}</a
       >
     </AppHeader>
+
+    <BackupReminder />
 
     <BoardFilters
       :shown="visible.length"

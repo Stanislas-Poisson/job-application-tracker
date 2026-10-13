@@ -47,6 +47,10 @@ const fr: TranslationObject = {
     foundKeys: { postedOn: 'date', salary: 'salaire', contractType: 'contrat', description: 'description' },
   },
   board: {
+    backupLate: 'Votre dernière sauvegarde date de {days} jours.',
+    backupNever: "Vous n'avez pas encore sauvegardé vos données.",
+    backupLater: 'Plus tard',
+    backupFailed: 'La sauvegarde a échoué. Réessayez, ou passez par les options.',
     title: 'Tableau',
     search: 'Rechercher par intitulé, entreprise ou lieu',
     showArchived: 'Afficher les archivées',
@@ -307,6 +311,18 @@ const fr: TranslationObject = {
     clear: 'Effacer les filtres',
   },
   options: {
+    backup: 'Sauvegarde',
+    backupHint:
+      'Une copie de tout (et des réglages) dans un fichier JSON que vous gardez où vous voulez. Ouvrez-le avec un éditeur, ou réimportez-le.',
+    backupNow: 'Sauvegarder maintenant',
+    backupElsewhere: 'Sauvegarder dans un autre fichier',
+    backedUp: 'Sauvegardé dans {name}.',
+    lastBackup: 'Dernière sauvegarde : {date}',
+    neverBackedUp: 'Aucune sauvegarde pour le moment.',
+    reminderDays: 'Me rappeler après ce nombre de jours (0 pour jamais)',
+    reminderHint:
+      "Le rappel s'affiche sur le tableau quand la dernière sauvegarde est plus ancienne, s'il y a quelque chose à sauvegarder.",
+    restore: 'Restaurer',
     title: 'Options',
     language: 'Langue',
     statuses: 'Colonnes du tableau',
