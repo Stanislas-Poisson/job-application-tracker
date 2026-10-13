@@ -907,6 +907,33 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       assert.equal(kept, null)
     })
 
+    test('once applied, a follow-up is suggested after the delay of the options, and added only when accepted', async () => {
+      await open('popup', 'form')
+      await type('input[name=title]', 'Follow me')
+      await type('input[name=company]', 'Followers')
+      await choose('select[name=status]', 'applied')
+      await css('form button[type=submit]').then((button) => button.click())
+      await waitFor(async () => (await all('.success')).length > 0, { message: 'the offer to be saved' })
+
+      await open('board', '.application-card')
+      const cards = await all('.application-card')
+      const titles = await Promise.all(cards.map((card) => card.getText()))
+      await cards[titles.findIndex((line) => /Follow me/.test(line))].click()
+      await waitFor(async () => (await all('#follow-up-suggestion')).length > 0, { message: 'the suggestion' })
+      assert.match(await text('#follow-up-suggestion'), /7 days later/)
+
+      // Nothing is added until it is accepted.
+      assert.doesNotMatch(await text('.drawer-content'), /Follow up -/)
+      await css('#follow-up-suggestion button').then((button) => button.click())
+      await waitFor(async () => (await all('#follow-up-suggestion')).length === 0, { message: 'the suggestion to go' })
+      assert.match(await text('.drawer-content'), /Follow up -/)
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      // The delay is a setting.
+      await open('options', 'input[name=followUpDays]')
+      assert.equal(await css('input[name=followUpDays]').then((input) => input.getAttribute('value')), '7')
+    })
+
     test('a deleted application goes to the trash, and comes back from it', async () => {
       await open('board', '.application-card')
       const before = (await all('.application-card')).length

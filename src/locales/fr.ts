@@ -96,6 +96,9 @@ const fr: TranslationObject = {
     notePlaceholder: 'Écrire une note',
     addNote: 'Ajouter la note',
     timeline: 'Historique',
+    followUp: 'Relancer',
+    followUpSuggestion: 'Vous avez postulé : relancer {days} jours plus tard, le {date} ?',
+    followUpAdd: 'Ajouter ce rappel',
     reminders: 'Rappels',
     reminderPlaceholder: 'Ce qu’il faut faire',
     addReminder: 'Ajouter le rappel',
@@ -346,6 +349,12 @@ const fr: TranslationObject = {
   dirty: {
     unsaved: 'Modifications non enregistrées',
     confirmClose: 'Du texte saisi n’est pas enregistré. Fermer quand même ?',
+  },
+  reminders: {
+    title: 'Rappels',
+    followUpDays: 'Suggérer une relance ce nombre de jours après la candidature',
+    followUpHint:
+      'Une fois que vous avez postulé, la candidature propose un rappel de relance à 9 h du matin, dans votre fuseau horaire. Rien n’est ajouté tant que vous n’acceptez pas.',
   },
   options: {
     protectedBackup: 'Cette sauvegarde est protégée par une phrase secrète.',
