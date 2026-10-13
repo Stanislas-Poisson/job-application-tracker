@@ -438,3 +438,7 @@ Settings, kept with the others and in the backups: `fontFamily` (`system`, `seri
 ## The symbol of a column or a tag
 
 `symbol` on `statuses` and `tags`: one character (a letter, a sign, an emoji; a sequence such as a flag or a joined emoji counts as one; 16 UTF-16 units at most) or null. What is typed after the first character is dropped. It is shown in front of the name, hidden from screen readers (the name is the text that is read). When it is none, or when the fonts of the computer cannot draw it, the default shape of the colour-blind modes is shown (nothing in the standard mode).
+
+## Languages
+
+`src/languages.ts` describes each language: its code, its name in its own language, its direction (`ltr` or `rtl`) and its script (ISO 15924). The page writes `lang` and `dir` on its root element from the language in use (the setting, or the language of the browser when it is one the extension has, else English). Names, notes and text typed by the user carry `dir="auto"` so that a name in another script keeps its order. Adding a language is one line in the table and one file of texts.

@@ -776,6 +776,7 @@ const en: TranslationObject = {
     },
     restore: 'Restore',
     title: 'Options',
+    languageAuto: 'Same as the browser',
     language: 'Language',
     statuses: 'Columns of the board',
     statusesHint: 'A column is a status. Rename them, change their colour or order, or add your own.',
