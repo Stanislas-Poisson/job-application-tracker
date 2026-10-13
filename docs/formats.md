@@ -279,3 +279,19 @@ Once the user has applied (`appliedAt` is set when an application reaches the "A
 - The delay is a setting (`followUpDays`, 7 by default, from 1 to 60). The reminder is set for **9 in the morning in the time zone of the user**, so it follows the clocks going back or forward.
 - It is not offered for an application that is archived, at the end of its road (a final column, such as an offer or a refusal), that the user has not applied to, or that has a reminder waiting already. It comes back once that reminder is done.
 - The form to add a reminder by hand starts from the same delay.
+
+### Telling the user when a reminder is due
+
+A background of the extension (`src/entrypoints/background.ts`, with its logic in `src/background/reminders.ts` and `src/services/reminderDue.ts`) looks at the reminders and does two things. It reads the stored data and writes none of it.
+
+- **The number on the icon** is how many reminders are due and not done. It is there with or without notifications, needs no permission, and goes down when a reminder is done. It is capped at 99. A reminder of an archived or finished application is not counted.
+- **A notification**, only when the user turned it on in the options. It is made by the system of the user (the notification centre of Windows, macOS or Linux, through the browser), written in the language and the time zone of the settings: the title, the offer and the company, and the moment. A click opens the board on the application, in the tab that is open already if there is one.
+
+How it keeps to the point:
+
+- **Once each.** The reminders already told about are kept apart (`jat:notified`), so a reminder is told about once, however many times the background looks. One that is done is forgotten: ticked, then unticked, it is told about again.
+- **Right on time, and later if needed.** An alarm is set for the next moment a reminder is due, and another one looks every 15 minutes. A reminder that came due while the browser was shut is told about when it opens, once.
+- **Not a pile.** When more than three come due together (after days away), one notification tells about all of them, with the first few, and opens the board.
+- **An alert, if wanted.** By default a notification stays on screen until the user closes it (Chrome and Edge; Firefox does not know the option, so it does not get it). A setting turns that off.
+- **The permission is optional.** `notifications` is asked when the switch goes on, and given back when it goes off. If the browser refuses, the switch stays off and says why. If it is taken back later, the reminders that could not be shown are not marked, and are tried again.
+- Data written by a newer structure than the extension knows is left alone.

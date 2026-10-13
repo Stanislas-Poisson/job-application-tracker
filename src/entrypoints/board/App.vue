@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { useRepo } from 'pinia-orm'
-  import { computed, ref } from 'vue'
+  import { computed, onMounted, onUnmounted, ref } from 'vue'
   import AppFooter from '../../components/AppFooter.vue'
   import AppHeader from '../../components/AppHeader.vue'
   import ApplicationDrawer from '../../components/board/ApplicationDrawer.vue'
@@ -19,6 +19,26 @@
   const { view, clearFilters } = useBoardView()
 
   const openId = ref<string | null>(null)
+
+  // A notification opens the board on the application it is about: #application=<id>. An id that is not there opens nothing.
+  function openFromAddress() {
+    const id = /^#application=(.+)$/.exec(location.hash)?.[1]
+    if (undefined !== id && undefined !== useRepo(Application).find(decodeURIComponent(id))) {
+      openId.value = decodeURIComponent(id)
+    }
+  }
+  // Closing the drawer takes the address off: a reload must not open it again.
+  function close() {
+    openId.value = null
+    if ('' !== location.hash) {
+      history.replaceState(null, '', location.pathname + location.search)
+    }
+  }
+  onMounted(() => {
+    openFromAddress()
+    window.addEventListener('hashchange', openFromAddress)
+  })
+  onUnmounted(() => window.removeEventListener('hashchange', openFromAddress))
 
   const statuses = computed(() => useRepo(Status).orderBy('order').get())
 
@@ -98,7 +118,7 @@
 
     <ApplicationDrawer
       :application-id="openId"
-      @close="openId = null"
+      @close="close"
     />
     <AppFooter />
   </main>
