@@ -213,19 +213,66 @@ export async function saveSettings(adapter: StorageAdapter, settings: Settings) 
 }
 
 let writing: Promise<unknown> = Promise.resolve()
+// The changes that wait for their turn to be written. Those made while they wait join them: a burst of changes (a field typed
+// letter by letter) makes one write, not one for each.
+let waiting: { changes: Partial<Settings>; done: Promise<Settings> } | null = null
 
 /**
  * Changes some settings in the storage without touching the others. The page that asks may hold a copy that is behind (another
  * page changed a setting it has not read yet): writing the whole copy would put the old value back. So the storage is read at
  * the moment of the change, the changed settings are put into what it holds, and the result is written. Changes made by a page
- * wait for one another, so that two of them do not read the same state.
+ * wait for one another, so that two of them do not read the same state, and those that wait are written together.
  */
 export function changeSettings(adapter: StorageAdapter, changes: Partial<Settings>): Promise<Settings> {
-  const run = writing.then(async () => {
-    const next = normalizeSettings({ ...(await loadSettings(adapter)), ...changes })
+  if (waiting) {
+    Object.assign(waiting.changes, changes)
+    return waiting.done
+  }
+  const batch = { changes: { ...changes }, done: Promise.resolve({} as Settings) }
+  waiting = batch
+  batch.done = writing.then(async () => {
+    // From here a new change makes a batch of its own.
+    waiting = null
+    const next = normalizeSettings({ ...(await loadSettings(adapter)), ...batch.changes })
     await saveSettings(adapter, next)
     return next
   })
-  writing = run.catch(() => undefined)
-  return run
+  writing = batch.done.catch(() => undefined)
+  return batch.done
+}
+
+/**
+ * Keeps the settings of a page (an object it shows and edits) and the storage the same, in both ways.
+ *
+ * `update` changes some settings at once in the page and writes them. While a write of this page is under way the storage
+ * tells the page about it (and about the older writes before it): reading that back would put an old value over what was just
+ * typed. So the page reads the storage only when none of its own writes is under way, and then takes in what other pages did.
+ */
+export function syncSettings(adapter: StorageAdapter, settings: Settings) {
+  let inFlight = 0
+  const refresh = async () => {
+    const fresh = await loadSettings(adapter)
+    // A change made while the storage was being read stands: it is in the next write.
+    if (0 === inFlight) {
+      Object.assign(settings, fresh)
+    }
+  }
+  const stop = adapter.onChanged((keys) => {
+    if (keys.includes(SETTINGS_KEY) && 0 === inFlight) {
+      void refresh()
+    }
+  })
+  const update = async (changes: Partial<Settings>) => {
+    Object.assign(settings, changes)
+    inFlight++
+    try {
+      await changeSettings(adapter, changes)
+    } finally {
+      inFlight--
+      if (0 === inFlight) {
+        await refresh()
+      }
+    }
+  }
+  return { update, refresh, stop }
 }
