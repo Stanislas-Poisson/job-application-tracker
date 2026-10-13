@@ -8,6 +8,7 @@
   import { type EncryptedFile, WrongPassphraseError, decryptText, isEncryptedFile } from '../../services/encryption'
   import { type MergePlan, mergeData, planMerge } from '../../services/mergeData'
   import { emptyTrash } from '../../services/trash'
+  import { problemText } from '../../services/userError'
   import { type ChecksumStatus, verifyChecksum } from '../../utils/checksum'
   import PassphraseForm from '../PassphraseForm.vue'
 
@@ -32,7 +33,7 @@
         say(t('options.backedUp', { name }))
       }
     } catch (error) {
-      say(error instanceof Error ? error.message : String(error), true)
+      say(problemText(error, t), true)
     }
   }
 
@@ -70,10 +71,7 @@
       }
       await prepare(content)
     } catch (error) {
-      say(
-        error instanceof SyntaxError ? t('options.notJson') : error instanceof Error ? error.message : String(error),
-        true
-      )
+      say(error instanceof SyntaxError ? t('options.notJson') : problemText(error, t), true)
     }
   }
 
@@ -108,9 +106,7 @@
           ? t('options.wrongPassphrase')
           : error instanceof SyntaxError
             ? t('options.notJson')
-            : error instanceof Error
-              ? error.message
-              : String(error),
+            : problemText(error, t),
         true
       )
     }
@@ -130,7 +126,7 @@
       pending.value = null
       say(t('options.imported'))
     } catch (error) {
-      say(error instanceof Error ? error.message : String(error), true)
+      say(problemText(error, t), true)
     }
   }
 
@@ -143,7 +139,7 @@
       merging.value = null
       say(t('options.merged'))
     } catch (error) {
-      say(error instanceof Error ? error.message : String(error), true)
+      say(problemText(error, t), true)
     }
   }
 

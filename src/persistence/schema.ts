@@ -5,6 +5,8 @@
 // How to change the structure: add a function to MIGRATIONS that turns the data of version N into the data of N + 1,
 // raise SCHEMA_VERSION to N + 1, and add a test with a file of version N. The functions only ever go up one step.
 
+import { UserError } from '../services/userError'
+
 export const SCHEMA_VERSION = 9
 export const SCHEMA_KEY = 'jat:schema'
 
@@ -122,17 +124,17 @@ export const isKnownVersion = (version: unknown): version is number =>
  */
 export function migrate(data: RawData, from: unknown): RawData {
   if (!isKnownVersion(from)) {
-    throw new Error(
-      'number' === typeof from && from > SCHEMA_VERSION
-        ? 'This data comes from a newer version of the extension.'
-        : 'The version of this data is not known.'
+    const newer = 'number' === typeof from && from > SCHEMA_VERSION
+    throw new UserError(
+      newer ? 'newerData' : 'unknownData',
+      newer ? 'This data comes from a newer version of the extension.' : 'The version of this data is not known.'
     )
   }
   let current: RawData = structuredClone(data)
   for (let version = from; version < SCHEMA_VERSION; version++) {
     const step = MIGRATIONS[version]
     if (!step) {
-      throw new Error(`There is no way to bring data of version ${version} up to date.`)
+      throw new UserError('noStep', `There is no way to bring data of version ${version} up to date.`, { version })
     }
     current = step(current)
   }
