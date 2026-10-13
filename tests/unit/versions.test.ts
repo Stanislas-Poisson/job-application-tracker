@@ -13,7 +13,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 20))
 
 describe('the version of the structure', () => {
   it('is a number of its own, with a migration for every step up to it', () => {
-    expect(SCHEMA_VERSION).toBe(4)
+    expect(SCHEMA_VERSION).toBe(5)
     for (let version = 1; version < SCHEMA_VERSION; version++) {
       expect(MIGRATIONS[version]).toBeTypeOf('function')
     }
@@ -52,7 +52,12 @@ describe('the version of the structure', () => {
     expect(v3.companies).toEqual(v2.companies)
     expect(migrate({ ...v2, companyRelations: [{ id: 'x' }] }, 2).companyRelations).toEqual([{ id: 'x' }])
     // From version 1, every step is taken.
-    expect(migrate({ companies: [] }, 1)).toMatchObject({ trash: [], companyRelations: [], contactCompanies: [] })
+    expect(migrate({ companies: [] }, 1)).toMatchObject({
+      trash: [],
+      companyRelations: [],
+      contactCompanies: [],
+      payProfiles: [],
+    })
   })
 
   it('goes from version 3 to version 4: the company of a contact becomes a first link, once', () => {
@@ -79,6 +84,11 @@ describe('the version of the structure', () => {
     // Run again on its own result: nothing is made twice.
     expect(migrate(v4, 3).contactCompanies).toHaveLength(1)
     expect(migrate({}, 3).contactCompanies).toEqual([])
+  })
+
+  it('goes from version 4 to version 5 by adding the pay profiles, and keeps those there are', () => {
+    expect(migrate({}, 4).payProfiles).toEqual([])
+    expect(migrate({ payProfiles: [{ id: 'p' }] }, 4).payProfiles).toEqual([{ id: 'p' }])
   })
 
   it('refuses a newer version and one that makes no sense', () => {

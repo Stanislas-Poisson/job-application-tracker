@@ -10,15 +10,16 @@
   import { useApp } from '../../composables/useApp'
   import { useBoardView } from '../../composables/useBoardView'
   import { useFormat } from '../../composables/useFormat'
-  import { Application, CompanyRelation, Status } from '../../models'
+  import { Application, CompanyRelation, PayProfile, Status } from '../../models'
   import { moveApplication } from '../../services/applications'
   import { queryApplications } from '../../services/boardQuery'
   import { finalClientsOf, linksOf } from '../../services/companyRelations'
   import { COLUMNS, boardCsv, exportFileName } from '../../services/exportBoard'
+  import { estimateNet } from '../../services/netEstimate'
   import { downloadText } from '../../utils/download'
   import { todayIn } from '../../utils/time'
 
-  const { t, persistence } = useApp()
+  const { t, persistence, settings } = useApp()
   const format = useFormat()
   const { view, clearFilters } = useBoardView()
 
@@ -96,6 +97,20 @@
           kinds: { gross: t('salary.kind.gross'), net: t('salary.kind.net') },
         },
         conversion: format.conversion(),
+        netEstimate: (salary) => {
+          const result = estimateNet(
+            salary,
+            '' === settings.payProfileId ? null : useRepo(PayProfile).find(settings.payProfileId),
+            { workingDaysPerYear: settings.workingDaysPerYear, hoursPerDay: settings.hoursPerDay }
+          )
+          return 'string' === typeof result
+            ? null
+            : {
+                amount: Math.round((result.low.net + result.high.net) / 2),
+                currency: result.currency,
+                profile: result.profile,
+              }
+        },
         finalClients: (companyId) => finalClientsOf(companyId).map((client) => client.name),
         statusLabel: (statusId) => (statusId ? (names[statusId] ?? '') : ''),
       },

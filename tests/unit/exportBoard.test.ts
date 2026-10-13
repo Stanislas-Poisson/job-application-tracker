@@ -30,6 +30,7 @@ const context = (changes: Partial<ExportContext> = {}): ExportContext => ({
     rates: { USD: 0.9 },
     assumptions: { workingDaysPerYear: 220, hoursPerDay: 7 },
   },
+  netEstimate: () => null,
   finalClients: () => [],
   statusLabel: (id) => (id ? 'Applied' : ''),
   decimal: '.',
@@ -139,6 +140,24 @@ describe('boardRows', () => {
     expect(cell(row, 'createdAt')).toMatch(/Z$/)
     expect(cell(row, 'updatedAt')).toMatch(/Z$/)
     expect(cell(row, 'archived')).toBe('no')
+  })
+
+  it('writes the estimate of the net pay, with the profile that made it', () => {
+    captureOffer({
+      title: 'Dev',
+      companyName: 'Acme',
+      salary: { min: 4_000_000, max: 5_000_000, currency: 'EUR', period: 'year', kind: 'gross' },
+    })
+    const row =
+      boardRows(
+        everything(),
+        context({ netEstimate: () => ({ amount: 3_375_000, currency: 'EUR', profile: 'My profile' }) })
+      )[1] ?? []
+    expect(cell(row, 'netPerYear')).toBe('33750.00')
+    expect(cell(row, 'netProfile')).toBe('My profile')
+    const none = boardRows(everything(), context())[1] ?? []
+    expect(cell(none, 'netPerYear')).toBe('')
+    expect(cell(none, 'netProfile')).toBe('')
   })
 
   it('writes the final clients of a recruitment firm', () => {

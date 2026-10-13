@@ -15,7 +15,7 @@ describe('export and import', () => {
     const file = JSON.parse(JSON.stringify(exportData()))
 
     expect(file.app).toBe(EXPORT_APP)
-    expect(Object.keys(file.data)).toHaveLength(17)
+    expect(Object.keys(file.data)).toHaveLength(18)
 
     freshStore({ seed: false })
     importData(file)
