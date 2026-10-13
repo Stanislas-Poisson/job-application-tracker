@@ -113,3 +113,21 @@ describe('custom themes', () => {
     expect(document.getElementById('jat-custom-theme')).toBeNull()
   })
 })
+
+describe('colours of the columns', () => {
+  it('are in the style sheet, one variable per column', () => {
+    const css = themeCss(newTheme('x', 'a'))
+    expect(css).toContain('--column-0:#0072b2')
+    expect(css).toContain('--column-7:#334155')
+  })
+
+  it('reach the contrast of the lines on both looks, as they come', () => {
+    expect(contrastIssues(DEFAULT_LIGHT)).toEqual([])
+    expect(contrastIssues(DEFAULT_DARK)).toEqual([])
+  })
+
+  it('are checked against the background like the other colours', () => {
+    const issues = contrastIssues({ ...DEFAULT_LIGHT, column3: '#ffff00' })
+    expect(issues.map((issue) => issue.color)).toEqual(['column3'])
+  })
+})
