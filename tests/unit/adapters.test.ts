@@ -265,3 +265,32 @@ describe.skipIf(!existsSync(SAVED_TALENT))('the saved Talent.com page', () => {
     })
   })
 })
+
+describe('Glassdoor', () => {
+  const html = readFileSync('tests/fixtures/glassdoor/job-fr.html', 'utf8')
+
+  it('is the adapter of every Glassdoor site, and of no other', () => {
+    expect(adapterFor('https://www.glassdoor.fr/Emploi/emplois.htm')?.name).toBe('glassdoor')
+    expect(adapterFor('https://www.glassdoor.com/Job/jobs.htm')?.name).toBe('glassdoor')
+    expect(adapterFor('https://www.glassdoor.co.uk/Job/x')?.name).toBe('glassdoor')
+    expect(adapterFor('https://notglassdoor.fr/Job/x')).toBeNull()
+  })
+
+  it('reads the offer that is open: title, company, place, pay range and description', async () => {
+    const { readGlassdoor } = await import('../../src/extraction/adapters/glassdoor')
+    const offer = readGlassdoor(parse(html))
+    expect(offer).toMatchObject({
+      title: 'Backend Developer (PHP)',
+      companyName: 'Example Corp',
+      location: 'Lyon',
+      salary: { min: 4_200_000, max: 9_200_000, currency: 'EUR', period: null, kind: null },
+    })
+    expect(offer.description).toContain('Join the team.')
+    expect(offer.description).toContain('PHP')
+  })
+
+  it('says nothing for a list of offers, where no offer is open', async () => {
+    const { readGlassdoor } = await import('../../src/extraction/adapters/glassdoor')
+    expect(readGlassdoor(parse('<body><li data-jobid="1">An offer</li></body>'))).toEqual({})
+  })
+})
