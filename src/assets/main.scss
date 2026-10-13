@@ -453,3 +453,13 @@ footer {
 .status-list .row {
   flex-wrap: wrap;
 }
+
+// A row that goes on the next line rather than out of the page.
+.row.wrap {
+  flex-wrap: wrap;
+}
+
+// A file field never makes the page wider than the screen.
+input[type="file"] {
+  max-width: 100%;
+}

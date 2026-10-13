@@ -6,13 +6,14 @@ import { isCountry, normalizeEmail } from './utils/contact'
 import { CURRENCY_DISPLAYS, type CurrencyDisplay, DEFAULT_ASSUMPTIONS, isCurrency } from './utils/money'
 import { isInstant, isValidTimeZone } from './utils/time'
 
-export const LOCALES = ['auto', 'en', 'fr'] as const
 export const THEMES = ['auto', 'light', 'dark'] as const
 export const ACCENTS = ['slate', 'blue', 'teal', 'green', 'purple', 'pink', 'orange'] as const
 // Colour-blind modes change the colours and give each column a shape; high contrast thickens the lines and the text.
 export const VISIONS = ['standard', 'red-green', 'blue-yellow', 'high-contrast'] as const
 
-export type Locale = (typeof LOCALES)[number]
+// "auto", a language of the extension, or the code of a language the user added from a file (checked when it is used).
+export type Locale = string
+const LOCALE_CODE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8}){0,2}$/
 export type ThemeMode = (typeof THEMES)[number]
 export type Accent = (typeof ACCENTS)[number]
 export type Vision = (typeof VISIONS)[number]
@@ -147,7 +148,7 @@ const VALID: {
     >
   ]: (value: unknown) => boolean
 } = {
-  locale: oneOf(LOCALES),
+  locale: (value) => 'auto' === value || ('string' === typeof value && LOCALE_CODE.test(value)),
   theme: oneOf(THEMES),
   accent: oneOf(ACCENTS),
   vision: oneOf(VISIONS),

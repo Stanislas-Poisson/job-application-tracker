@@ -1,3 +1,5 @@
+import { normalizeStoredLanguages } from '../customLanguage'
+import { LANGUAGES_KEY, installed } from '../customLanguages'
 import { createTranslator, pluralText, resolveLocale } from '../i18n'
 import { SCHEMA_KEY, SCHEMA_VERSION, keyOf } from '../persistence'
 import type { StorageAdapter } from '../persistence/adapter'
@@ -59,7 +61,7 @@ export interface CheckResult {
  */
 export async function checkReminders(env: BackgroundEnv): Promise<CheckResult> {
   const entities = ['reminders', 'applications', 'statuses', 'jobOffers', 'companies'] as const
-  const stored = await env.adapter.get([SETTINGS_KEY, NOTIFIED_KEY, SCHEMA_KEY, ...entities.map(keyOf)])
+  const stored = await env.adapter.get([SETTINGS_KEY, NOTIFIED_KEY, SCHEMA_KEY, LANGUAGES_KEY, ...entities.map(keyOf)])
   const none: CheckResult = { notified: [], next: null }
 
   const version = stored[SCHEMA_KEY]
@@ -83,6 +85,8 @@ export async function checkReminders(env: BackgroundEnv): Promise<CheckResult> {
 
   const notified: Notified = { ...(stored[NOTIFIED_KEY] as Notified | undefined) }
 
+  // The language in use may be one the user added from a file.
+  installed.value = normalizeStoredLanguages(stored[LANGUAGES_KEY])
   const translator = createTranslator(settings.locale, env.language)
   translator.setLocale(resolveLocale(settings.locale, env.language))
   const locale = resolveLocale(settings.locale, env.language)
