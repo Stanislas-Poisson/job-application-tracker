@@ -872,6 +872,25 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       })
     })
 
+    test('the pages hold when the writing runs from right to left', async () => {
+      for (const page of ['options', 'popup']) {
+        await open(page, 'body')
+        await driver.executeScript(`document.documentElement.dir = 'rtl'`)
+        const overflow = await driver.executeScript(
+          `return document.documentElement.scrollWidth - document.documentElement.clientWidth`
+        )
+        assert.ok(overflow <= 1, `${page} is ${overflow}px too wide from right to left`)
+      }
+      await open('board', '.column')
+      await driver.executeScript(`document.documentElement.dir = 'rtl'`)
+      // The first column is at the start of the line, which is now on the right.
+      const side = await driver.executeScript(`
+        const columns = [...document.querySelectorAll('.column')];
+        return columns[0].getBoundingClientRect().left > columns[columns.length - 1].getBoundingClientRect().left;
+      `)
+      assert.equal(side, true, 'the columns are mirrored')
+    })
+
     test('the checksum of a backup is checked: a file that was changed needs an explicit yes', async () => {
       const canonical = (value) =>
         JSON.stringify(
