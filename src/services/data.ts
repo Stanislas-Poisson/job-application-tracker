@@ -66,7 +66,8 @@ export function readExport(file: unknown): ExportFile & { fromSchema: number } {
     throw new Error('This export comes from a newer version of the extension.')
   }
 
-  const data = candidate.data as Record<string, unknown>
+  // A plain copy: the file may be held by the interface as reactive objects, which cannot be cloned by the migrations.
+  const data = JSON.parse(JSON.stringify(candidate.data)) as Record<string, unknown>
   for (const model of MODELS) {
     if (undefined !== data[model.entity] && !Array.isArray(data[model.entity])) {
       throw new Error(`The data of ${model.entity} is not a list.`)

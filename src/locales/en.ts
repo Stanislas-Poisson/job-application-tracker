@@ -710,6 +710,20 @@ const en: TranslationObject = {
         'The checksum does not match: the file was changed since it was saved. It may be damaged, cut off or edited by hand.',
       acknowledge: 'I know it was changed, and I want to restore it anyway',
     },
+    merge: 'Bring two computers together',
+    mergeHint:
+      'For when you worked on two computers before bringing the data together. This is not a restore: nothing is replaced and nothing is deleted. The records the file has and this browser lacks are added, and a record on both sides keeps its most recent version.',
+    mergeChoose: 'Choose the backup of the other computer',
+    mergeUpdated: 'Newer in the file',
+    mergeKept: 'Kept as here',
+    mergeSummary: '{added} will be added and {updated} will be replaced by a more recent version.',
+    mergeDuplicates:
+      '{count} of the records to add look like ones you already have under another identity (same company name, same contact, same address of an offer). They would be there twice.',
+    mergeWarning:
+      'The same company, contact or tag created on both computers is not the same record: it will be there twice, and you will have to merge them by hand. The columns and sources that come with the extension are matched, not doubled. What you deleted here stays deleted; what was deleted on the other computer is not deleted here. The settings are not merged. Make a backup first.',
+    mergeUnderstood: 'I know that duplicates are possible and that this cannot be undone',
+    mergeApply: 'Bring the data together',
+    merged: 'The data of the two computers is brought together.',
     restoreHint:
       'Bring your data back from a backup file, after a loss or on a new computer. You see what changes before anything is applied.',
     notJson: 'This file is not a JSON file.',
