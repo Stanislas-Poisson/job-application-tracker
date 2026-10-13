@@ -397,3 +397,17 @@ An offer can keep the **postal address of its workplace** and a link to open it 
 - **The start** of a route is the home address of the settings. It stays in the browser with the other settings and the backups, and never goes into the CSV export. How the user usually travels (car, public transport, bicycle, on foot) is a setting too, and can be changed for an offer.
 - **What was found** is kept in the offer: the distance (kept in metres, written in kilometres), the time (whole minutes, at most 24 hours) and how the user travels. The card shows it (`12.4 km - 35 min`) and the CSV has it, with the postal address.
 - **No distance is computed by the extension**, because it would need the coordinates of the two addresses, hence a geocoding service and an address sent to it. The user does the search on the map, where they can see the real route.
+
+### Several pages on one storage
+
+The popup, the board and the options are open at the same time, each with its own copy of the data, all writing to one storage. A page that replaced what the storage holds by its own copy would erase what another page wrote and it had not seen yet. So a page never does that:
+
+- **A write is a read, a merge and a write.** The storage is read at the moment of the write, and the changes of the page are brought to what it holds, **record by record, by id** (`src/persistence/merge.ts`). Three states are compared: the **base** (what the page and the storage last agreed on), **mine** (the page) and **theirs** (the storage now).
+  - A record that only one side changed (made, changed or removed) keeps that side's version.
+  - A record both changed: the one changed last (`updatedAt`) stands, this page's when they are equal.
+  - A record one side removed and the other changed **stays**: a removal never wins against an edit, nothing is lost.
+- **A read takes in the other pages.** When the storage tells a page that it changed, the page merges what it holds with what it has changed since its last write, and writes the rest when it saves. A write of its own coming back is recognised and ignored.
+- **One queue.** The writes and the reads of a page run one after the other, so that two of them never overlap.
+- **The settings follow the same rule.** Changing a setting writes only that setting into what the storage holds now (`changeSettings`), never the whole copy of the page.
+- **The default columns and sources have fixed ids** (`status_applied`, `source_linkedin`…), so that two pages opened together on an empty storage make the same records and not two sets.
+- **What is left.** The storage has no transaction: two writes in the very same instant can still lose one of two changes to the same record. The window is the time between a page reading and writing, a few milliseconds, instead of the whole life of a page as before.

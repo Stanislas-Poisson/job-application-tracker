@@ -1,6 +1,6 @@
 import { useRepo } from 'pinia-orm'
 import { describe, expect, it, vi } from 'vitest'
-import { Application, Company, Status } from '../../src/models'
+import { Application, Company, Status, Trash } from '../../src/models'
 import { SCHEMA_KEY, SCHEMA_VERSION, createPersistence, keyOf } from '../../src/persistence'
 import { memoryAdapter } from '../../src/persistence/adapter'
 import { captureOffer } from '../../src/services/applications'
@@ -266,6 +266,164 @@ describe('two writes in a row', () => {
     expect(seen).not.toContain('B')
     expect(useRepo(Company).find(company.id)?.name).toBe('C')
     expect((adapter.data[keyOf('companies')] as { name: string }[])[0]?.name).toBe('C')
+    persistence.stop()
+  })
+})
+
+describe('several pages on one storage', () => {
+  const names = (records: unknown) => (records as { name: string }[]).map((record) => record.name).sort()
+  const stored = (adapter: ReturnType<typeof memoryAdapter>) => adapter.data[keyOf('companies')]
+  // What another page does: it writes to the storage, which tells every page.
+  const otherPage = (
+    adapter: ReturnType<typeof memoryAdapter>,
+    change: (records: Record<string, unknown>[]) => Record<string, unknown>[]
+  ) =>
+    adapter.set({
+      [keyOf('companies')]: change([
+        ...((adapter.data[keyOf('companies')] as Record<string, unknown>[] | undefined) ?? []),
+      ]),
+    })
+
+  const setup = async () => {
+    const adapter = memoryAdapter()
+    const persistence = createPersistence(freshStore({ seed: false }), adapter, { delay: 20 })
+    await persistence.ready
+    useRepo(Company).save({ id: 'a', name: 'A' })
+    useRepo(Company).save({ id: 'b', name: 'B' })
+    await persistence.flush()
+    return { adapter, persistence }
+  }
+
+  it('does not erase what another page wrote and this one has not seen yet', async () => {
+    const { adapter, persistence } = await setup()
+
+    // Another page renames A. The storage holds it, and this page has not read it: nothing told it yet.
+    adapter.data[keyOf('companies')] = (adapter.data[keyOf('companies')] as { id: string; name: string }[]).map(
+      (record) => ('a' === record.id ? { ...record, name: 'A by the other page' } : record)
+    )
+
+    // This page renames B and saves. Its copy still says "A": it must not put it back.
+    useRepo(Company).where('id', 'b').update({ name: 'B by this page' })
+    await persistence.flush()
+
+    expect(names(stored(adapter))).toEqual(['A by the other page', 'B by this page'])
+    // And it has taken in the change of the other page.
+    expect(
+      useRepo(Company)
+        .all()
+        .map((company) => company.name)
+        .sort()
+    ).toEqual(['A by the other page', 'B by this page'])
+    persistence.stop()
+  })
+
+  it('keeps a record another page made, and one it removed, when this page saves', async () => {
+    const { adapter, persistence } = await setup()
+    adapter.data[keyOf('companies')] = [
+      { id: 'a', name: 'A', updatedAt: null },
+      { id: 'c', name: 'C made by the other page', updatedAt: null },
+    ]
+
+    useRepo(Company).save({ id: 'd', name: 'D made here' })
+    await persistence.flush()
+
+    // B was removed by the other page and not touched here; C is new there; D is new here.
+    expect(names(stored(adapter))).toEqual(['A', 'C made by the other page', 'D made here'])
+    expect(
+      useRepo(Company)
+        .all()
+        .map((company) => company.name)
+        .sort()
+    ).toEqual(['A', 'C made by the other page', 'D made here'])
+    persistence.stop()
+  })
+
+  it('takes in the write of another page when it is told, and keeps what it has changed since its last write', async () => {
+    const { adapter, persistence } = await setup()
+
+    // A change here that waits to be written...
+    useRepo(Company).where('id', 'b').update({ name: 'B by this page' })
+    // ...and, before it goes out, another page writes (the storage tells this one).
+    await otherPage(adapter, (records) =>
+      records.map((record) => ('a' === record.id ? { ...record, name: 'A by the other page' } : record))
+    )
+    await vi.waitFor(() => expect(names(stored(adapter))).toEqual(['A by the other page', 'B by this page']))
+    await vi.waitFor(() =>
+      expect(
+        useRepo(Company)
+          .all()
+          .map((company) => company.name)
+          .sort()
+      ).toEqual(['A by the other page', 'B by this page'])
+    )
+    persistence.stop()
+  })
+
+  it('removes a record another page removed, when this page did not touch it', async () => {
+    const { adapter, persistence } = await setup()
+    await otherPage(adapter, (records) => records.filter((record) => 'b' !== record.id))
+
+    await vi.waitFor(() =>
+      expect(
+        useRepo(Company)
+          .all()
+          .map((company) => company.name)
+      ).toEqual(['A'])
+    )
+    // It was not this page that removed it: nothing goes to its trash.
+    expect(useRepo(Trash).all()).toHaveLength(0)
+    persistence.stop()
+  })
+
+  it('keeps the change made last when both pages changed the same record', async () => {
+    const { adapter, persistence } = await setup()
+    const company = useRepo(Company).find('a')
+    useRepo(Company).where('id', 'a').update({ name: 'A here', updatedAt: '2026-10-02T00:00:00.000Z' })
+    adapter.data[keyOf('companies')] = (adapter.data[keyOf('companies')] as { id: string; name: string }[]).map(
+      (record) => ('a' === record.id ? { ...record, name: 'A there', updatedAt: '2026-10-03T00:00:00.000Z' } : record)
+    )
+    await persistence.flush()
+    expect(company).not.toBeNull()
+
+    expect(names(stored(adapter))).toEqual(['A there', 'B'])
+    persistence.stop()
+  })
+
+  it('does not lose a change to a removal made by another page', async () => {
+    const { adapter, persistence } = await setup()
+    adapter.data[keyOf('companies')] = (adapter.data[keyOf('companies')] as { id: string }[]).filter(
+      (record) => 'a' !== record.id
+    )
+
+    useRepo(Company).where('id', 'a').update({ name: 'A changed here' })
+    await persistence.flush()
+
+    expect(names(stored(adapter))).toEqual(['A changed here', 'B'])
+    persistence.stop()
+  })
+
+  it('never writes two things at once: the writes and the reads wait for one another', async () => {
+    const adapter = memoryAdapter()
+    const set = adapter.set.bind(adapter)
+    let running = 0
+    let overlapped = false
+    adapter.set = async (items) => {
+      running++
+      overlapped ||= 1 < running
+      await new Promise((resolve) => setTimeout(resolve, 15))
+      running--
+      return set(items)
+    }
+    const persistence = createPersistence(freshStore({ seed: false }), adapter, { delay: 0 })
+    await persistence.ready
+
+    for (let index = 0; 5 > index; index++) {
+      useRepo(Company).save({ name: `Company ${String(index)}` })
+      await new Promise((resolve) => setTimeout(resolve, 3))
+    }
+    await persistence.flush()
+    await vi.waitFor(() => expect((stored(adapter) as unknown[]).length).toBe(5))
+    expect(overlapped).toBe(false)
     persistence.stop()
   })
 })

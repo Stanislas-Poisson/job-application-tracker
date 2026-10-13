@@ -25,12 +25,13 @@ export const DEFAULT_SOURCES = [
 export function seedDefaults(pinia?: Pinia) {
   const statuses = useRepo(Status, pinia)
   if (0 === statuses.all().length) {
-    statuses.save(DEFAULT_STATUSES.map((status, order) => ({ ...status, order })))
+    // The ids are fixed, from the key: two pages opened together on an empty storage make the same columns, not two sets.
+    statuses.save(DEFAULT_STATUSES.map((status, order) => ({ id: `status_${status.key}`, ...status, order })))
   }
 
   const sources = useRepo(Source, pinia)
   if (0 === sources.all().length) {
     // Copies: the store keeps and changes the objects it is given, and these are shared by every store.
-    sources.save(DEFAULT_SOURCES.map((source) => ({ ...source })))
+    sources.save(DEFAULT_SOURCES.map((source) => ({ id: `source_${source.key}`, ...source })))
   }
 }
