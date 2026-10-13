@@ -8,6 +8,7 @@
   import { type ReadOffer } from '../../extraction/jobPosting'
   import { collectSnapshot } from '../../extraction/page'
   import { readSnapshot } from '../../extraction/read'
+  import { reportUrl } from '../../extraction/report'
   import { Status } from '../../models'
   import { addNote, captureOffer } from '../../services/applications'
   import { resolveTimeZone } from '../../utils/time'
@@ -19,10 +20,13 @@
   const problem = ref('')
   // What the page said beyond the fields of the form (the date, the salary, the description). It is saved with them.
   const read = ref<ReadOffer>({})
+  // The address of the page, to name the site in a report. Nothing else of the page goes into it.
+  const pageUrl = ref('')
   const found = computed(() => ['postedOn', 'salary', 'contractType', 'description'].filter((key) => key in read.value))
 
   const statuses = computed(() => useRepo(Status).orderBy('order').get())
   const statusOptions = computed(() => Object.fromEntries(statuses.value.map((status) => [status.key, status.label])))
+  const report = computed(() => reportUrl(pageUrl.value, read.value, browser.runtime.getManifest().version))
   const boardUrl = browser.runtime.getURL('/board.html' as never)
 
   // The page the user is looking at fills the title and the address. Both can be changed.
@@ -50,6 +54,7 @@
     if (!result?.result) {
       return
     }
+    pageUrl.value = result.result.url
     read.value = readSnapshot(result.result, resolveTimeZone(settings.timeZone))
     form.title = read.value.title ?? form.title
     form.company = read.value.companyName ?? form.company
@@ -180,6 +185,14 @@
       >
         {{ problem }}
       </p>
+      <a
+        v-if="'' !== pageUrl"
+        :href="report"
+        target="_blank"
+        rel="noopener"
+        class="muted"
+        >{{ t('popup.report') }}</a
+      >
       <FormButton
         type="submit"
         :disabled="'saving' === state"
