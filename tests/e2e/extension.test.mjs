@@ -1225,6 +1225,37 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
     })
 
+    test('the freelance helper finds the day rate for an income, and the income of a day rate', async () => {
+      await open('options', 'input[name=freelanceIncome]')
+      // 36 000 net with 22% of charges on the turnover, 200 days: 36 000 / 0.78 = 46 153.85 a year, 230.77 a day.
+      await waitFor(async () => (await all('#freelance-result')).length > 0, { message: 'the result' })
+      assert.match(await text('#freelance-result'), /230\.77/)
+      assert.match(await text('#freelance-result'), /estimate/i)
+
+      // With the profile of 20% in dollars: 36 000 / 0.8 = 45 000 a year, 225 a day.
+      const option = await driver.executeScript(`
+        const found = [...document.querySelectorAll('select[name=freelanceProfile] option')].find((o) => o.textContent.includes('Test US'));
+        return found ? found.value : null;
+      `)
+      assert.ok(option, 'the profile is there')
+      await choose('select[name=freelanceProfile]', option)
+      await waitFor(async () => /Day rate: \$225\b/.test(await text('#freelance-result')), {
+        message: 'the rate with the profile',
+      })
+
+      // Charges that take everything: no turnover can leave the income.
+      await choose('select[name=freelanceProfile]', '')
+      await type('input[name=freelanceFlat]', '100')
+      await waitFor(async () => (await all('#freelance-impossible')).length > 0, { message: 'the message' })
+
+      // The other way: a day rate of 500 for 200 days with 22% of charges leaves 78 000.
+      await type('input[name=freelanceFlat]', '22')
+      await choose('select[name=freelanceMode]', 'rate')
+      await waitFor(async () => (await all('input[name=freelanceRate]')).length > 0, { message: 'the day rate field' })
+      await type('input[name=freelanceRate]', '500')
+      await waitFor(async () => /78,000/.test(await text('#freelance-result')), { message: 'the income' })
+    })
+
     test('a deleted application goes to the trash, and comes back from it', async () => {
       await open('board', '.application-card')
       const before = (await all('.application-card')).length
