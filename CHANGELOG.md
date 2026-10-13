@@ -17,3 +17,4 @@
 - Reading a page: when the popup opens on a job page, it reads the `JobPosting` data the page publishes (title, company, place, contract, remote work, description, salary, day published) and fills the form. Only the page you opened the popup on is read, once, and nothing leaves the browser. The day published follows the time zone of the page when it gives one, and yours when it does not.
 - Reading a page without `JobPosting` data: the OpenGraph tags and the title of the page give the title and the description. The name of the site is never taken for the company.
 - Report a reading that broke: a link in the popup opens a prefilled GitHub issue with the site, the version and what was read. Nothing is sent by the extension.
+- The same report can be opened as an e-mail, for someone with no GitHub account.

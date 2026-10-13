@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { findJobPostings, htmlToText, offerFromJobPosting } from '../../src/extraction/jobPosting'
 import { readOpenGraph, readSnapshot, titleFromPage } from '../../src/extraction/read'
-import { ISSUES_URL, reportUrl } from '../../src/extraction/report'
+import { ISSUES_URL, REPORT_EMAIL, reportMailto, reportUrl } from '../../src/extraction/report'
 import { postedDay } from '../../src/utils/time'
 
 const PARIS = 'Europe/Paris'
@@ -197,5 +197,16 @@ describe('reportUrl', () => {
     const url = new URL(reportUrl('not a url', {}, '0.1.0'))
     expect(url.searchParams.get('body')).toContain('Site: unknown')
     expect(url.searchParams.get('body')).toContain('Read: nothing')
+  })
+})
+
+describe('reportMailto', () => {
+  it('is the same report as an e-mail, without the address of the page', () => {
+    const link = reportMailto('https://jobs.example.com/offer/12?token=secret', { title: 'Dev' }, '0.1.0')
+    expect(link.startsWith(`mailto:${REPORT_EMAIL}?subject=`)).toBe(true)
+    expect(decodeURIComponent(link)).toContain('Site: jobs.example.com')
+    expect(decodeURIComponent(link)).toContain('Read: title')
+    expect(link).not.toContain('secret')
+    expect(link).not.toContain('+')
   })
 })
