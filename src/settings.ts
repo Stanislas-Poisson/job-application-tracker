@@ -1,7 +1,7 @@
 import type { StorageAdapter } from './persistence/adapter'
 import { isCountry, normalizeEmail } from './utils/contact'
 import { CURRENCY_DISPLAYS, type CurrencyDisplay, DEFAULT_ASSUMPTIONS, isCurrency } from './utils/money'
-import { isValidTimeZone } from './utils/time'
+import { isInstant, isValidTimeZone } from './utils/time'
 
 export const LOCALES = ['auto', 'en', 'fr'] as const
 export const THEMES = ['auto', 'light', 'dark'] as const
@@ -46,6 +46,10 @@ export interface Settings {
   ownEmails: string[]
   workingDaysPerYear: number
   hoursPerDay: number
+  // Remind the user to back up when the last backup is older than this many days. 0 turns the reminder off.
+  backupReminderDays: number
+  // When the data was last backed up to a file (UTC), or null when it never was.
+  lastBackupAt: string | null
 }
 
 export const SETTINGS_KEY = 'jat:settings'
@@ -62,6 +66,8 @@ export const DEFAULT_SETTINGS: Settings = {
   autoRates: false,
   autoRatesData: null,
   ownEmails: [],
+  backupReminderDays: 30,
+  lastBackupAt: null,
   ...DEFAULT_ASSUMPTIONS,
 }
 
@@ -70,20 +76,22 @@ const inRange = (min: number, max: number) => (value: unknown) =>
   'number' === typeof value && Number.isFinite(value) && min <= value && value <= max
 
 // What a setting may hold. A stored value that does not pass is replaced by the default.
-const VALID: { [K in Exclude<keyof Settings, 'rates' | 'ownEmails' | 'autoRatesData'>]: (value: unknown) => boolean } =
-  {
-    locale: oneOf(LOCALES),
-    theme: oneOf(THEMES),
-    accent: oneOf(ACCENTS),
-    vision: oneOf(VISIONS),
-    timeZone: (value) => 'auto' === value || isValidTimeZone(value),
-    defaultCountry: (value) => 'auto' === value || isCountry(value),
-    homeCurrency: (value) => '' === value || isCurrency(value),
-    currencyDisplay: oneOf(CURRENCY_DISPLAYS),
-    autoRates: (value) => 'boolean' === typeof value,
-    workingDaysPerYear: inRange(1, 366),
-    hoursPerDay: inRange(1, 24),
-  }
+const VALID: {
+  [K in Exclude<keyof Settings, 'rates' | 'ownEmails' | 'autoRatesData' | 'lastBackupAt'>]: (value: unknown) => boolean
+} = {
+  locale: oneOf(LOCALES),
+  theme: oneOf(THEMES),
+  accent: oneOf(ACCENTS),
+  vision: oneOf(VISIONS),
+  timeZone: (value) => 'auto' === value || isValidTimeZone(value),
+  defaultCountry: (value) => 'auto' === value || isCountry(value),
+  homeCurrency: (value) => '' === value || isCurrency(value),
+  currencyDisplay: oneOf(CURRENCY_DISPLAYS),
+  autoRates: (value) => 'boolean' === typeof value,
+  workingDaysPerYear: inRange(1, 366),
+  hoursPerDay: inRange(1, 24),
+  backupReminderDays: (value) => Number.isInteger(value) && inRange(0, 365)(value),
+}
 
 // The rates are a list: an entry that is not a currency, or not a positive number, is dropped and the others stay.
 export function normalizeRates(value: unknown): Record<string, number> {
@@ -141,6 +149,7 @@ export function normalizeSettings(stored: unknown): Settings {
     rates: normalizeRates(source.rates),
     autoRatesData: normalizeFetched(source.autoRatesData),
     ownEmails: normalizeEmails(source.ownEmails),
+    lastBackupAt: isInstant(source.lastBackupAt) ? source.lastBackupAt : null,
   }
   for (const key of Object.keys(VALID) as (keyof typeof VALID)[]) {
     if (VALID[key](source[key])) {

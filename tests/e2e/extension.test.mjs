@@ -648,5 +648,32 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.switchTo().window(optionsTab)
       await choose('select[name=timeZone]', 'auto')
     })
+
+    test('the board reminds to back up when there is data and no backup, and "Later" hides the reminder', async () => {
+      const tab = await open('board', '.column')
+
+      await waitFor(async () => (await all('#backup-reminder')).length > 0, { message: 'the backup reminder' })
+      assert.match(await text('#backup-reminder'), /not backed up your data yet/)
+
+      const buttons = await all('#backup-reminder button')
+      assert.equal(buttons.length, 2)
+      await buttons[1].click()
+      await waitFor(async () => (await all('#backup-reminder')).length === 0, { message: 'the reminder to hide' })
+
+      // The options say the same, and offer the number of days of the reminder.
+      await open('options', '#last-backup')
+      assert.match(await text('#last-backup'), /No backup yet/)
+      assert.equal(await css('input[name=backupReminderDays]').then((input) => input.getAttribute('value')), '30')
+
+      // With the reminder turned off, the board stays quiet.
+      await type('input[name=backupReminderDays]', '0')
+      await driver.switchTo().window(tab)
+      await driver.navigate().refresh()
+      await waitFor(async () => (await all('.column')).length > 0, { message: 'the board to reload' })
+      assert.equal((await all('#backup-reminder')).length, 0)
+
+      await driver.switchTo().window(await open('options', '#last-backup'))
+      await type('input[name=backupReminderDays]', '30')
+    })
   })
 })
