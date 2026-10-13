@@ -196,7 +196,7 @@ A restore is for a loss (a lost profile, a reinstall, a new computer): it **repl
 
 ## Versions of the structure
 
-The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **4** now.
+The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **5** now.
 
 | Version | What changed |
 | :--- | :--- |
@@ -204,6 +204,7 @@ The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/pe
 | 2 | Every record has `updatedAt`, the moment of its last change (UTC, null when it was never stamped), and there is a `trash` for deleted records. |
 | 3 | Companies can be tied to one another (`companyRelations`). |
 | 4 | A person can work for several companies (`contactCompanies`). The company a contact had becomes a first link. |
+| 5 | Pay profiles to estimate the net pay (`payProfiles`). |
 
 - **Older data is brought up to date.** A migration turns the data of version N into the data of N + 1, one step at a time. It runs on the storage when a page opens (the result is saved with the new version) and on a backup file when it is read, so an old backup can still be restored. The preview says when a backup is old.
 - **Newer data is left alone.** If the storage or a file was written by a newer structure than this version knows, nothing is read, nothing is written and nothing is replaced: a page says so, and a restore is refused. A version that makes no sense (0, a word, none in a file) is refused too.
@@ -332,3 +333,36 @@ A person is tied to **companies** and to **applications**, from either side.
 - **What is refused.** No name, a date that is not a date, a last day before the first, and the same company from the same first day twice. Nothing is made when a link is refused.
 - **Applications.** A person is linked to as many applications as needed, with the part they play (recruiter, interviewer…). In the drawer of an application the contacts section links a person who is known already to another application, and shows from the person every application they are tied to. Unlinking takes one link off and keeps the person.
 - **Meeting a person adds the first link**: the company of the offer, with the title typed for the person.
+
+## Estimating the net pay
+
+The net pay depends on the country, the year, the status and the person. The extension does not hold those rules: **a pay profile is data the user owns and edits**, and it only ever gives an **estimate**, shown as one ("About 3 200 net per month"), never in place of the pay of the offer.
+
+### A profile
+
+A name, a country, a status (executive, freelance…), a currency and a list of **lines**, taken in order. A line says:
+
+| Field | Meaning |
+| :--- | :--- |
+| Label | What is taken ("Employee contributions"). |
+| Applies to | `gross`: the gross pay of the year; `running`: what is left after the lines before it (a tax taken after the contributions). |
+| Share | The part of that base the line applies to, in percent (all of it when empty). A tax taken on 90% of the pay after a flat deduction, for instance. |
+| Taken as | A flat **rate** (a percentage), or a **scale** (progressive brackets). |
+
+A scale is one slice per line, written `limit rate`: `11497 0`, `29315 11`, `∞ 45`. Each slice of the base up to its limit (per year) is taken at its own percentage; the last slice has no limit (`∞`, `inf`, `*` or nothing). The limits go up. A rate is a number from 0 to 100. A profile that breaks these is refused and nothing is saved.
+
+### How it is computed
+
+The salary of the offer is turned into a pay per year (a day is the working days of the year, an hour the hours of a day: the same assumptions as for comparing offers), then the profile is applied to **each end of the range**. Each line is rounded to the minor unit of the currency and the net is the gross less the rounded lines, so that what is shown adds up to the cent.
+
+### When there is no estimate
+
+It is not made when it would be a guess, and the drawer says why: no profile chosen (nothing is shown), no period for the pay, a pay that is **net already**, or an offer whose currency is not the one of the profile (the amounts of a profile are in its own currency). A pay that does not say gross or net is taken for gross, and it says so.
+
+### Examples
+
+A few profiles can be added and edited: France (employee, executive or not; freelance under the micro regime) and a flat rate. **They are illustrations, not rules**: the rates and the scales change every year and depend on the person (family, region, options). Check them against an official simulator before relying on them. The scale of the example is the one of the income of 2024 for a single person with one part, as a model of the shape.
+
+### Where it shows
+
+The drawer of an application has the estimate of the profile chosen in the options, with the calculation line by line on request. The CSV export has the net per year (the middle of the range) and the name of the profile.

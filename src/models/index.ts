@@ -10,6 +10,7 @@ import ContactMethod from './ContactMethod'
 import Interaction from './Interaction'
 import JobOffer from './JobOffer'
 import Note from './Note'
+import PayProfile from './PayProfile'
 import Reminder from './Reminder'
 import Source from './Source'
 import Status from './Status'
@@ -29,6 +30,7 @@ export {
   Interaction,
   JobOffer,
   Note,
+  PayProfile,
   Reminder,
   Source,
   Status,
@@ -52,6 +54,7 @@ export const MODELS: (typeof Model)[] = [
   Note,
   Activity,
   Interaction,
+  PayProfile,
   Reminder,
   Tag,
   Taggable,
