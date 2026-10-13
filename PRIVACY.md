@@ -28,7 +28,7 @@ You can export all of it as a JSON file from the options page, import it back, o
 - **`storage`** - to keep your data in the browser.
 - **`https://api.frankfurter.dev/*`** (optional) - only if you turn on the automatic exchange rates.
 - **`activeTab`** - to reach the tab you are on, when you open the popup. The permission is given by your click on the extension button, for that tab only.
-- **`scripting`** - to read that one tab at that moment: its title, its address and the data about the offer that the page itself publishes (the `JobPosting` data that job sites give to search engines). Nothing is read in the background, from another tab or from a page you did not open the popup on, and what is read goes nowhere: it only fills the form of the popup, which you can change before saving.
+- **`scripting`** - to read that one tab at that moment: its title, its address and the data about the offer that the page itself publishes (the `JobPosting` data that job sites give to search engines). For a site that publishes no such data (LinkedIn), the main part of the page you are looking at is read as well. Nothing is read in the background, from another tab or from a page you did not open the popup on, and what is read goes nowhere: it only fills the form of the popup, which you can change before saving.
 
 ## Exchange rates (optional, off by default)
 
