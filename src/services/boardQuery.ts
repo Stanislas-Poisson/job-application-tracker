@@ -1,5 +1,6 @@
 import type { Application } from '../models'
 import { type Conversion, type Salary, comparableSalary } from '../utils/money'
+import { collatorFor, fold, searchWords } from '../utils/text'
 
 export const SORTS = ['manual', 'recent', 'created', 'salary', 'priority', 'company', 'title'] as const
 export const DIRECTIONS = ['asc', 'desc'] as const
@@ -82,9 +83,7 @@ export function activeFilters(view: BoardView): number {
   ].filter(Boolean).length
 }
 
-// Text to search in: lower case, with no accent, one space between the words. "Éléonore" and "eleonore" are the same.
-export const fold = (value: string): string =>
-  value.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase().replace(/\s+/g, ' ').trim()
+export { fold }
 
 // Everything a search can find in an application: the offer, the company, the place, the source, the tags and the people.
 export function searchableText(application: Application, related: (companyId: string) => string[] = () => []): string {
@@ -117,7 +116,7 @@ const isLate = (application: Application, now: Date): boolean =>
   (application.reminders ?? []).some((reminder) => !reminder.doneAt && new Date(reminder.dueAt) < now)
 
 export function filterApplications(applications: Application[], view: BoardView, context: QueryContext): Application[] {
-  const words = fold(view.search).split(' ').filter(Boolean)
+  const words = searchWords(view.search, context.locale)
   return applications.filter((application) => {
     if (application.archived !== view.showArchived) {
       return false
@@ -167,7 +166,7 @@ const salaryOf = (application: Application): Salary | null => {
 // The applications in the order chosen. The sort is stable and a tie falls back on the most recent. An application with
 // nothing to sort by (no salary, or one that cannot be compared) goes last, whichever the direction.
 export function sortApplications(applications: Application[], view: BoardView, context: QueryContext): Application[] {
-  const collator = new Intl.Collator(context.locale, { sensitivity: 'base', numeric: true })
+  const collator = collatorFor(context.locale)
   const sign = 'asc' === view.direction ? 1 : -1
   const recent = (a: Application, b: Application) => b.updatedAt.localeCompare(a.updatedAt)
 

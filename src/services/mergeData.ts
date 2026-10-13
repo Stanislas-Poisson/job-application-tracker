@@ -2,6 +2,7 @@ import type { Pinia } from 'pinia'
 import { useRepo } from 'pinia-orm'
 import { MODELS, Trash } from '../models'
 import { canonicalJson } from '../utils/checksum'
+import { fold } from '../utils/text'
 import { readExport } from './data'
 
 type Json = Record<string, unknown>
@@ -47,7 +48,7 @@ interface Computed {
   save: Map<string, Json[]>
 }
 
-const norm = (value: unknown): string => ('string' === typeof value ? value.trim().toLowerCase() : '')
+const norm = (value: unknown): string => ('string' === typeof value ? fold(value) : '')
 const stamp = (record: Json): string | null => ('string' === typeof record.updatedAt ? record.updatedAt : null)
 
 function compute(file: unknown, pinia?: Pinia): Computed {

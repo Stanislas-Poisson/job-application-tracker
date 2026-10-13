@@ -2,6 +2,7 @@ import { useRepo } from 'pinia-orm'
 import { COLOUR_BLIND_PALETTE } from '../appearance'
 import { Application, Company, Contact, Interaction, Tag, Taggable } from '../models'
 import type { TaggableType } from '../models/Taggable'
+import { nfc, sameText } from '../utils/text'
 
 // A tag that cannot be made. The code is the key of the message to show.
 export class TagError extends Error {
@@ -16,8 +17,7 @@ export type Priority = (typeof PRIORITIES)[number]
 const COLOR = /^#[0-9a-f]{6}$/i
 
 // Two names are the same tag when they differ only by the case, the accents or the spaces around.
-const sameName = (a: string, b: string) =>
-  a.trim().normalize('NFC').toLocaleLowerCase() === b.trim().normalize('NFC').toLocaleLowerCase()
+const sameName = sameText
 
 const REPOS = {
   applications: Application,
@@ -48,7 +48,7 @@ export function createTag(name: string, color?: string): Tag {
   const existing = useRepo(Tag)
     .all()
     .find((tag) => sameName(tag.name, text))
-  return existing ?? useRepo(Tag).save({ name: text, color: (color ?? nextColor()).toLowerCase() })
+  return existing ?? useRepo(Tag).save({ name: nfc(text), color: (color ?? nextColor()).toLowerCase() })
 }
 
 export function renameTag(tagId: string, name: string) {
@@ -62,7 +62,9 @@ export function renameTag(tagId: string, name: string) {
   if (clash) {
     throw new TagError('name')
   }
-  useRepo(Tag).where('id', tagId).update({ name: text })
+  useRepo(Tag)
+    .where('id', tagId)
+    .update({ name: nfc(text) })
 }
 
 export function recolorTag(tagId: string, color: string) {
