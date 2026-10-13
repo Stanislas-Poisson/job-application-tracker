@@ -60,6 +60,10 @@ export function createPersistence(
   // What each model looked like when it was last loaded or saved, to save only the models that changed
   // and to ignore the echo of our own writes.
   const known = new Map<string, string>()
+  // The last things this page wrote, by model. The storage tells the page about each of its writes after the fact, and
+  // the echo of an older write can come back when the page has written again: it is still the page's own.
+  const written = new Map<string, string[]>()
+  const WRITTEN_KEPT = 20
   let timer: ReturnType<typeof setTimeout> | undefined
   let loading = false
   let newer = false
@@ -82,11 +86,14 @@ export function createPersistence(
     try {
       for (const model of models) {
         const records = (stored[keyOf(model.entity)] as unknown[] | undefined) ?? []
-        if (JSON.stringify(records) === known.get(model.entity)) {
+        const text = JSON.stringify(records)
+        if (text === known.get(model.entity) || written.get(model.entity)?.includes(text)) {
           continue
         }
         useRepo(model, pinia).fresh(records as never[])
         known.set(model.entity, dump(model))
+        // What another page wrote is the new truth: older writes of this page must not be mistaken for it again.
+        written.delete(model.entity)
       }
     } finally {
       loading = false
@@ -179,6 +186,7 @@ export function createPersistence(
       const current = dump(model)
       if (current !== known.get(model.entity)) {
         known.set(model.entity, current)
+        written.set(model.entity, [...(written.get(model.entity) ?? []), current].slice(-WRITTEN_KEPT))
         items[keyOf(model.entity)] = JSON.parse(current)
       }
     }

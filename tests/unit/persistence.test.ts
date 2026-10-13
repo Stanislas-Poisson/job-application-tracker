@@ -226,3 +226,49 @@ describe('the echo of its own writes', () => {
     second.stop()
   })
 })
+
+// A storage that takes some time to apply a write and tells about it once it is applied, as a browser does.
+function slowAdapter(applyAfter: number) {
+  const inner = memoryAdapter()
+  const listeners = new Set<(keys: string[]) => void>()
+  return {
+    data: inner.data,
+    get: inner.get.bind(inner),
+    clear: inner.clear.bind(inner),
+    async set(items: Record<string, unknown>) {
+      await new Promise((resolve) => setTimeout(resolve, applyAfter))
+      Object.assign(inner.data, structuredClone(items))
+      listeners.forEach((listener) => listener(Object.keys(items)))
+    },
+    onChanged(callback: (keys: string[]) => void) {
+      listeners.add(callback)
+      return () => listeners.delete(callback)
+    },
+  }
+}
+
+describe('two writes in a row', () => {
+  it('keeps the second change when the echo of the first comes back after the second was made', async () => {
+    const adapter = slowAdapter(15)
+    const persistence = createPersistence(freshStore({ seed: false }), adapter)
+    await persistence.ready
+    const company = useRepo(Company).save({ name: 'A' })
+    await new Promise((resolve) => setTimeout(resolve, 40))
+
+    // A favourite, then a priority, a moment apart: the first write is still being applied when the second is made.
+    useRepo(Company).where('id', company.id).update({ name: 'B' })
+    await new Promise((resolve) => setTimeout(resolve, 5))
+    useRepo(Company).where('id', company.id).update({ name: 'C' })
+
+    // The echo of the first write arrives while the second is not applied yet. Nothing may go back to 'B'.
+    const seen: string[] = []
+    const stop = setInterval(() => seen.push(useRepo(Company).find(company.id)?.name ?? ''), 2)
+    await new Promise((resolve) => setTimeout(resolve, 80))
+    clearInterval(stop)
+
+    expect(seen).not.toContain('B')
+    expect(useRepo(Company).find(company.id)?.name).toBe('C')
+    expect((adapter.data[keyOf('companies')] as { name: string }[])[0]?.name).toBe('C')
+    persistence.stop()
+  })
+})
