@@ -1,22 +1,14 @@
 <script setup lang="ts">
-  import { FormButton, FormInput, FormSelect } from '@zairakai/vue-components/Form'
+  import { FormButton, FormSelect } from '@zairakai/vue-components/Form'
   import { useRepo } from 'pinia-orm'
-  import { computed, nextTick, reactive, ref, watch } from 'vue'
+  import { computed, nextTick, reactive, watch } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { useDirtyGuard } from '../../composables/useDirty'
   import { useFormat } from '../../composables/useFormat'
   import { type Application, JobOffer, type JobOffer as Offer } from '../../models'
   import { type AddressParts, emptyAddress, formatAddress, normalizeAddress } from '../../services/address'
   import { offerAddressFields } from '../../services/applications'
-  import {
-    TRAVEL_MODES,
-    type TravelMode,
-    formatCommute,
-    placeFrom,
-    placeLink,
-    routeIssue,
-    routeLink,
-  } from '../../services/maps'
+  import { TRAVEL_MODES, type TravelMode, placeFrom, placeLink, routeIssue, routeLink } from '../../services/maps'
   import AddressFields from '../AddressFields.vue'
 
   const props = defineProps<{ application: Application }>()
@@ -40,27 +32,14 @@
       longitude: source?.longitude,
     })
 
-  // The way there is kept in metres and minutes; the form shows kilometres and minutes.
-  const kilometres = (meters: number | null | undefined) => (null == meters ? '' : String(meters / 1000))
-  const stored = computed(() => ({
-    address: addressOf(offer.value),
-    km: kilometres(offer.value?.commuteMeters),
-    minutes: null == offer.value?.commuteMinutes ? '' : String(offer.value.commuteMinutes),
-    mode: offer.value?.commuteMode ?? '',
-  }))
-  const form = reactive({ address: emptyAddress(), km: '', minutes: '', mode: '' })
-  const load = () => Object.assign(form, { ...stored.value, address: { ...stored.value.address } })
+  const stored = computed(() => ({ address: addressOf(offer.value) }))
+  // How the route is asked for: the setting, unless the user chooses another way for this offer. It is not kept.
+  const form = reactive({ address: emptyAddress(), mode: '' })
+  const load = () => Object.assign(form, { address: { ...stored.value.address } })
   watch(() => props.application.id, load, { immediate: true })
 
-  const dirty = computed(
-    () =>
-      JSON.stringify(normalizeAddress(form.address)) !== JSON.stringify(stored.value.address) ||
-      form.km !== stored.value.km ||
-      form.minutes !== stored.value.minutes ||
-      form.mode !== stored.value.mode
-  )
+  const dirty = computed(() => JSON.stringify(normalizeAddress(form.address)) !== JSON.stringify(stored.value.address))
   useDirtyGuard(() => dirty.value)
-  const problem = ref('')
 
   const modeOptions = computed(() => ({
     '': t('place.modeNone'),
@@ -85,26 +64,7 @@
   const routeNote = computed(() => (null === issue.value || 'destination' === issue.value ? '' : issue.value))
   const oneLine = computed(() => formatAddress(normalizeAddress(form.address), format.locale.value))
 
-  const number = (text: string): number | null => {
-    const value = Number(text.trim().replace(',', '.'))
-    return '' !== text.trim() && Number.isFinite(value) && 0 <= value ? value : null
-  }
-
   async function save() {
-    problem.value = ''
-    const km = '' === form.km.trim() ? null : number(form.km)
-    const minutes = '' === form.minutes.trim() ? null : number(form.minutes)
-    if (
-      ('' !== form.km.trim() && null === km) ||
-      ('' !== form.minutes.trim() && (null === minutes || !Number.isInteger(minutes)))
-    ) {
-      problem.value = t('place.errors.number')
-      return
-    }
-    if (null !== minutes && 24 * 60 < minutes) {
-      problem.value = t('place.errors.long')
-      return
-    }
     if (!offer.value) {
       return
     }
@@ -114,16 +74,11 @@
       .update({
         ...offerAddressFields(address),
         country: '' === address.country ? null : address.country,
-        commuteMeters: null === km ? null : Math.round(km * 1000),
-        commuteMinutes: minutes,
-        commuteMode: '' === form.mode ? null : form.mode,
       })
     // The form shows what was kept, once the drawer has the new values.
     await nextTick()
     load()
   }
-
-  const saved = computed(() => formatCommute(offer.value?.commuteMeters ?? null, offer.value?.commuteMinutes ?? null))
 </script>
 
 <template>
@@ -174,31 +129,12 @@
       >
         {{ t('place.privacy') }}
       </p>
-      <h4>{{ t('place.found') }}</h4>
-      <div class="row">
-        <FormInput
-          v-model="form.km"
-          name="commuteKm"
-          :label="t('place.km')"
-        />
-        <FormInput
-          v-model="form.minutes"
-          name="commuteMinutes"
-          :label="t('place.minutes')"
-        />
-        <FormSelect
-          v-model="form.mode"
-          name="commuteMode"
-          :label="t('place.mode')"
-          :options="modeOptions"
-        />
-      </div>
-      <p
-        v-if="problem"
-        class="error"
-      >
-        {{ problem }}
-      </p>
+      <FormSelect
+        v-model="form.mode"
+        name="routeMode"
+        :label="t('place.routeMode')"
+        :options="modeOptions"
+      />
       <div class="row">
         <FormButton
           type="submit"
@@ -210,11 +146,6 @@
           class="muted"
           role="status"
           >{{ t('dirty.unsaved') }}</span
-        >
-        <strong
-          v-else-if="saved"
-          id="commute-saved"
-          >{{ saved }}</strong
         >
       </div>
     </form>

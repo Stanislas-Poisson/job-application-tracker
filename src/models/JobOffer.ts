@@ -2,6 +2,7 @@ import { Model } from 'pinia-orm'
 import type { SalaryKind, SalaryPeriod } from '../utils/money'
 import Application from './Application'
 import Company from './Company'
+import Journey from './Journey'
 import Source from './Source'
 
 export type WorkMode = 'onsite' | 'hybrid' | 'remote'
@@ -30,10 +31,6 @@ export default class JobOffer extends Model {
   declare region: string | null
   declare latitude: number | null
   declare longitude: number | null
-  // What the user found on a map and kept: the distance (metres) and the time (minutes) from home, and how they travel.
-  declare commuteMeters: number | null
-  declare commuteMinutes: number | null
-  declare commuteMode: 'car' | 'transit' | 'bike' | 'walk' | null
   declare contractType: string | null
   declare workMode: WorkMode | null
   // The salary: a range in minor units (cents), its currency (ISO 4217), its period and whether it is gross or net.
@@ -50,6 +47,7 @@ export default class JobOffer extends Model {
   declare company: Company | null
   declare source: Source | null
   declare applications: Application[]
+  declare journeys: Journey[]
 
   static fields() {
     return {
@@ -69,9 +67,6 @@ export default class JobOffer extends Model {
       region: this.string(null),
       latitude: this.number(null),
       longitude: this.number(null),
-      commuteMeters: this.number(null),
-      commuteMinutes: this.number(null),
-      commuteMode: this.string(null),
       contractType: this.string(null),
       workMode: this.string(null),
       salaryMin: this.number(null),
@@ -85,6 +80,7 @@ export default class JobOffer extends Model {
       company: this.belongsTo(Company, 'companyId'),
       source: this.belongsTo(Source, 'sourceId'),
       applications: this.hasMany(Application, 'jobOfferId'),
+      journeys: this.hasMany(Journey, 'jobOfferId'),
     }
   }
 }

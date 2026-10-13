@@ -11,6 +11,7 @@ import {
   decimalAmount,
   exportFileName,
 } from '../../src/services/exportBoard'
+import { saveJourney } from '../../src/services/journeys'
 import { setPriority, tagEntityByName, toggleFavorite } from '../../src/services/tags'
 import { UTF8_BOM, parseCsv, plainCell, toCsv } from '../../src/utils/csv'
 import { freshStore } from './helpers'
@@ -22,7 +23,20 @@ const labels: ExportContext['labels'] = {
   priorities: { '0': 'None', '1': 'Low', '2': 'Medium', '3': 'High' },
   periods: { year: 'year', month: 'month', week: 'week', day: 'day', hour: 'hour' },
   kinds: { gross: 'gross', net: 'net' },
-  modes: { car: 'Car', transit: 'Transit', bike: 'Bike', walk: 'Walk' },
+  legModes: {
+    walk: 'On foot',
+    bike: 'Bicycle',
+    car: 'Car',
+    bus: 'Bus',
+    tram: 'Tram',
+    metro: 'Metro',
+    train: 'Train',
+    suburban: 'RER',
+    transit: 'Public transport',
+    ferry: 'Ferry',
+    wait: 'Waiting',
+    other: 'Other',
+  },
 }
 
 const context = (changes: Partial<ExportContext> = {}): ExportContext => ({
@@ -44,7 +58,7 @@ const rowsOf = (...applications: Application[]) => boardRows(applications, conte
 const cell = (row: string[], column: (typeof COLUMNS)[number]): string => row[COLUMNS.indexOf(column)] ?? ''
 const everything = () =>
   useRepo(Application)
-    .with('jobOffer', (query) => query.with('company').with('source'))
+    .with('jobOffer', (query) => query.with('company').with('source').with('journeys'))
     .with('reminders')
     .with('tags')
     .with('contacts')
@@ -163,7 +177,7 @@ describe('boardRows', () => {
     expect(cell(none, 'netProfile')).toBe('')
   })
 
-  it('writes the address of the workplace and the way there', () => {
+  it('writes the address of the workplace and the journeys to work', () => {
     const application = captureOffer({
       title: 'Dev',
       companyName: 'Acme',
@@ -177,9 +191,27 @@ describe('boardRows', () => {
         longitude: 2.34,
       },
     })
-    useRepo(JobOffer)
-      .where('id', application.jobOfferId ?? '')
-      .update({ commuteMeters: 12_400, commuteMinutes: 35, commuteMode: 'transit' })
+    const offerId = application.jobOfferId ?? ''
+    saveJourney({
+      jobOfferId: offerId,
+      direction: 'outbound',
+      legs: [
+        { mode: 'walk', line: '', minutes: 10, meters: 800 },
+        { mode: 'suburban', line: 'RER A', minutes: 40, meters: 24_000 },
+        { mode: 'walk', line: '', minutes: 8, meters: null },
+      ],
+    })
+    saveJourney({
+      jobOfferId: offerId,
+      direction: 'outbound',
+      legs: [{ mode: 'car', line: '', minutes: 70, meters: null }],
+    })
+    saveJourney({
+      jobOfferId: offerId,
+      direction: 'return',
+      legs: [{ mode: 'suburban', line: 'RER A', minutes: 45, meters: null }],
+    })
+
     const dot = rowsOf(...everything())[1] ?? []
     expect(cell(dot, 'postalAddress')).toBe('1 rue X, 75001 Paris, France')
     expect(['postalCode', 'city', 'latitude', 'longitude'].map((column) => cell(dot, column as never))).toEqual([
@@ -188,11 +220,13 @@ describe('boardRows', () => {
       '48.86',
       '2.34',
     ])
-    expect(cell(dot, 'commuteKm')).toBe('12.4')
-    expect(cell(dot, 'commuteMinutes')).toBe('35')
-    expect(cell(dot, 'commuteMode')).toBe('Transit')
+    // The first journey of a direction is the preferred one: 58 minutes, 24.8 km, told in words.
+    expect(cell(dot, 'commuteMinutes')).toBe('58')
+    expect(cell(dot, 'commuteKm')).toBe('24.8')
+    expect(cell(dot, 'journey')).toBe('On foot 10 min > RER RER A 40 min > On foot 8 min')
+    expect(cell(dot, 'returnMinutes')).toBe('45')
     // The decimal mark follows the file, like the amounts.
-    expect(cell(boardRows(everything(), context({ decimal: ',' }))[1] ?? [], 'commuteKm')).toBe('12,4')
+    expect(cell(boardRows(everything(), context({ decimal: ',' }))[1] ?? [], 'commuteKm')).toBe('24,8')
   })
 
   it('leaves the way there empty when nothing was kept', () => {
