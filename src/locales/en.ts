@@ -339,6 +339,10 @@ const en: TranslationObject = {
     notThePassphrase: 'This is not the passphrase you set. A backup made with another one could not be opened with it.',
     needsPassphrase: 'Type the passphrase first.',
   },
+  dirty: {
+    unsaved: 'Unsaved changes',
+    confirmClose: 'Some text you typed is not saved. Close anyway?',
+  },
   options: {
     protectedBackup: 'This backup is protected by a passphrase.',
     openBackup: 'Open the backup',

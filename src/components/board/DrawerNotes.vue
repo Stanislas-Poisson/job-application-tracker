@@ -2,6 +2,7 @@
   import { FormButton, FormTextarea } from '@zairakai/vue-components/Form'
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { hasText, useDirtyGuard } from '../../composables/useDirty'
   import { useFormat } from '../../composables/useFormat'
   import type { Application } from '../../models'
   import { addNote } from '../../services/applications'
@@ -12,6 +13,7 @@
   const format = useFormat()
 
   const body = ref('')
+  useDirtyGuard(() => hasText(body.value))
 
   // The newest note first.
   const notes = computed(() =>

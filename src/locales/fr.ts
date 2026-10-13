@@ -343,6 +343,10 @@ const fr: TranslationObject = {
       'Ce n’est pas la phrase secrète que vous avez définie. Une sauvegarde faite avec une autre ne pourrait pas être ouverte avec elle.',
     needsPassphrase: 'Saisissez d’abord la phrase secrète.',
   },
+  dirty: {
+    unsaved: 'Modifications non enregistrées',
+    confirmClose: 'Du texte saisi n’est pas enregistré. Fermer quand même ?',
+  },
   options: {
     protectedBackup: 'Cette sauvegarde est protégée par une phrase secrète.',
     openBackup: 'Ouvrir la sauvegarde',
