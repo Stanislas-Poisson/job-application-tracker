@@ -382,6 +382,11 @@ const en: TranslationObject = {
       finalClient: 'Final client',
       place: 'Place',
       postalAddress: 'Postal address',
+      postalCode: 'Postal code',
+      city: 'City of the address',
+      region: 'Region',
+      latitude: 'Latitude',
+      longitude: 'Longitude',
       commuteKm: 'Distance to work (km)',
       commuteMinutes: 'Time to work (minutes)',
       commuteMode: 'Travelling by',
@@ -580,8 +585,12 @@ const en: TranslationObject = {
     modeNone: '(not set)',
     save: 'Keep this',
     notes: {
-      osm: 'OpenStreetMap cannot make a route from two addresses written as text: it shows the place only. Choose another service in the options for a route.',
-      home: 'Give the address you leave from in the options to get a route.',
+      origin: 'Give the address you leave from in the options to get a route.',
+      'needs-coordinates':
+        'OpenStreetMap makes a route only from positions on a map: give the position of both ends (the address you leave from in the options, and this place).',
+      'no-transit':
+        'OpenStreetMap has no route for public transport: choose another way of travelling, or another service.',
+      template: 'Your own link has no place for the start ({from}): it shows the place only.',
     },
     modes: {
       car: 'Car',
@@ -604,17 +613,30 @@ const en: TranslationObject = {
       apple: 'Apple Maps',
       custom: 'My own link',
     },
-    osmNote: 'OpenStreetMap shows a place, but cannot make a route from two addresses written as text.',
+    osmNote:
+      'OpenStreetMap shows a place. For a route it needs the position (latitude, longitude) of both ends, which you can paste in the address fields; it has no route for public transport.',
     custom: 'Your link',
     customHint:
       'An address that starts with https://, with {to} (or {query}) where the destination goes, and {from} where the start goes if you want a route. Example: https://example.org/route?a={from}&b={to}',
     customProblem: 'This link cannot be used: it must start with https:// and have {to} or {query} in it.',
     home: 'The address you leave from',
     homeHint:
-      'It stays in this browser, with your other settings and your backups. It goes to the map service only when you click a route link, and never into the CSV export.',
+      'It stays in this browser, with your other settings and your backups. It goes to the map service only when you click a route link, and never into the CSV export. Its position on a map, if you give it, lets OpenStreetMap make a route.',
     mode: 'How you usually travel',
   },
   cardCommute: 'Way there',
+  address: {
+    line1: 'Address line 1',
+    line2: 'Address line 2',
+    line3: 'Address line 3',
+    postalCode: 'Postal code',
+    city: 'City',
+    region: 'Region',
+    coordinates: 'Position on a map (latitude, longitude)',
+    coordinatesHint: '47.3941, 0.6848',
+    coordinatesProblem: 'Two numbers: the latitude (within 90) and the longitude (within 180), as a map gives them.',
+    preview: 'As the map service will be asked',
+  },
   options: {
     protectedBackup: 'This backup is protected by a passphrase.',
     openBackup: 'Open the backup',

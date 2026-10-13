@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { findJobPostings, htmlToText, offerFromJobPosting } from '../../src/extraction/jobPosting'
 import { readOpenGraph, readSnapshot, titleFromPage } from '../../src/extraction/read'
 import { ISSUES_URL, REPORT_EMAIL, reportMailto, reportUrl } from '../../src/extraction/report'
+import { emptyAddress, formatAddress } from '../../src/services/address'
 import { postedDay } from '../../src/utils/time'
 
 const PARIS = 'Europe/Paris'
@@ -77,6 +78,7 @@ describe('offerFromJobPosting', () => {
       description: 'Build things & ship.\n- PHP\n- Vue',
       // 22:30 UTC is 00:30 the next day in Paris.
       postedOn: '2026-10-13',
+      address: { ...emptyAddress(), city: 'Paris', region: 'IDF', country: 'FR' },
       salary: { min: 4_500_000, max: 5_500_050, currency: 'EUR', period: 'year', kind: null },
     })
   })
@@ -286,20 +288,54 @@ describe('real-world postings', () => {
     expect(read({ employmentType: 'CDI' }).contractType).toBe('CDI')
   })
 
-  it('reads the street address on one line, with the postal code and the city', () => {
-    const address = (parts: object) => read({ jobLocation: { address: parts } }).address
-    expect(
-      address({ streetAddress: '1 rue X', postalCode: '75001', addressLocality: 'Paris', addressCountry: 'FR' })
-    ).toBe('1 rue X, 75001 Paris, FR')
-    expect(address({ streetAddress: '1 rue X', addressLocality: 'Paris', addressCountry: { name: 'France' } })).toBe(
-      '1 rue X, Paris, France'
-    )
-    // No street: the page gave a city, not an address to look up.
-    expect(address({ addressLocality: 'Paris', postalCode: '75001' })).toBeUndefined()
-    expect(address({ streetAddress: '   ' })).toBeUndefined()
+  it('reads the address in fields when the page gives it split, with its position', () => {
+    const offer = read({
+      jobLocation: {
+        address: {
+          streetAddress: '1 rue X',
+          postalCode: '75001',
+          addressLocality: 'Paris',
+          addressRegion: 'Île-de-France',
+          addressCountry: 'FR',
+        },
+        geo: { '@type': 'GeoCoordinates', latitude: 48.86, longitude: 2.34 },
+      },
+    })
+    expect(offer.address).toEqual({
+      line1: '1 rue X',
+      line2: '',
+      line3: '',
+      postalCode: '75001',
+      city: 'Paris',
+      region: 'Île-de-France',
+      country: 'FR',
+      latitude: 48.86,
+      longitude: 2.34,
+    })
   })
 
-  it('does not repeat the postal code and the city when the street already holds the whole address', () => {
+  it('reads the position when it is on the address, and a country given as a name', () => {
+    const offer = read({
+      jobLocation: [
+        {
+          address: { addressLocality: 'Lyon', addressCountry: 'France', geo: { latitude: '45.76', longitude: '4.83' } },
+        },
+      ],
+    })
+    expect(offer.address).toMatchObject({ city: 'Lyon', country: 'FR', latitude: 45.76, longitude: 4.83 })
+  })
+
+  it('gives an address when there is only a city, and none when the page gave nothing to look up', () => {
+    expect(read({ jobLocation: { address: { addressLocality: 'Paris' } } }).address).toMatchObject({
+      city: 'Paris',
+      line1: '',
+    })
+    expect(read({ jobLocation: { address: { addressCountry: 'FR' } } }).address).toBeUndefined()
+    expect(read({}).address).toBeUndefined()
+    expect(read({ jobLocation: { address: 'Lyon' } }).address).toBeUndefined()
+  })
+
+  it('keeps a street that holds the whole address as the first line, and does not say the city twice when it is written', () => {
     // Welcome to the Jungle writes "18 Place des Reflets, 92400 Courbevoie, France" as the street.
     const offer = read({
       jobLocation: [
@@ -313,7 +349,8 @@ describe('real-world postings', () => {
         },
       ],
     })
-    expect(offer.address).toBe('18 Place des Reflets, 92400 Courbevoie, France')
+    expect(offer.address?.line1).toBe('18 Place des Reflets, 92400 Courbevoie, France')
+    expect(formatAddress(offer.address as never, 'en')).toBe('18 Place des Reflets, 92400 Courbevoie, France')
   })
 
   it('reads a date with an offset written with a space (APEC)', () => {

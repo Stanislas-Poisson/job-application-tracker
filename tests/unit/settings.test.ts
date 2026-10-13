@@ -63,11 +63,11 @@ describe('a burst of changes', () => {
       await new Promise((resolve) => setTimeout(resolve, 10))
       return set(items)
     }
-    const text = '10 rue de Rivoli, 75001 Paris'
-    const all = [...text].map((_, index) => changeSettings(adapter, { homeAddress: text.slice(0, index + 1) }))
+    const text = 'https://example.org/route?from={from}&to={to}'
+    const all = [...text].map((_, index) => changeSettings(adapter, { mapCustomTemplate: text.slice(0, index + 1) }))
     await Promise.all(all)
 
-    expect((await loadSettings(adapter)).homeAddress).toBe(text)
+    expect((await loadSettings(adapter)).mapCustomTemplate).toBe(text)
     // The first one goes out alone; the rest wait for it and go out together.
     expect(writes).toBeLessThanOrEqual(3)
   })
@@ -75,13 +75,13 @@ describe('a burst of changes', () => {
   it('keeps every setting of the burst, whichever it is', async () => {
     const adapter = memoryAdapter()
     await Promise.all([
-      changeSettings(adapter, { homeAddress: 'Home' }),
+      changeSettings(adapter, { mapCustomTemplate: 'https://a/{to}' }),
       changeSettings(adapter, { travelMode: 'transit' }),
       changeSettings(adapter, { mapProvider: 'apple' }),
-      changeSettings(adapter, { homeAddress: 'Home 2' }),
+      changeSettings(adapter, { mapCustomTemplate: 'https://b/{to}' }),
     ])
     expect(await loadSettings(adapter)).toMatchObject({
-      homeAddress: 'Home 2',
+      mapCustomTemplate: 'https://b/{to}',
       travelMode: 'transit',
       mapProvider: 'apple',
     })
@@ -114,16 +114,16 @@ describe('syncSettings', () => {
     }
     const { settings, update, stop } = page(adapter as never)
 
-    const text = '10 rue de Rivoli, 75001 Paris'
+    const text = 'https://example.org/route?from={from}&to={to}'
     for (let index = 0; index < text.length; index++) {
-      void update({ homeAddress: text.slice(0, index + 1) })
+      void update({ mapCustomTemplate: text.slice(0, index + 1) })
       await new Promise((resolve) => setTimeout(resolve, 2))
       // What is typed is never taken back, at any moment of the typing.
-      expect(settings.homeAddress).toBe(text.slice(0, index + 1))
+      expect(settings.mapCustomTemplate).toBe(text.slice(0, index + 1))
     }
-    await vi.waitFor(async () => expect((await loadSettings(adapter as never)).homeAddress).toBe(text))
+    await vi.waitFor(async () => expect((await loadSettings(adapter as never)).mapCustomTemplate).toBe(text))
     await new Promise((resolve) => setTimeout(resolve, 60))
-    expect(settings.homeAddress).toBe(text)
+    expect(settings.mapCustomTemplate).toBe(text)
     stop()
   })
 

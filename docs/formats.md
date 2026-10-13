@@ -200,7 +200,7 @@ A restore is for a loss (a lost profile, a reinstall, a new computer): it **repl
 
 ## Versions of the structure
 
-The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **6** now.
+The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **7** now.
 
 | Version | What changed |
 | :--- | :--- |
@@ -210,6 +210,7 @@ The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/pe
 | 4 | A person can work for several companies (`contactCompanies`). The company a contact had becomes a first link. |
 | 5 | Pay profiles to estimate the net pay (`payProfiles`). |
 | 6 | An offer has the address of its workplace and the way there (`address`, `commuteMeters`, `commuteMinutes`, `commuteMode`). |
+| 7 | The address is in fields (lines 1 to 3, postal code, city, region, position). The line that was kept becomes the first line; nothing is guessed from it. |
 
 - **Older data is brought up to date.** A migration turns the data of version N into the data of N + 1, one step at a time. It runs on the storage when a page opens (the result is saved with the new version) and on a backup file when it is read, so an old backup can still be restored. The preview says when a backup is old.
 - **Newer data is left alone.** If the storage or a file was written by a newer structure than this version knows, nothing is read, nothing is written and nothing is replaced: a page says so, and a restore is refused. A version that makes no sense (0, a word, none in a file) is refused too.
@@ -391,12 +392,26 @@ Each page keeps in memory the last 80 things its persistence did: what it **wrot
 
 An offer can keep the **postal address of its workplace** and a link to open it in the map service the user chooses. The user searches there, then keeps in the offer what they found. **The extension asks nothing of any map service.**
 
-- **The address** is one line (`1 rue X, 75001 Paris, FR`), apart from the place (the city, as the offer says it). It is read from the page when it gives a street (`streetAddress`, with the postal code and the city, none of them twice when the street holds the whole address), or typed in the drawer.
-- **The links** are built from the address and opened in a new tab (`noopener noreferrer`) when the user clicks: **Show on the map** and **Route from home**. Nothing is sent before the click, and then only the addresses, to the service chosen. The links are built from what is typed, saved or not.
-- **The service** is a setting: Google Maps, OpenStreetMap, Apple Maps, or a link of the user's own (`https://…` with `{to}` or `{query}`, and `{from}` for a route). **OpenStreetMap cannot make a route from two addresses written as text** (its route link needs coordinates, which would take a request to a geocoding service), so it only shows the place, and the page says so. A link of the user's own that has no `{from}` shows the place only, too.
-- **The start** of a route is the home address of the settings. It stays in the browser with the other settings and the backups, and never goes into the CSV export. How the user usually travels (car, public transport, bicycle, on foot) is a setting too, and can be changed for an offer.
-- **What was found** is kept in the offer: the distance (kept in metres, written in kilometres), the time (whole minutes, at most 24 hours) and how the user travels. The card shows it (`12.4 km - 35 min`) and the CSV has it, with the postal address.
-- **No distance is computed by the extension**, because it would need the coordinates of the two addresses, hence a geocoding service and an address sent to it. The user does the search on the map, where they can see the real route.
+### The address in fields
+
+Address lines 1 to 3, postal code, city, region, country (an ISO code, the same field as the country of the offer), and the **position** on a map (latitude and longitude), all optional. The same fields hold the address the user leaves from (in the settings).
+
+- **From the page, or from the user.** When a page gives the address split (schema.org `PostalAddress`, with its `geo`), the fields are filled from it as they are. When it does not, the user types them. **Nothing is guessed from a free text**: the formats of addresses differ too much from one country to the next for a guess not to be wrong.
+- **The position** comes from the page (`geo`) or is pasted by the user from a map (`47.3941, 0.6848`, `47,3941; 0,6848`, two numbers; a latitude within 90, a longitude within 180). The extension looks nothing up.
+- **A country is a code of two letters, exactly** (`FR`). A country given by a page as a name ("France", "Allemagne") is turned into its code when it is one; a name is never cut short into a code.
+- **On one line**, for a map service, in the order of the country: the postal code before the city in France, Germany, Spain…; after it in the United Kingdom and Ireland; the region between in the United States, Canada and Australia. What is missing is left out, and the postal code and the city are not said twice when a line already holds them (a page may give the whole address as its street). The country is written in the language of the page.
+- Where there is no postal address, the place the offer names (the city as the offer says it) is what is shown on the map.
+
+### The links
+
+- They are built from the address and opened in a new tab (`noopener noreferrer`) when the user clicks: **Show on the map** and **Route from home**. Nothing is sent before the click, and then only the addresses (or positions), to the service chosen. The links are built from what is typed, saved or not.
+- **The service** is a setting: Google Maps, OpenStreetMap, Apple Maps, or a link of the user's own (`https://…` with `{to}` or `{query}`; `{from}` for a route; `{lat}`, `{lon}`, `{fromLat}`, `{fromLon}`, `{toLat}`, `{toLon}` for positions). Google and Apple take the address as text, or a position when there is no address.
+- **OpenStreetMap makes a route only from positions**: with the position of both ends it opens the route (by car, bicycle or on foot); without them it only shows the place, and the page says what is missing. **It has no route for public transport**, and says so. A link of the user's own that has no `{from}` shows the place only.
+- **The start** of a route is the home address of the settings. It stays in the browser with the other settings and the backups, and never goes into the CSV export. How the user usually travels is a setting too, and can be changed for an offer.
+
+### What was found
+
+Kept in the offer: the distance (kept in metres, written in kilometres), the time (whole minutes, at most 24 hours) and how the user travels. The card shows it (`12.4 km - 35 min`) and the CSV has it, with the address in fields and on one line. **No distance is computed by the extension**, because it would need a service to find the way: the user does the search on the map, where they can see the real route.
 
 ### Several pages on one storage
 
