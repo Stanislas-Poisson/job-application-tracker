@@ -30,6 +30,8 @@ export interface CaptureInput {
   location?: string | null
   // The ISO 3166-1 country of the place, when it is known.
   country?: string | null
+  // The postal address of the workplace, on one line.
+  address?: string | null
   contractType?: string | null
   workMode?: WorkMode | null
   description?: string | null
@@ -98,6 +100,7 @@ export function captureOffer(input: CaptureInput): Application {
     url: input.url ?? null,
     location: input.location ?? null,
     country: input.country ?? null,
+    address: input.address ?? null,
     contractType: input.contractType ?? null,
     workMode: input.workMode ?? null,
     description: input.description ?? null,

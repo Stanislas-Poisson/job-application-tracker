@@ -25,7 +25,9 @@
   const read = ref<ReadOffer>({})
   // The address of the page, to name the site in a report. Nothing else of the page goes into it.
   const pageUrl = ref('')
-  const found = computed(() => ['postedOn', 'salary', 'contractType', 'description'].filter((key) => key in read.value))
+  const found = computed(() =>
+    ['address', 'postedOn', 'salary', 'contractType', 'description'].filter((key) => key in read.value)
+  )
 
   const statuses = computed(() => useRepo(Status).orderBy('order').get())
   const statusOptions = computed(() => Object.fromEntries(statuses.value.map((status) => [status.key, status.label])))
@@ -111,6 +113,7 @@
       url: form.url || null,
       location: form.location || null,
       country: read.value.country ?? null,
+      address: read.value.address ?? null,
       contractType: read.value.contractType ?? null,
       workMode: read.value.workMode ?? null,
       description: read.value.description ?? null,

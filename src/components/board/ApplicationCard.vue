@@ -8,6 +8,7 @@
   import { useFormat } from '../../composables/useFormat'
   import { type Application, CompanyRelation } from '../../models'
   import { finalClientsOf } from '../../services/companyRelations'
+  import { formatCommute } from '../../services/maps'
 
   const props = defineProps<{ application: Application }>()
   const emit = defineEmits<{ open: [] }>()
@@ -23,6 +24,9 @@
     const company = offer.value?.company
     return company ? finalClientsOf(company.id).map((client) => client.name) : []
   })
+
+  // The way there, when the user kept what they found on a map.
+  const commute = computed(() => formatCommute(offer.value?.commuteMeters ?? null, offer.value?.commuteMinutes ?? null))
 
   // A reminder that is not done and is past its date.
   const overdue = computed(() =>
@@ -55,6 +59,13 @@
     <p class="muted">
       {{ offer?.company?.name }}<template v-if="0 < clients.length"> → {{ clients.join(', ') }}</template
       ><template v-if="offer?.location"> - {{ offer.location }}</template>
+    </p>
+    <p
+      v-if="commute"
+      class="muted commute-line"
+      :title="t('cardCommute')"
+    >
+      {{ commute }}
     </p>
     <p
       v-if="offer && format.salary(offer)"

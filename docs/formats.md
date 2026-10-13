@@ -200,7 +200,7 @@ A restore is for a loss (a lost profile, a reinstall, a new computer): it **repl
 
 ## Versions of the structure
 
-The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **5** now.
+The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/persistence/schema.ts`), which has nothing to do with the version of the extension. It is kept in the storage (`jat:schema`) and in every backup file (`schema`). It is **6** now.
 
 | Version | What changed |
 | :--- | :--- |
@@ -209,6 +209,7 @@ The structure of the data has a version of its own (`SCHEMA_VERSION`, in `src/pe
 | 3 | Companies can be tied to one another (`companyRelations`). |
 | 4 | A person can work for several companies (`contactCompanies`). The company a contact had becomes a first link. |
 | 5 | Pay profiles to estimate the net pay (`payProfiles`). |
+| 6 | An offer has the address of its workplace and the way there (`address`, `commuteMeters`, `commuteMinutes`, `commuteMode`). |
 
 - **Older data is brought up to date.** A migration turns the data of version N into the data of N + 1, one step at a time. It runs on the storage when a page opens (the result is saved with the new version) and on a backup file when it is read, so an old backup can still be restored. The preview says when a backup is old.
 - **Newer data is left alone.** If the storage or a file was written by a newer structure than this version knows, nothing is read, nothing is written and nothing is replaced: a page says so, and a restore is refused. A version that makes no sense (0, a word, none in a file) is refused too.
@@ -386,6 +387,17 @@ A helper in the options, for a freelance: from the **income wanted** it finds th
 
 Each page keeps in memory the last 80 things its persistence did: what it **wrote** (the kind of data, a short fingerprint of the state, and for the applications their priorities and favourites) and what it **read** back from the storage, with whether it recognised it as its own write or as the write of another page (`FOREIGN`). It holds no data, only counts and fingerprints. It is `window.__jat.events` of a page, and the browser tests print it when two pages disagree, to find out which one put an old state back.
 
+## The address of an offer, and the map
+
+An offer can keep the **postal address of its workplace** and a link to open it in the map service the user chooses. The user searches there, then keeps in the offer what they found. **The extension asks nothing of any map service.**
+
+- **The address** is one line (`1 rue X, 75001 Paris, FR`), apart from the place (the city, as the offer says it). It is read from the page when it gives a street (`streetAddress`, with the postal code and the city, none of them twice when the street holds the whole address), or typed in the drawer.
+- **The links** are built from the address and opened in a new tab (`noopener noreferrer`) when the user clicks: **Show on the map** and **Route from home**. Nothing is sent before the click, and then only the addresses, to the service chosen. The links are built from what is typed, saved or not.
+- **The service** is a setting: Google Maps, OpenStreetMap, Apple Maps, or a link of the user's own (`https://…` with `{to}` or `{query}`, and `{from}` for a route). **OpenStreetMap cannot make a route from two addresses written as text** (its route link needs coordinates, which would take a request to a geocoding service), so it only shows the place, and the page says so. A link of the user's own that has no `{from}` shows the place only, too.
+- **The start** of a route is the home address of the settings. It stays in the browser with the other settings and the backups, and never goes into the CSV export. How the user usually travels (car, public transport, bicycle, on foot) is a setting too, and can be changed for an offer.
+- **What was found** is kept in the offer: the distance (kept in metres, written in kilometres), the time (whole minutes, at most 24 hours) and how the user travels. The card shows it (`12.4 km - 35 min`) and the CSV has it, with the postal address.
+- **No distance is computed by the extension**, because it would need the coordinates of the two addresses, hence a geocoding service and an address sent to it. The user does the search on the map, where they can see the real route.
+
 ### Several pages on one storage
 
 The popup, the board and the options are open at the same time, each with its own copy of the data, all writing to one storage. A page that replaced what the storage holds by its own copy would erase what another page wrote and it had not seen yet. So a page never does that:
@@ -396,6 +408,6 @@ The popup, the board and the options are open at the same time, each with its ow
   - A record one side removed and the other changed **stays**: a removal never wins against an edit, nothing is lost.
 - **A read takes in the other pages.** When the storage tells a page that it changed, the page merges what it holds with what it has changed since its last write, and writes the rest when it saves. A write of its own coming back is recognised and ignored.
 - **One queue.** The writes and the reads of a page run one after the other, so that two of them never overlap.
-- **The settings follow the same rule.** Changing a setting writes only that setting into what the storage holds now (`changeSettings`), never the whole copy of the page.
+- **The settings follow the same rule.** Changing a setting writes only that setting into what the storage holds now (`changeSettings`), never the whole copy of the page. The changes that wait for their turn go out together (a field typed letter by letter makes one write, not thirty), and **while a write of the page is under way it does not read the storage back**: the storage tells the page about every write, the older ones included, and reading them would put an old value over what was just typed (`syncSettings`).
 - **The default columns and sources have fixed ids** (`status_applied`, `source_linkedin`…), so that two pages opened together on an empty storage make the same records and not two sets.
 - **What is left.** The storage has no transaction: two writes in the very same instant can still lose one of two changes to the same record. The window is the time between a page reading and writing, a few milliseconds, instead of the whole life of a page as before.

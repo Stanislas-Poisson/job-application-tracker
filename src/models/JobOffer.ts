@@ -20,6 +20,13 @@ export default class JobOffer extends Model {
   // The place as the offer says it, and its ISO 3166-1 country when it is known.
   declare location: string | null
   declare country: string | null
+  // The postal address of the workplace, on one line, as read from the page or typed. The place above is the city as the
+  // offer says it; this one is what a map service is asked for.
+  declare address: string | null
+  // What the user found on a map and kept: the distance (metres) and the time (minutes) from home, and how they travel.
+  declare commuteMeters: number | null
+  declare commuteMinutes: number | null
+  declare commuteMode: 'car' | 'transit' | 'bike' | 'walk' | null
   declare contractType: string | null
   declare workMode: WorkMode | null
   // The salary: a range in minor units (cents), its currency (ISO 4217), its period and whether it is gross or net.
@@ -47,6 +54,10 @@ export default class JobOffer extends Model {
       url: this.string(null),
       location: this.string(null),
       country: this.string(null),
+      address: this.string(null),
+      commuteMeters: this.number(null),
+      commuteMinutes: this.number(null),
+      commuteMode: this.string(null),
       contractType: this.string(null),
       workMode: this.string(null),
       salaryMin: this.number(null),
