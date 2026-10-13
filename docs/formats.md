@@ -170,3 +170,17 @@ Some sites publish no `JobPosting` data. For them the extension also takes the m
 - **A relative date is an approximation.** "3 days ago" is the day three days before today; a week is 7 days, a month 30, a year 365. A repost ("Republication") gives the day of the repost. The user can change the date.
 - A salary text such as `40K € par yr - 60K € par yr`, `45 000 € - 55 000 €/an` or `$90,000/yr` is read as a range in minor units with its period. Gross or net is not guessed.
 - Tests use `tests/fixtures`: a French page reduced from a real saved page (same structure, no class names, short text) and an English page written by hand. Saved pages stay out of the repository: they hold the account of the person who saved them.
+
+## Backup
+
+| What | How |
+| :--- | :--- |
+| The file | Plain, indented JSON: `app`, `schema`, `exportedAt`, `settings` and `data` (one list per model). Open it with any editor. Named `job-application-tracker-2026-10-13.json`. |
+| Where it is written | With the file system API (Chrome, Edge): the file is chosen once, the browser remembers it, and each backup overwrites it. When the browser refuses the permission or the file is gone, another file is asked for. Without the API (Firefox): a download. |
+| Another file | "Back up to another file" lets the user pick a new one. |
+| The settings | They are in the file and come back with an import. **There is no secret in them.** The cache of the exchange rates and the date of the last backup are left out: they belong to the browser. A setting that is not valid in a file edited by hand falls back on its default. |
+| The reminder | The board shows a banner when the last backup is older than the number of days of the options (30 by default, 0 turns it off), if there is something to save. "Later" hides it until the page is opened again. |
+
+- A user who closes the file picker cancels the backup: nothing is written and the date of the last backup does not change.
+- An older file with no `settings` still imports: only the data comes back.
+- Restoring as a merge, and protecting the file with a passphrase, are other tickets.

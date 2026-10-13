@@ -47,6 +47,10 @@ const en: TranslationObject = {
     foundKeys: { postedOn: 'date', salary: 'salary', contractType: 'contract', description: 'description' },
   },
   board: {
+    backupLate: 'Your last backup is {days} days old.',
+    backupNever: 'You have not backed up your data yet.',
+    backupLater: 'Later',
+    backupFailed: 'The backup failed. Try again, or use the options.',
     title: 'Board',
     search: 'Search by title, company or place',
     showArchived: 'Show archived',
@@ -304,6 +308,18 @@ const en: TranslationObject = {
     clear: 'Clear the filters',
   },
   options: {
+    backup: 'Backup',
+    backupHint:
+      'A copy of everything (and of the settings) in a JSON file you keep where you want. Open it with any editor, or import it back.',
+    backupNow: 'Back up now',
+    backupElsewhere: 'Back up to another file',
+    backedUp: 'Backed up to {name}.',
+    lastBackup: 'Last backup: {date}',
+    neverBackedUp: 'No backup yet.',
+    reminderDays: 'Remind me after this many days (0 for never)',
+    reminderHint:
+      'The reminder shows on the board when the last backup is older than that, if there is something to save.',
+    restore: 'Restore',
     title: 'Options',
     language: 'Language',
     statuses: 'Columns of the board',
