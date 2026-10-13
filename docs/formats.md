@@ -267,3 +267,15 @@ Data is written as soon as it changes, so the only thing a closing page can lose
 - **The drawer** asks before it is closed (Escape, the close button, a click outside) while any form is unsaved, and stays open if the user declines.
 - **The browser** asks before the board or the options page is closed while any form is unsaved. A popup cannot be asked, so:
 - **The popup keeps a draft** of what is typed (`jat:draft`), as it is typed, and gives it back when it is opened again on **the same page**. A draft of another page is not given back, so that two offers are never mixed, and a draft older than 7 days is dropped. Saving the offer clears it.
+
+## Reminders
+
+A reminder is a title and a moment (`dueAt`, UTC, typed in the time zone of the settings), done or not (`doneAt`).
+
+### Suggesting a follow-up
+
+Once the user has applied (`appliedAt` is set when an application reaches the "Applied" column), the drawer of the application **suggests a reminder to follow up**: "You applied: follow up 7 days later, on Oct 20, 9:00 AM?", with a button to add it. **Nothing is added until the user accepts.**
+
+- The delay is a setting (`followUpDays`, 7 by default, from 1 to 60). The reminder is set for **9 in the morning in the time zone of the user**, so it follows the clocks going back or forward.
+- It is not offered for an application that is archived, at the end of its road (a final column, such as an offer or a refusal), that the user has not applied to, or that has a reminder waiting already. It comes back once that reminder is done.
+- The form to add a reminder by hand starts from the same delay.
