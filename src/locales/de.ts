@@ -826,6 +826,10 @@ const de: TranslationObject = {
     },
   },
   customLanguage: {
+    developer: 'Entwicklermodus',
+    developerHint:
+      'Erlaubt einer Sprachdatei, nur auf diesem Computer den Platz einer Sprache der Erweiterung einzunehmen, um eine Übersetzung vor dem Einsenden zu prüfen. Die Datei wird wie immer geprüft, und Sie sehen das Ergebnis, bevor etwas behalten wird. Wenn Sie das ausschalten, bleibt die Datei als eigene Sprache mit einem Code erhalten, der auf -x-mine endet.',
+    replaces: 'Diese Datei ersetzt die Sprache „{name}“ der Erweiterung, nur auf diesem Computer.',
     title: 'Eine eigene Sprache',
     hint: 'Für eine Sprache, die nicht in der Liste steht: Laden Sie die Datei herunter, übersetzen Sie die Texte darin und geben Sie sie zurück. Sie wird hier geprüft, bevor etwas behalten wird, nichts wird irgendwohin gesendet, und sie bleibt auf diesem Computer, getrennt von Ihren Daten und Sicherungen. Ein Text, den Sie auf Englisch lassen, bleibt Englisch.',
     template: 'Die zu übersetzende Datei herunterladen',
@@ -850,8 +854,9 @@ const de: TranslationObject = {
       json: 'Diese Datei ist kein gültiges JSON.',
       'not-a-language':
         'Diese Datei ist keine Sprachdatei dieser Erweiterung. Laden Sie zuerst die zu übersetzende Datei herunter.',
-      code: 'Der Sprachcode ist ungültig: Schreiben Sie ihn wie sv oder pt-BR.',
-      shipped: 'Diese Sprache ist bereits in der Erweiterung und kann nicht ersetzt werden.',
+      code: 'Der Sprachcode ist ungültig: Schreiben Sie ihn wie sv, pt-BR oder es-x-mine.',
+      shipped:
+        'Diese Sprache ist bereits in der Erweiterung. Geben Sie Ihrer Datei einen eigenen Code wie es-x-mine, oder schalten Sie den Entwicklermodus ein.',
       name: 'Der Name der Sprache fehlt, ist zu lang oder enthält Unzulässiges.',
       dir: 'Die Richtung ist ltr (von links nach rechts) oder rtl (von rechts nach links).',
       messages: 'Die Texte fehlen in der Datei.',

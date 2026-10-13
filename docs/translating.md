@@ -35,6 +35,14 @@ goes away for that language.
 - Texts get longer in some languages (30% more in German): do not count on a fixed width.
 - Dates, numbers and money are written by the browser for the language: do not write them in a text.
 
+## Developer mode: try a file in place of a language of the extension
+
+For someone who translates the extension, the option **"Developer mode"** (under "A language of your own") lets a file with the code
+of a language of the extension (`es`, `fr`…) take its place **on this computer only**, to see the result in the real pages before
+sending the pull request. The file is checked exactly like any other, the preview says that it replaces the language, and nothing is
+kept until the answer. Turn the mode off and the file stays as a language of its own, with the code `<code>-x-mine`; it never
+leaves the computer and never goes into a backup.
+
 ## Checking that a language fits
 
 The end-to-end suite makes a pseudo-language on each page (every text 40% longer and accented, taller lines), in both directions, and fails when a text is cut or the page grows a side scroll. Run it with `npm run zip` then `BROWSER=chrome npm test` in `tests/e2e`.
@@ -52,7 +60,12 @@ variant such as `fr-CA`, a small language, personal wording), or try a translati
 What is checked, and why:
 
 - **The size** of the file (1 million characters at most) and its **shape**: a language file of this extension, nothing else.
-- **The code** (`es`, `pt-BR`…) is a valid language tag, and is not one of the languages the extension has.
+- **The code** (`sv`, `pt-BR`…) is a valid language tag, and is not one of the languages the extension has, unless the developer mode
+  is on (see below). To keep a version of your own of a language the extension has, add a private-use part: `es-x-mine`,
+  `fr-CA-x-work` (from one to three words of 1 to 8 letters or digits after `-x-`). The browser reads it as the language before
+  `-x-`, so the plurals, the dates and the names stay right, and it never clashes with a language the extension comes with later.
+- **When the extension later comes with your code**, your language is not lost: it is kept under `<code>-x-mine` (with a number if
+  that is taken), and the list of languages shows both.
 - **Only the keys of English** are kept. A key that is not in English is ignored; a key that could reach the prototype of an object
   (`__proto__`, `constructor`, `prototype`) is refused.
 - **Each text** is at most 2000 characters, with no control character, no mark that changes the direction of the text around it

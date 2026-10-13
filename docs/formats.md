@@ -443,6 +443,13 @@ A process of its own, different from the restore: the restore replaces what is s
 - **A deletion is not a record that is missing.** What was deleted here (it is in the trash) is not brought back from the file. What was deleted on the other computer is not deleted here: the trash of the file is not merged.
 - **Duplicates are possible**: a company, contact or tag created on both computers has two ids, so it is there twice. The preview counts the likely ones (same company name, same contact name, same address of an offer) and the user merges them by hand.
 
+## Codes of the languages
+
+A language of the user has a code that is a language tag (`sv`, `pt-BR`), optionally followed by a private-use part (`es-x-mine`,
+`fr-CA-x-work`). The setting `locale` accepts the same codes. The setting `developerMode` (off by default) lets a language file take
+the code of a language of the extension; when it is off, a stored language whose code the extension has since come with is read
+again as `<code>-x-mine`, `<code>-x-mine2`… so that it stays. See `docs/translating.md`.
+
 ## Text appearance
 
 Settings, kept with the others and in the backups: `fontFamily` (`system`, `serif`, `monospace` as `mono`, `custom`), `fontCustom` (the name of a font installed on the computer, letters, digits, spaces, dots, dashes and underscores only, 100 characters at most, so that it cannot break out of a style), `textScale` (80, 90, 100, 110, 125, 150, 175 or 200, in percent of the usual size, written on the root so every size in `rem` follows), `textSpacing` (`default`, `wide`, `wcag` for line height 1.5, letters 0.12 em and words 0.16 em, `widest`), `density` (`comfortable`, `compact`) and `motion` (`auto` follows the system, `reduce` forces it). The chosen font is always followed by the system fonts so that every script keeps a font that has its letters. No font is shipped: the fonts made for easier reading are used when installed, by name.

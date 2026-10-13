@@ -819,6 +819,10 @@ const it: TranslationObject = {
     },
   },
   customLanguage: {
+    developer: 'Modalità sviluppatore',
+    developerHint:
+      "Permette a un file di lingua di prendere il posto di una lingua dell'estensione, solo su questo computer, per controllare una traduzione prima di inviarla. Il file viene controllato come sempre e vedi il risultato prima che venga conservato qualcosa. Quando la disattivi, quel file resta come lingua a sé, con un codice che finisce con -x-mine.",
+    replaces: "Questo file sostituisce la lingua «{name}» dell'estensione, solo su questo computer.",
     title: 'Una lingua tua',
     hint: "Per una lingua che non è nell'elenco: scarica il file, traduci i testi che contiene e restituiscilo. Viene controllato qui prima di conservare qualsiasi cosa, non viene inviato nulla da nessuna parte e resta su questo computer, separato dai tuoi dati e dai tuoi backup. Un testo che lasci in inglese resta in inglese.",
     template: 'Scarica il file da tradurre',
@@ -842,8 +846,9 @@ const it: TranslationObject = {
       'too-big': 'Questo file è troppo grande per essere un file di lingua.',
       json: 'Questo file non è un JSON valido.',
       'not-a-language': 'Questo file non è un file di lingua di questa estensione. Scarica prima il file da tradurre.',
-      code: 'Il codice della lingua non è valido: scrivilo come sv o pt-BR.',
-      shipped: "Questa lingua è già nell'estensione e non può essere sostituita.",
+      code: 'Il codice della lingua non è valido: scrivilo come sv, pt-BR o es-x-mine.',
+      shipped:
+        "Questa lingua è già nell'estensione. Dai al tuo file un codice tuo, come es-x-mine, oppure attiva la modalità sviluppatore.",
       name: 'Il nome della lingua manca, è troppo lungo o contiene qualcosa di non consentito.',
       dir: 'La direzione è ltr (da sinistra a destra) o rtl (da destra a sinistra).',
       messages: 'I testi mancano nel file.',

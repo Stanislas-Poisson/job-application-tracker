@@ -5,6 +5,7 @@
   import {
     type LanguageReport,
     MAX_LANGUAGES,
+    SHIPPED,
     type StoredLanguage,
     languageTemplate,
     readLanguageFile,
@@ -41,7 +42,7 @@
     if (!file) {
       return
     }
-    const result = readLanguageFile(await file.text())
+    const result = readLanguageFile(await file.text(), { developer: settings.developerMode })
     if (result.ok) {
       pending.value = { language: result.language, report: result.report }
     } else {
@@ -76,6 +77,16 @@
   <h3>{{ t('customLanguage.title') }}</h3>
   <p class="muted">{{ t('customLanguage.hint') }}</p>
   <div class="stack">
+    <label class="row">
+      <input
+        type="checkbox"
+        name="developerMode"
+        :checked="settings.developerMode"
+        @change="updateSettings({ developerMode: ($event.target as HTMLInputElement).checked })"
+      />
+      {{ t('customLanguage.developer') }}
+    </label>
+    <p class="muted">{{ t('customLanguage.developerHint') }}</p>
     <div class="row wrap">
       <FormButton
         id="language-template"
@@ -101,6 +112,13 @@
     >
       <p>
         <strong>{{ pending.language.name }}</strong> ({{ pending.language.code }}, {{ pending.language.dir }})
+      </p>
+      <p
+        v-if="SHIPPED.includes(pending.language.code)"
+        id="language-replaces"
+        class="error"
+      >
+        {{ t('customLanguage.replaces', { name: pending.language.code }) }}
       </p>
       <p>
         {{
