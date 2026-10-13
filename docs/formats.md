@@ -161,4 +161,3 @@ Some sites publish no `JobPosting` data. For them the extension also takes the m
 - **A relative date is an approximation.** "3 days ago" is the day three days before today; a week is 7 days, a month 30, a year 365. A repost ("Republication") gives the day of the repost. The user can change the date.
 - A salary text such as `40K € par yr - 60K € par yr`, `45 000 € - 55 000 €/an` or `$90,000/yr` is read as a range in minor units with its period. Gross or net is not guessed.
 - Tests use `tests/fixtures`: a French page reduced from a real saved page (same structure, no class names, short text) and an English page written by hand. Saved pages stay out of the repository: they hold the account of the person who saved them.
-
