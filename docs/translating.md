@@ -23,3 +23,7 @@ everyone with the next version, like a fix.
 - Do not translate the names of services or file formats (CSV, JSON, WCAG).
 - Texts get longer in some languages (30% more in German): do not count on a fixed width.
 - Dates, numbers and money are written by the browser for the language: do not write them in a text.
+
+## Checking that a language fits
+
+The end-to-end suite makes a pseudo-language on each page (every text 40% longer and accented, taller lines), in both directions, and fails when a text is cut or the page grows a side scroll. Run it with `npm run zip` then `BROWSER=chrome npm test` in `tests/e2e`.
