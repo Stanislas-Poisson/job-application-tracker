@@ -156,7 +156,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await open('options', '.status-list li')
 
       await type('input[name=newStatus]', 'Phone screen')
-      await (await all('form button[type=submit]'))[0].click()
+      await driver.executeScript(`document.querySelector('input[name=newStatus]').form.requestSubmit()`)
       await waitFor(async () => (await all('.status-list li')).length === 7, { message: 'the new column' })
 
       const buttons = await all('.status-list li:last-child button')
@@ -703,8 +703,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const empty = { app: 'job-application-tracker', schema: 1, exportedAt: '2026-10-01T08:00:00.000Z', data: {} }
       fs.writeFileSync(file, JSON.stringify(empty))
 
-      await open('options', 'input[type=file]')
-      await css('input[type=file]').then((input) => input.sendKeys(file))
+      await open('options', '#restore-file')
+      await css('#restore-file').then((input) => input.sendKeys(file))
       await waitFor(async () => (await all('#restore-preview')).length > 0, { message: 'the preview' })
 
       const preview = await text('#restore-preview')
@@ -723,8 +723,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       // A file that is not a backup says so and changes nothing.
       fs.writeFileSync(file, JSON.stringify({ hello: 'world' }))
-      await open('options', 'input[type=file]')
-      await css('input[type=file]').then((input) => input.sendKeys(file))
+      await open('options', '#restore-file')
+      await css('#restore-file').then((input) => input.sendKeys(file))
       await waitFor(async () => (await all('.error')).length > 0, { message: 'the error' })
       assert.match(await text('.error'), /not an export/)
       assert.equal((await all('#restore-preview')).length, 0)
@@ -953,6 +953,60 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       }
     })
 
+    test('a custom theme changes the colours at once, warns about a contrast that is too low, and corrects it', async () => {
+      await open('options', 'select[name=theme]')
+      await driver.executeScript('window.confirm = () => true')
+      await choose('select[name=theme]', 'light')
+      await type('input[name=newTheme]', 'Warm')
+      await driver.executeScript(`document.querySelector('input[name=newTheme]').form.requestSubmit()`)
+      await waitFor(async () => (await all('#theme-editor')).length > 0, { message: 'the theme editor' })
+      const setColor = (name, value) =>
+        driver.executeScript(
+          `const input = document.querySelector('input[name="' + arguments[0] + '"]'); input.value = arguments[1]; input.dispatchEvent(new Event('change', { bubbles: true }))`,
+          name,
+          value
+        )
+      const background = () => driver.executeScript(`return getComputedStyle(document.body).backgroundColor`)
+
+      await setColor('light-background', '#ffeecc')
+      await waitFor(async () => (await background()) === 'rgb(255, 238, 204)', {
+        message: 'the background of the theme',
+      })
+
+      // A text that is too light on that background: a warning, then a correction.
+      await setColor('light-text', '#eeeeee')
+      await waitFor(async () => (await all('#theme-issues-light')).length > 0, { message: 'the contrast warning' })
+      assert.match(await text('#theme-issues-light'), /Text on Background/)
+      for (let tries = 0; tries < 4 && (await all('#theme-issues-light')).length > 0; tries++) {
+        await driver.executeScript(`document.querySelector('#theme-issues-light .theme-correct').click()`)
+        await driver.sleep(150)
+      }
+      await waitFor(async () => (await all('#theme-issues-light')).length === 0, {
+        message: 'the contrast to be corrected',
+      })
+
+      // Back to the standard themes: the colours go back.
+      await choose('select[name=customTheme]', '')
+      await waitFor(async () => (await background()) !== 'rgb(255, 238, 204)', { message: 'the standard colours' })
+
+      // Another page uses the theme too.
+      await choose(
+        'select[name=customTheme]',
+        await driver.executeScript(`return document.querySelector('select[name=customTheme] option:last-child').value`)
+      )
+      await open('board', '.column')
+      assert.equal(await background(), 'rgb(255, 238, 204)')
+
+      // Delete it and leave things as they were.
+      await open('options', '#theme-editor')
+      await driver.executeScript('window.confirm = () => true')
+      await driver.executeScript(
+        `[...document.querySelectorAll('#theme-editor button')].find((b) => b.textContent.trim() === 'Delete this theme').click()`
+      )
+      await waitFor(async () => (await all('#theme-editor')).length === 0, { message: 'the theme to be deleted' })
+      await choose('select[name=theme]', 'auto')
+    })
+
     test('the checksum of a backup is checked: a file that was changed needs an explicit yes', async () => {
       const canonical = (value) =>
         JSON.stringify(
@@ -972,8 +1026,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const file = path.join(os.tmpdir(), `jat-checksum-${Date.now()}.json`)
       const backup = { app: 'job-application-tracker', schema: 2, exportedAt: '2026-10-01T08:00:00.000Z', data: {} }
       const pick = async () => {
-        await open('options', 'input[type=file]')
-        await css('input[type=file]').then((input) => input.sendKeys(file))
+        await open('options', '#restore-file')
+        await css('#restore-file').then((input) => input.sendKeys(file))
         await waitFor(async () => (await all('#restore-preview')).length > 0, { message: 'the preview' })
       }
 
@@ -1045,8 +1099,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       // Restoring: the passphrase is asked, a wrong one changes nothing, the right one shows the preview.
       const protectedFile = path.join(os.tmpdir(), `jat-protected-${Date.now()}.json`)
       fs.writeFileSync(protectedFile, written)
-      await open('options', 'input[type=file]')
-      await css('input[type=file]').then((input) => input.sendKeys(protectedFile))
+      await open('options', '#restore-file')
+      await css('#restore-file').then((input) => input.sendKeys(protectedFile))
       await waitFor(async () => (await all('#restore-locked')).length > 0, { message: 'the passphrase prompt' })
 
       await type('#restore-passphrase', 'a wrong passphrase')
