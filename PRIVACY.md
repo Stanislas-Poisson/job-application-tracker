@@ -28,6 +28,7 @@ You can export all of it as a JSON file from the options page, import it back, o
 - **`storage`** - to keep your data in the browser.
 - **`https://api.frankfurter.dev/*`** (optional) - only if you turn on the automatic exchange rates.
 - **`activeTab`** - to reach the tab you are on, when you open the popup. The permission is given by your click on the extension button, for that tab only.
+- **`alarms`** - to wake up when a reminder comes due, and now and then to catch up. It gives access to nothing.
 - **`scripting`** - to read that one tab at that moment: its title, its address and the data about the offer that the page itself publishes (the `JobPosting` data that job sites give to search engines). For a site that publishes no such data (LinkedIn), the main part of the page you are looking at is read as well. Nothing is read in the background, from another tab or from a page you did not open the popup on, and what is read goes nowhere: it only fills the form of the popup, which you can change before saving.
 
 ## Exchange rates (optional, off by default)
@@ -47,3 +48,7 @@ Questions or concerns: open an issue at
 ## Backups protected by a passphrase
 
 If you turn on "Protect the backups with a passphrase", the backup file is encrypted in your browser (AES-GCM, key from PBKDF2) before it is written. **The passphrase is never stored and never leaves your browser.** Only a check is kept in the settings, to tell whether a passphrase you type later is the one you set. Nobody, including the author, can recover a lost passphrase or open a protected backup without it.
+
+## Notifications of the reminders
+
+If you turn on "Notify me when a reminder is due", the extension asks the browser for the permission to show notifications, and gives it back when you turn the option off. A notification is made on your computer from your own data (the title of the reminder, the offer and the company) and shown by your system. Nothing is sent anywhere. The number on the icon of the extension is computed the same way, and needs no permission.

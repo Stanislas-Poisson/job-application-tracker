@@ -50,6 +50,10 @@ export interface Settings {
   // Remind the user to back up when the last backup is older than this many days. 0 turns the reminder off.
   // How many days after applying a follow-up reminder is suggested.
   followUpDays: number
+  // Notify when a reminder comes due. Off by default: it needs the permission of the browser, asked when this is turned on.
+  notifyReminders: boolean
+  // Keep the notification on screen until the user closes it (Chrome and Edge; Firefox does not know the option).
+  notifyPersistent: boolean
   backupReminderDays: number
   // When the data was last backed up to a file (UTC), or null when it never was.
   lastBackupAt: string | null
@@ -74,6 +78,8 @@ export const DEFAULT_SETTINGS: Settings = {
   autoRatesData: null,
   ownEmails: [],
   followUpDays: 7,
+  notifyReminders: false,
+  notifyPersistent: true,
   backupReminderDays: 30,
   lastBackupAt: null,
   backupProtect: false,
@@ -104,6 +110,8 @@ const VALID: {
   hoursPerDay: inRange(1, 24),
   backupProtect: (value) => 'boolean' === typeof value,
   followUpDays: (value) => Number.isInteger(value) && inRange(1, 60)(value),
+  notifyReminders: (value) => 'boolean' === typeof value,
+  notifyPersistent: (value) => 'boolean' === typeof value,
   backupReminderDays: (value) => Number.isInteger(value) && inRange(0, 365)(value),
 }
 
