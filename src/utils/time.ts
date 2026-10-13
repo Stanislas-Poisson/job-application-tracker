@@ -171,6 +171,44 @@ export function todayIn(zone: string, at: Date = new Date()): string {
   return utcToZonedInput(at.toISOString(), zone).slice(0, 10)
 }
 
+const WITH_ZONE = /(Z|[+-]\d{2}(:?\d{2})?)$/i
+const DATE_TIME = /^(\d{4}-\d{2}-\d{2})[T ]\d{2}:\d{2}/
+
+/**
+ * The day an offer was published, as a plain date, from what a page says.
+ *
+ * - A date with no hour is that day, as it is.
+ * - A date with an hour and a time zone (`Z`, `+02:00`) is a moment: it is the day it is in the time zone of the user.
+ * - A date with an hour and no time zone is read in the time zone of the user, which is the default whenever the
+ *   page does not say which one it uses. The day is the one written.
+ *
+ * Returns null when the text is not a date.
+ */
+export function postedDay(value: unknown, zone: string): string | null {
+  if ('string' !== typeof value) {
+    return null
+  }
+  const text = value.trim()
+  if (isPlainDate(text)) {
+    return text
+  }
+  const match = DATE_TIME.exec(text)
+  if (!match?.[1] || !isPlainDate(match[1])) {
+    return null
+  }
+  if (!WITH_ZONE.test(text)) {
+    return match[1]
+  }
+  // The type guard above leaves no type for `text` on this path, hence the String().
+  const moment = new Date(
+    String(text)
+      .replace(' ', 'T')
+      .replace(/([+-]\d{2})$/, '$1:00')
+      .replace(/([+-]\d{2})(\d{2})$/, '$1:$2')
+  )
+  return Number.isNaN(moment.getTime()) ? null : todayIn(zone, moment)
+}
+
 // The wall clock of a day some days from now at a given hour, in a time zone: the default of a reminder.
 export function inDaysAt(days: number, hour: number, zone: string, at: Date = new Date()): string {
   const [year = 0, month = 1, day = 1] = todayIn(zone, at).split('-').map(Number)

@@ -41,6 +41,8 @@ const en: TranslationObject = {
     openBoard: 'Open the board',
     another: 'Save another',
     save: 'Save the offer',
+    found: 'Also read from the page: {list}.',
+    foundKeys: { postedOn: 'date', salary: 'salary', contractType: 'contract', description: 'description' },
   },
   board: {
     title: 'Board',
