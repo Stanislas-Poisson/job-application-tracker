@@ -6,8 +6,9 @@
   import { computed } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { useFormat } from '../../composables/useFormat'
-  import { type Application, CompanyRelation } from '../../models'
+  import { type Application, CompanyRelation, Journey } from '../../models'
   import { finalClientsOf } from '../../services/companyRelations'
+  import { formatDuration, preferredJourney, totalMinutes } from '../../services/journeys'
 
   const props = defineProps<{ application: Application }>()
   const emit = defineEmits<{ open: [] }>()
@@ -22,6 +23,13 @@
     useRepo(CompanyRelation).all()
     const company = offer.value?.company
     return company ? finalClientsOf(company.id).map((client) => client.name) : []
+  })
+
+  // The way there: the time of the preferred journey, when the user kept one.
+  const commute = computed(() => {
+    useRepo(Journey).all()
+    const journey = offer.value ? preferredJourney(offer.value.id) : null
+    return journey ? formatDuration(totalMinutes(journey.legs)) : ''
   })
 
   // A reminder that is not done and is past its date.
@@ -55,6 +63,13 @@
     <p class="muted">
       {{ offer?.company?.name }}<template v-if="0 < clients.length"> → {{ clients.join(', ') }}</template
       ><template v-if="offer?.location"> - {{ offer.location }}</template>
+    </p>
+    <p
+      v-if="commute"
+      class="muted commute-line"
+      :title="t('cardCommute')"
+    >
+      {{ commute }}
     </p>
     <p
       v-if="offer && format.salary(offer)"

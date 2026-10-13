@@ -5,7 +5,7 @@
 // How to change the structure: add a function to MIGRATIONS that turns the data of version N into the data of N + 1,
 // raise SCHEMA_VERSION to N + 1, and add a test with a file of version N. The functions only ever go up one step.
 
-export const SCHEMA_VERSION = 5
+export const SCHEMA_VERSION = 8
 export const SCHEMA_KEY = 'jat:schema'
 
 // The records of every kind of data, by entity name, as they are stored.
@@ -47,6 +47,63 @@ export const MIGRATIONS: Record<number, Migration> = {
   },
   // 4 -> 5: pay profiles, to estimate the net pay of a gross pay.
   4: (data) => ({ ...data, payProfiles: data.payProfiles ?? [] }),
+  // 5 -> 6: an offer has the address of its workplace, and what the user found about the way there.
+  5: (data) => ({
+    ...data,
+    jobOffers: (data.jobOffers ?? []).map((offer) => ({
+      address: null,
+      commuteMeters: null,
+      commuteMinutes: null,
+      commuteMode: null,
+      ...offer,
+    })),
+  }),
+  // 6 -> 7: the address of an offer is in fields. The one that was kept as a line becomes the first line: nothing is guessed
+  // from it. The coordinates start empty.
+  6: (data) => ({
+    ...data,
+    jobOffers: (data.jobOffers ?? []).map((offer) => {
+      const { address, ...rest } = offer
+      return {
+        addressLine1: 'string' === typeof address && '' !== address.trim() ? address : null,
+        addressLine2: null,
+        addressLine3: null,
+        postalCode: null,
+        city: null,
+        region: null,
+        latitude: null,
+        longitude: null,
+        ...rest,
+      }
+    }),
+  }),
+  // 7 -> 8: the way to the workplace is a journey in legs. What was kept as a distance, a time and a means becomes a journey of one
+  // leg, the preferred outbound one; its id comes from the offer, so that running the step twice makes no second one.
+  7: (data) => {
+    const existing = data.journeys ?? []
+    const have = new Set(existing.map((journey) => String(journey.id)))
+    const made: Record<string, unknown>[] = []
+    const jobOffers = (data.jobOffers ?? []).map((offer) => {
+      const { commuteMeters, commuteMinutes, commuteMode, ...rest } = offer
+      const minutes = 'number' === typeof commuteMinutes ? commuteMinutes : null
+      const meters = 'number' === typeof commuteMeters ? commuteMeters : null
+      const id = `jy_${String(offer.id)}`
+      if ((null !== minutes || null !== meters) && !have.has(id)) {
+        const mode = ['car', 'bike', 'walk', 'transit'].includes(String(commuteMode)) ? commuteMode : 'other'
+        made.push({
+          id,
+          updatedAt: null,
+          jobOfferId: offer.id,
+          direction: 'outbound',
+          name: null,
+          preferred: true,
+          legs: [{ mode, line: '', minutes: minutes ?? 0, meters }],
+        })
+      }
+      return rest
+    })
+    return { ...data, jobOffers, journeys: [...existing, ...made] }
+  },
 }
 
 // Whether data of that version can be read: a number from 1 to the current version.

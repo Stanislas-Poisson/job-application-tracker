@@ -9,9 +9,11 @@
   import DrawerContacts from './DrawerContacts.vue'
   import DrawerDetails from './DrawerDetails.vue'
   import DrawerInteractions from './DrawerInteractions.vue'
+  import DrawerJourneys from './DrawerJourneys.vue'
   import DrawerLabels from './DrawerLabels.vue'
   import DrawerNetPay from './DrawerNetPay.vue'
   import DrawerNotes from './DrawerNotes.vue'
+  import DrawerPlace from './DrawerPlace.vue'
   import DrawerReminders from './DrawerReminders.vue'
   import DrawerTimeline from './DrawerTimeline.vue'
 
@@ -59,6 +61,8 @@
         :application="application"
         @deleted="emit('close')"
       />
+      <DrawerPlace :application="application" />
+      <DrawerJourneys :application="application" />
       <DrawerNetPay :application="application" />
       <DrawerCompany :application="application" />
       <DrawerLabels :application="application" />

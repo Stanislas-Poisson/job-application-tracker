@@ -1,4 +1,5 @@
-import type { Application } from '../models'
+import type { Application, JobOffer } from '../models'
+import type { LegMode } from '../models/Journey'
 import { UTF8_BOM, plainCell, toCsv } from '../utils/csv'
 import {
   type Conversion,
@@ -9,6 +10,8 @@ import {
   currencyDigits,
   fromMinor,
 } from '../utils/money'
+import { type AddressParts, formatAddress, normalizeAddress } from './address'
+import { describeJourney, preferredOf, totalMeters, totalMinutes } from './journeys'
 
 export const COLUMNS = [
   'status',
@@ -16,6 +19,16 @@ export const COLUMNS = [
   'company',
   'finalClient',
   'place',
+  'postalAddress',
+  'postalCode',
+  'city',
+  'region',
+  'latitude',
+  'longitude',
+  'commuteMinutes',
+  'commuteKm',
+  'journey',
+  'returnMinutes',
   'country',
   'contract',
   'workMode',
@@ -53,9 +66,13 @@ export interface ExportLabels {
   priorities: Record<string, string>
   periods: Record<SalaryPeriod, string>
   kinds: Record<SalaryKind, string>
+  // The names of the means of a leg of a journey.
+  legModes: Record<LegMode, string>
 }
 
 export interface ExportContext {
+  // The language of the file, for the country in the address.
+  locale: string
   labels: ExportLabels
   conversion: Conversion
   // The estimate of the net pay of the salary of an offer, per year (the middle of the range), by the profile chosen, or null.
@@ -103,6 +120,10 @@ export function boardRows(applications: Application[], context: ExportContext): 
     }
     const perYear = null === currency ? null : comparableSalary(salary, conversion)
     const net = context.netEstimate(salary)
+    // The way there and the way back: the journeys the user marked, or the shortest.
+    const outbound = preferredOf(offer?.journeys ?? [], 'outbound')
+    const back = preferredOf(offer?.journeys ?? [], 'return')
+    const outboundMeters = outbound ? totalMeters(outbound.legs) : null
     const waiting = (application.reminders ?? [])
       .filter((reminder) => null === reminder.doneAt)
       .sort((a, b) => a.dueAt.localeCompare(b.dueAt))
@@ -113,6 +134,16 @@ export function boardRows(applications: Application[], context: ExportContext): 
       company: offer?.company?.name ?? '',
       finalClient: offer?.company ? list(context.finalClients(offer.company.id)) : '',
       place: offer?.location ?? '',
+      postalAddress: offer ? formatAddress(addressOfOffer(offer), context.locale) : '',
+      postalCode: offer?.postalCode ?? '',
+      city: offer?.city ?? '',
+      region: offer?.region ?? '',
+      latitude: null == offer?.latitude ? '' : String(offer.latitude).replace('.', decimal),
+      longitude: null == offer?.longitude ? '' : String(offer.longitude).replace('.', decimal),
+      commuteMinutes: outbound ? String(totalMinutes(outbound.legs)) : '',
+      commuteKm: null == outboundMeters ? '' : String(outboundMeters / 1000).replace('.', decimal),
+      journey: outbound ? describeJourney(outbound, (mode) => labels.legModes[mode]) : '',
+      returnMinutes: back ? String(totalMinutes(back.legs)) : '',
       country: offer?.country ?? '',
       contract: offer?.contractType ?? '',
       workMode: offer?.workMode ?? '',
@@ -155,3 +186,17 @@ export function boardCsv(
 }
 
 export const exportFileName = (day: string): string => `job-application-tracker-board-${day}.csv`
+
+// The address of an offer as fields.
+export const addressOfOffer = (offer: JobOffer): AddressParts =>
+  normalizeAddress({
+    line1: offer.addressLine1,
+    line2: offer.addressLine2,
+    line3: offer.addressLine3,
+    postalCode: offer.postalCode,
+    city: offer.city,
+    region: offer.region,
+    country: offer.country,
+    latitude: offer.latitude,
+    longitude: offer.longitude,
+  })
