@@ -891,6 +891,68 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       assert.equal(side, true, 'the columns are mirrored')
     })
 
+    test('the pages hold with long accented texts, from right to left, and with tall letters: nothing is cut or sticks out', async () => {
+      // A pseudo-language made on the page: every text 40% longer and accented, as German or Finnish can be.
+      const stretch = `
+        const accents = { a: 'à', e: 'é', i: 'î', o: 'ô', u: 'ü', c: 'ç', n: 'ñ', A: 'Å', E: 'É', O: 'Ö', U: 'Ü' };
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        const nodes = [];
+        while (walker.nextNode()) nodes.push(walker.currentNode);
+        for (const node of nodes) {
+          const text = node.nodeValue;
+          if (!text.trim() || node.parentElement.closest('script, style')) continue;
+          const accented = text.replace(/[aeioucnAEOU]/g, (c) => accents[c]);
+          const extra = Math.ceil(text.trim().length * 0.4);
+          node.nodeValue = accented + ' ' + 'xyzwv'.repeat(Math.ceil(extra / 5)).slice(0, extra);
+        }
+        document.documentElement.style.lineHeight = '1.9';
+      `
+      // What is cut: an element that hides what does not fit, or that has a fixed width its text goes out of.
+      const check = `
+        const problems = [];
+        const page = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+        if (page > 1) problems.push('page ' + page + 'px too wide');
+        for (const el of document.body.querySelectorAll('*')) {
+          const style = getComputedStyle(el);
+          if (style.display === 'none' || !el.textContent.trim()) continue;
+          const hides = ['hidden', 'clip'].includes(style.overflowX) || style.textOverflow === 'ellipsis';
+          if (hides && el.scrollWidth > el.clientWidth + 1 && !el.closest('select, option, input, textarea')) {
+            problems.push((el.className || el.tagName) + ' cuts its text (' + el.scrollWidth + ' > ' + el.clientWidth + ')');
+          }
+        }
+        return problems.slice(0, 8);
+      `
+      // The check sees a text that is cut: a control, made on purpose, must be found.
+      await open('options', 'body')
+      await driver.executeScript(`
+        const cut = document.createElement('div');
+        cut.id = 'cut-control';
+        cut.style.cssText = 'width:20px;overflow:hidden;white-space:nowrap';
+        cut.textContent = 'a text much longer than twenty pixels';
+        document.body.append(cut);
+      `)
+      const control = await driver.executeScript(check)
+      assert.ok(
+        control.some((problem) => /cut-control|DIV/.test(problem)),
+        `the control was not found: ${control}`
+      )
+      await driver.executeScript(`document.getElementById('cut-control').remove()`)
+
+      for (const dir of ['ltr', 'rtl']) {
+        for (const page of ['options', 'popup', 'board']) {
+          await open(page, page === 'board' ? '.column' : 'body')
+          await driver.executeScript(`document.documentElement.dir = '${dir}'`)
+          await driver.executeScript(stretch)
+          const problems = await driver.executeScript(check)
+          assert.deepEqual(
+            problems.filter((problem) => !(page === 'board' && /^page /.test(problem))),
+            [],
+            `${page} (${dir})`
+          )
+        }
+      }
+    })
+
     test('the checksum of a backup is checked: a file that was changed needs an explicit yes', async () => {
       const canonical = (value) =>
         JSON.stringify(
