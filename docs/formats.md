@@ -184,4 +184,3 @@ Some sites publish no `JobPosting` data. For them the extension also takes the m
 - A user who closes the file picker cancels the backup: nothing is written and the date of the last backup does not change.
 - An older file with no `settings` still imports: only the data comes back.
 - Restoring as a merge, and protecting the file with a passphrase, are other tickets.
-
