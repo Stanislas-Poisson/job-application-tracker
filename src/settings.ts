@@ -211,3 +211,21 @@ export async function loadSettings(adapter: StorageAdapter): Promise<Settings> {
 export async function saveSettings(adapter: StorageAdapter, settings: Settings) {
   await adapter.set({ [SETTINGS_KEY]: JSON.parse(JSON.stringify(settings)) as Settings })
 }
+
+let writing: Promise<unknown> = Promise.resolve()
+
+/**
+ * Changes some settings in the storage without touching the others. The page that asks may hold a copy that is behind (another
+ * page changed a setting it has not read yet): writing the whole copy would put the old value back. So the storage is read at
+ * the moment of the change, the changed settings are put into what it holds, and the result is written. Changes made by a page
+ * wait for one another, so that two of them do not read the same state.
+ */
+export function changeSettings(adapter: StorageAdapter, changes: Partial<Settings>): Promise<Settings> {
+  const run = writing.then(async () => {
+    const next = normalizeSettings({ ...(await loadSettings(adapter)), ...changes })
+    await saveSettings(adapter, next)
+    return next
+  })
+  writing = run.catch(() => undefined)
+  return run
+}
