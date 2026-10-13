@@ -527,7 +527,17 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
           const done = arguments[arguments.length - 1];
           chrome.storage.local.get('jat:applications', (items) => done((items['jat:applications'] || []).map((a) => ({ priority: a.priority, isFavorite: a.isFavorite }))));
         `)
-        throw new Error(`${error.message}; stored applications: ${JSON.stringify(stored)}`)
+        // What every open page did with the storage, to see which one put the old priority back.
+        const journals = []
+        for (const handle of await driver.getAllWindowHandles()) {
+          await driver.switchTo().window(handle)
+          const url = await driver.getCurrentUrl()
+          const events = await driver.executeScript('return (window.__jat && window.__jat.events) || null')
+          journals.push({ page: url.split('/').pop(), events })
+        }
+        throw new Error(
+          `${error.message}; stored applications: ${JSON.stringify(stored)}; journals: ${JSON.stringify(journals)}`
+        )
       }
 
       // The tag is renamed in the options, and the card follows.
