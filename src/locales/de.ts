@@ -183,6 +183,35 @@ const de: TranslationObject = {
     },
   },
   regional: {
+    datesTitle: 'Datum und Uhrzeit',
+    dateFormat: 'Datumsformat',
+    dateFormats: {
+      auto: 'Der Sprache folgen ({example})',
+      dmy: 'Tag/Monat/Jahr ({example})',
+      mdy: 'Monat/Tag/Jahr ({example})',
+      ymd: 'Jahr-Monat-Tag ({example})',
+      medium: 'Kurz mit Monatsname ({example})',
+      long: 'Mit vollem Monatsnamen ({example})',
+      full: 'Mit Wochentag ({example})',
+      custom: 'Mein eigenes Format ({example})',
+    },
+    dateCustom: 'Ihr eigenes Format',
+    dateCustomHint:
+      'YYYY Jahr, MM oder M Monat, MMMM Monatsname, MMM Kurzname, DD oder D Tag, dddd Wochentag, ddd Kurzname. Text in [eckigen Klammern] bleibt unverändert. Beispiel: dddd D. MMMM YYYY.',
+    dateCustomProblem: 'Schreiben Sie ein Format mit 1 bis {max} Zeichen.',
+    timeFormat: 'Uhrzeitformat',
+    timeFormats: {
+      auto: 'Der Sprache folgen ({example})',
+      h24: '24 Stunden ({example})',
+      h12: '12 Stunden ({example})',
+    },
+    relative: 'Relative Datumsangaben',
+    relatives: {
+      off: 'Aus: immer das Datum',
+      both: 'Das Datum und wie lange es her ist',
+      recent: 'Wie lange es her ist, wenn es höchstens 30 Tage sind, sonst das Datum',
+    },
+    datePreview: 'So angezeigt: {example}',
     defaultCountry: 'Standardland für Telefonnummern',
     defaultCountryHint:
       'Eine Nummer ohne Landesvorwahl (+49, +1) wird in diesem Land gelesen. Jede Nummer wird im internationalen Format gespeichert.',

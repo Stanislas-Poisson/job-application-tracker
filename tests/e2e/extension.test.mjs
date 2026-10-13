@@ -1027,6 +1027,38 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await choose('select[name=theme]', 'auto')
     })
 
+    test('the date follows the language, is overridden by the format of the user, and can say how long ago', async () => {
+      await open('options', 'select[name=dateFormat]')
+      const preview = () => text('#date-preview')
+      // By default the language decides: month first in English.
+      assert.match(await preview(), /\d{1,2}\/\d{1,2}\/\d{4}/)
+
+      await choose('select[name=dateFormat]', 'ymd')
+      await waitFor(async () => /\d{4}-\d{2}-\d{2}/.test(await preview()), { message: 'year-month-day' })
+      await choose('select[name=timeFormat]', 'h24')
+      await waitFor(async () => /\d{2}:\d{2}$/.test(await preview()), { message: '24 hours' })
+
+      // The language of the page does not change a format the user chose.
+      await choose('select[name=language]', 'fr')
+      await waitFor(async () => /Affiché ainsi/.test(await preview()), { message: 'the page in French' })
+      assert.match(await preview(), /\d{4}-\d{2}-\d{2}/)
+
+      // A format of the user's own, with a text kept as written.
+      await choose('select[name=dateFormat]', 'custom')
+      const input = await css('input[name=dateCustom]')
+      await input.clear()
+      await input.sendKeys('dddd D MMMM YYYY [!]')
+      await waitFor(async () => /\d{1,2} \p{L}+ \d{4} !/u.test(await preview()), { message: 'the custom format' })
+
+      await choose('select[name=relativeDates]', 'both')
+      await waitFor(async () => /·/.test(await preview()), { message: 'the date and how long ago' })
+
+      await choose('select[name=dateFormat]', 'auto')
+      await choose('select[name=timeFormat]', 'auto')
+      await choose('select[name=relativeDates]', 'off')
+      await choose('select[name=language]', 'en')
+    })
+
     test('each language the extension comes with holds on the pages, tells its direction, and says when nobody who speaks it checked it', async () => {
       const expected = {
         fr: { dir: 'ltr', column: 'À postuler', notice: false },
