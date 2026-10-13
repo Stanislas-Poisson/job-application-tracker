@@ -233,3 +233,47 @@ describe('the language in use', () => {
     expect(root.getAttribute('lang')).toBe('he')
   })
 })
+
+describe('a code of the user: private use, the shipped codes, and the developer mode', () => {
+  it('accepts a private-use part after a language, which the browser reads as that language', () => {
+    for (const code of ['es-x-mine', 'fr-CA-x-work', 'sv-x-a-b-c']) {
+      expect(refused(file({ nav: { board: 'x' } }, { code }))).toBe('accepted')
+    }
+    expect(refused(file({ nav: { board: 'x' } }, { code: 'sv-x-' }))).toBe('code')
+    expect(refused(file({ nav: { board: 'x' } }, { code: 'sv-x-toolongvalue' }))).toBe('code')
+    expect(refused(file({ nav: { board: 'x' } }, { code: 'x-mine' }))).toBe('code')
+    expect(new Intl.PluralRules('es-x-mine').select(1)).toBe('one')
+  })
+
+  it('refuses a code the extension has, unless the developer mode is on', () => {
+    const raw = file({ nav: { board: 'Tablero' } }, { code: 'es' })
+    expect(refused(raw)).toBe('shipped')
+    expect(validateLanguage(raw, { developer: true }).ok).toBe(true)
+    expect(readLanguageFile(JSON.stringify(raw), { developer: true }).ok).toBe(true)
+    expect(readLanguageFile(JSON.stringify(raw)).ok).toBe(false)
+  })
+
+  it('keeps a stored language under a private code when the extension has since come with its code', () => {
+    const stored = ok(file({ nav: { board: 'Mi tablero' } }, { code: 'sv' })).language
+    // Before the extension had it, the language was stored as "es": today "es" is a shipped code.
+    const old = { ...stored, code: 'es', name: 'Mi español' }
+    const list = normalizeStoredLanguages([old])
+    expect(list.map((language) => [language.code, language.name])).toEqual([['es-x-mine', 'Mi español']])
+    // A second one with the same code gets a number, not the place of the first.
+    expect(normalizeStoredLanguages([old, { ...old, name: 'Otro' }]).map((language) => language.code)).toEqual([
+      'es-x-mine',
+      'es-x-mine2',
+    ])
+    // With the developer mode, it stays in the place of the language of the extension.
+    expect(normalizeStoredLanguages([old], { developer: true }).map((language) => language.code)).toEqual(['es'])
+  })
+
+  it('shows the texts of a language of the user over the ones of the extension in the developer mode', () => {
+    const replacement = validateLanguage(file({ nav: { board: 'Mi tablero' } }, { code: 'es' }), { developer: true })
+    if (!replacement.ok) throw new Error('refused')
+    installed.value = [replacement.language]
+    expect(createTranslator('es', 'en').__('nav.board')).toBe('Mi tablero')
+    installed.value = []
+    expect(createTranslator('es', 'en').__('nav.board')).toBe('Tablero')
+  })
+})

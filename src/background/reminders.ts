@@ -87,7 +87,7 @@ export async function checkReminders(env: BackgroundEnv): Promise<CheckResult> {
   const notified: Notified = { ...(stored[NOTIFIED_KEY] as Notified | undefined) }
 
   // The language in use may be one the user added from a file.
-  installed.value = normalizeStoredLanguages(stored[LANGUAGES_KEY])
+  installed.value = normalizeStoredLanguages(stored[LANGUAGES_KEY], { developer: settings.developerMode })
   const translator = createTranslator(settings.locale, env.language)
   translator.setLocale(resolveLocale(settings.locale, env.language))
   const locale = resolveLocale(settings.locale, env.language)

@@ -819,6 +819,10 @@ const nl: TranslationObject = {
     },
   },
   customLanguage: {
+    developer: 'Ontwikkelaarsmodus',
+    developerHint:
+      'Laat een taalbestand, alleen op deze computer, de plaats innemen van een taal van de extensie, om een vertaling te controleren voordat je haar instuurt. Het bestand wordt gecontroleerd zoals altijd en je ziet het resultaat voordat er iets wordt bewaard. Als je dit uitzet, blijft dat bestand een eigen taal, met een code die eindigt op -x-mine.',
+    replaces: 'Dit bestand vervangt de taal “{name}” van de extensie, alleen op deze computer.',
     title: 'Een eigen taal',
     hint: 'Voor een taal die niet in de lijst staat: download het bestand, vertaal de teksten erin en geef het terug. Het wordt hier gecontroleerd voordat er iets wordt bewaard, er wordt niets ergens naartoe gestuurd, en het blijft op deze computer, los van je gegevens en je back-ups. Een tekst die je in het Engels laat, blijft Engels.',
     template: 'Het te vertalen bestand downloaden',
@@ -842,8 +846,9 @@ const nl: TranslationObject = {
       'too-big': 'Dit bestand is te groot om een taalbestand te zijn.',
       json: 'Dit bestand is geen geldige JSON.',
       'not-a-language': 'Dit bestand is geen taalbestand van deze extensie. Download eerst het te vertalen bestand.',
-      code: 'De code van de taal is niet geldig: schrijf haar als sv of pt-BR.',
-      shipped: 'Deze taal zit al in de extensie en kan niet worden vervangen.',
+      code: 'De code van de taal is niet geldig: schrijf hem als sv, pt-BR of es-x-mine.',
+      shipped:
+        'Deze taal zit al in de extensie. Geef je bestand een eigen code, zoals es-x-mine, of zet de ontwikkelaarsmodus aan.',
       name: 'De naam van de taal ontbreekt, is te lang of bevat iets wat niet mag.',
       dir: 'De richting is ltr (van links naar rechts) of rtl (van rechts naar links).',
       messages: 'De teksten ontbreken in het bestand.',

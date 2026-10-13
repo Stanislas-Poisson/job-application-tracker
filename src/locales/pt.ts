@@ -815,6 +815,10 @@ const pt: TranslationObject = {
     },
   },
   customLanguage: {
+    developer: 'Modo de programador',
+    developerHint:
+      'Permite que um ficheiro de idioma ocupe o lugar de um idioma da extensão, apenas neste computador, para verificar uma tradução antes de a enviar. O ficheiro é verificado como sempre e vê o resultado antes de se guardar o que quer que seja. Ao desativar, esse ficheiro fica como um idioma à parte, com um código que termina em -x-mine.',
+    replaces: 'Este ficheiro substitui o idioma «{name}» da extensão, apenas neste computador.',
     title: 'Um idioma seu',
     hint: 'Para um idioma que não está na lista: descarregue o ficheiro, traduza os textos que contém e devolva-o. É verificado aqui antes de se guardar o que quer que seja, nada é enviado para lado nenhum, e fica neste computador, à parte dos seus dados e das suas cópias de segurança. Um texto que deixe em inglês fica em inglês.',
     template: 'Descarregar o ficheiro a traduzir',
@@ -839,8 +843,9 @@ const pt: TranslationObject = {
       json: 'Este ficheiro não é um JSON válido.',
       'not-a-language':
         'Este ficheiro não é um ficheiro de idioma desta extensão. Descarregue primeiro o ficheiro a traduzir.',
-      code: 'O código do idioma não é válido: escreva-o como sv ou pt-BR.',
-      shipped: 'Este idioma já está na extensão e não pode ser substituído.',
+      code: 'O código do idioma não é válido: escreva-o como sv, pt-BR ou es-x-mine.',
+      shipped:
+        'Este idioma já está na extensão. Dê ao seu ficheiro um código próprio, como es-x-mine, ou ative o modo de programador.',
       name: 'O nome do idioma falta, é demasiado longo ou contém algo não permitido.',
       dir: 'A direção é ltr (da esquerda para a direita) ou rtl (da direita para a esquerda).',
       messages: 'Faltam os textos no ficheiro.',

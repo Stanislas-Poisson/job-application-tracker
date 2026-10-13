@@ -1059,6 +1059,34 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await choose('select[name=language]', 'en')
     })
 
+    test('a language file with the code of a language of the extension is refused, and in the developer mode it is only previewed as a replacement', async () => {
+      const file = path.join(os.tmpdir(), `jat-replace-${Date.now()}.json`)
+      fs.writeFileSync(
+        file,
+        JSON.stringify({
+          app: 'job-application-tracker-language',
+          code: 'es',
+          name: 'Español de prueba',
+          dir: 'ltr',
+          messages: { nav: { board: 'Mi tablero' } },
+        })
+      )
+      await open('options', '#language-file')
+      await css('#language-file').then((input) => input.sendKeys(file))
+      await waitFor(async () => (await all('.error')).length > 0, { message: 'the refusal' })
+      assert.match(await text('.error'), /already in the extension/)
+
+      await driver.executeScript(`document.querySelector('input[name=developerMode]').click()`)
+      await css('#language-file').then((input) => input.sendKeys(file))
+      await waitFor(async () => (await all('#language-replaces')).length > 0, { message: 'the replacement notice' })
+      assert.match(await text('#language-replaces'), /replaces the language/)
+      // Only a preview: nothing is kept until the answer, and cancelling keeps nothing.
+      await driver.executeScript(`[...document.querySelectorAll('#language-preview button')].at(-1).click()`)
+      assert.equal((await all('#language-installed')).length, 0)
+      await driver.executeScript(`document.querySelector('input[name=developerMode]').click()`)
+      fs.unlinkSync(file)
+    })
+
     test('each language the extension comes with holds on the pages, tells its direction, and says when nobody who speaks it checked it', async () => {
       const expected = {
         fr: { dir: 'ltr', column: 'À postuler', notice: false },

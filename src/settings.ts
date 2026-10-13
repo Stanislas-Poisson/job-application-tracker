@@ -1,3 +1,4 @@
+import { CODE } from './customLanguage'
 import { type CustomTheme, normalizeThemes } from './customTheme'
 import type { StorageAdapter } from './persistence/adapter'
 import { type AddressParts, emptyAddress, normalizeAddress } from './services/address'
@@ -23,7 +24,7 @@ export const VISIONS = ['standard', 'red-green', 'blue-yellow', 'high-contrast']
 
 // "auto", a language of the extension, or the code of a language the user added from a file (checked when it is used).
 export type Locale = string
-const LOCALE_CODE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8}){0,2}$/
+const LOCALE_CODE = CODE
 export type ThemeMode = (typeof THEMES)[number]
 export type Accent = (typeof ACCENTS)[number]
 export type Vision = (typeof VISIONS)[number]
@@ -67,6 +68,8 @@ export interface Settings {
   motion: Motion
   // "auto" is the time zone of the browser, or a name of the IANA database (Europe/Paris).
   timeZone: string
+  // Lets a language file take the place of a language of the extension, to try a translation before sending it.
+  developerMode: boolean
   // How dates are written: "auto" follows the language. The pattern is the one of the "custom" format. Relative dates say how long ago.
   dateFormat: DateFormat
   timeFormat: TimeFormat
@@ -128,6 +131,7 @@ export const DEFAULT_SETTINGS: Settings = {
   density: 'comfortable',
   motion: 'auto',
   timeZone: 'auto',
+  developerMode: false,
   dateFormat: 'auto',
   timeFormat: 'auto',
   dateCustom: DEFAULT_PATTERN,
@@ -180,6 +184,7 @@ const VALID: {
   density: oneOf(DENSITIES),
   motion: oneOf(MOTIONS),
   timeZone: (value) => 'auto' === value || isValidTimeZone(value),
+  developerMode: (value) => 'boolean' === typeof value,
   dateFormat: oneOf(DATE_FORMATS),
   timeFormat: oneOf(TIME_FORMATS),
   dateCustom: isPattern,
