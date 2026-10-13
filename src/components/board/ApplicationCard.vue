@@ -2,10 +2,12 @@
   import { isPast } from '@zairakai/js-utils/datetime'
   import { strLimit } from '@zairakai/js-utils/formatters'
   import { DisplayBadge } from '@zairakai/vue-components/Display'
+  import { useRepo } from 'pinia-orm'
   import { computed } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { useFormat } from '../../composables/useFormat'
-  import type { Application } from '../../models'
+  import { type Application, CompanyRelation } from '../../models'
+  import { finalClientsOf } from '../../services/companyRelations'
 
   const props = defineProps<{ application: Application }>()
   const emit = defineEmits<{ open: [] }>()
@@ -14,6 +16,13 @@
   const format = useFormat()
 
   const offer = computed(() => props.application.jobOffer)
+
+  // The final client of a recruitment firm: the card tells who the offer is really for.
+  const clients = computed(() => {
+    useRepo(CompanyRelation).all()
+    const company = offer.value?.company
+    return company ? finalClientsOf(company.id).map((client) => client.name) : []
+  })
 
   // A reminder that is not done and is past its date.
   const overdue = computed(() =>
@@ -44,7 +53,8 @@
       {{ strLimit(offer?.title ?? '', 70) }}
     </h3>
     <p class="muted">
-      {{ offer?.company?.name }}<template v-if="offer?.location"> - {{ offer.location }}</template>
+      {{ offer?.company?.name }}<template v-if="0 < clients.length"> → {{ clients.join(', ') }}</template
+      ><template v-if="offer?.location"> - {{ offer.location }}</template>
     </p>
     <p
       v-if="offer && format.salary(offer)"

@@ -13,6 +13,7 @@ export const COLUMNS = [
   'status',
   'title',
   'company',
+  'finalClient',
   'place',
   'country',
   'contract',
@@ -54,6 +55,8 @@ export interface ExportLabels {
 export interface ExportContext {
   labels: ExportLabels
   conversion: Conversion
+  // The names of the final clients of a company (a recruitment firm hires for them).
+  finalClients: (companyId: string) => string[]
   // The label of the column an application is in, by the id of its status.
   statusLabel: (statusId: string | null) => string
   // The mark of a decimal number in the file: "." for a comma-separated file, "," for a semicolon-separated one.
@@ -102,6 +105,7 @@ export function boardRows(applications: Application[], context: ExportContext): 
       status: context.statusLabel(application.statusId),
       title: offer?.title ?? '',
       company: offer?.company?.name ?? '',
+      finalClient: offer?.company ? list(context.finalClients(offer.company.id)) : '',
       place: offer?.location ?? '',
       country: offer?.country ?? '',
       contract: offer?.contractType ?? '',

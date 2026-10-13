@@ -87,12 +87,13 @@ export const fold = (value: string): string =>
   value.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase().replace(/\s+/g, ' ').trim()
 
 // Everything a search can find in an application: the offer, the company, the place, the source, the tags and the people.
-export function searchableText(application: Application): string {
+export function searchableText(application: Application, related: (companyId: string) => string[] = () => []): string {
   const offer = application.jobOffer
   return fold(
     [
       offer?.title,
       offer?.company?.name,
+      ...(offer?.company ? related(offer.company.id) : []),
       offer?.location,
       offer?.source?.label,
       ...(application.tags ?? []).map((tag) => tag.name),
@@ -108,6 +109,8 @@ export interface QueryContext {
   now: Date
   locale: string
   conversion: Conversion
+  // The names of the companies a company is tied to (its final clients, its parent…), found by the search.
+  related?: (companyId: string) => string[]
 }
 
 const isLate = (application: Application, now: Date): boolean =>
@@ -141,7 +144,7 @@ export function filterApplications(applications: Application[], view: BoardView,
       }
     }
     if (0 < words.length) {
-      const text = searchableText(application)
+      const text = searchableText(application, context.related)
       return words.every((word) => text.includes(word))
     }
     return true

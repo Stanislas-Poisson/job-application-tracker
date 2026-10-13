@@ -3,6 +3,7 @@ import Activity from './Activity'
 import Application from './Application'
 import ApplicationContact from './ApplicationContact'
 import Company from './Company'
+import CompanyRelation from './CompanyRelation'
 import Contact from './Contact'
 import ContactMethod from './ContactMethod'
 import Interaction from './Interaction'
@@ -20,6 +21,7 @@ export {
   Application,
   ApplicationContact,
   Company,
+  CompanyRelation,
   Contact,
   ContactMethod,
   Interaction,
@@ -36,6 +38,7 @@ export {
 // Every model that is stored. The persistence saves and loads these, one storage key per model.
 export const MODELS: (typeof Model)[] = [
   Company,
+  CompanyRelation,
   Source,
   JobOffer,
   Status,
