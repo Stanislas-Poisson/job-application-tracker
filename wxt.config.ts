@@ -5,9 +5,11 @@ export default defineConfig({
   srcDir: 'src',
   modules: ['@wxt-dev/module-vue'],
   manifest: ({ browser }) => ({
-    name: 'Job Application Tracker',
-    short_name: 'Job Tracker',
-    description: 'Keeps the job offers you saw and follows each application. Everything stays in your browser.',
+    // The name and the description of the store listing are in public/_locales, one folder per language.
+    default_locale: 'en',
+    name: '__MSG_extName__',
+    short_name: '__MSG_extShortName__',
+    description: '__MSG_extDescription__',
     homepage_url: 'https://github.com/Stanislas-Poisson/job-application-tracker',
     // storage: the data. activeTab: the page the user is looking at, only when the popup opens on it. scripting: to read
     // that one page (its JobPosting data) at that moment. Nothing is read in the background.
