@@ -126,6 +126,20 @@ const en: TranslationObject = {
     theme: 'Theme',
     accent: 'Accent colour',
     vision: 'Vision',
+    textTitle: 'Text',
+    font: 'Font',
+    fontCustom: 'Name of the font',
+    fontCustomHint: 'Atkinson Hyperlegible, OpenDyslexic, Lexend…',
+    fontHint:
+      'The font is a first choice: the system fonts follow it, so that every script keeps a font that has its letters. A font you name must be installed on this computer.',
+    textScale: 'Size of the text',
+    textSpacing: 'Spacing of the text',
+    density: 'Density',
+    motion: 'Movement',
+    fonts: { system: 'System', serif: 'Serif', mono: 'Monospace', custom: 'A font installed on this computer' },
+    spacings: { default: 'Usual', wide: 'Wide', wcag: 'Wide (WCAG 1.4.12)', widest: 'Widest' },
+    densities: { comfortable: 'Comfortable', compact: 'Compact' },
+    motions: { auto: 'Follow the system', reduce: 'Reduce movement' },
     visionHint:
       'The colour-blind modes use colours that stay apart for red-green or blue-yellow colour blindness, and give each column a shape. High contrast makes the text and the lines stronger.',
     themes: {

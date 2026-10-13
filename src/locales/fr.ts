@@ -127,6 +127,25 @@ const fr: TranslationObject = {
     theme: 'Thème',
     accent: "Couleur d'accent",
     vision: 'Vision',
+    textTitle: 'Texte',
+    font: 'Police',
+    fontCustom: 'Nom de la police',
+    fontCustomHint: 'Atkinson Hyperlegible, OpenDyslexic, Lexend…',
+    fontHint:
+      'La police est un premier choix : les polices du système la suivent, pour que chaque écriture garde une police qui a ses lettres. Une police nommée doit être installée sur cet ordinateur.',
+    textScale: 'Taille du texte',
+    textSpacing: 'Espacement du texte',
+    density: 'Densité',
+    motion: 'Mouvement',
+    fonts: {
+      system: 'Système',
+      serif: 'Avec empattements',
+      mono: 'Chasse fixe',
+      custom: 'Une police installée sur cet ordinateur',
+    },
+    spacings: { default: 'Habituel', wide: 'Large', wcag: 'Large (WCAG 1.4.12)', widest: 'Très large' },
+    densities: { comfortable: 'Confortable', compact: 'Compacte' },
+    motions: { auto: 'Suivre le système', reduce: 'Réduire les mouvements' },
     visionHint:
       'Les modes pour le daltonisme utilisent des couleurs qui restent distinctes pour le rouge-vert ou le bleu-jaune, et donnent une forme à chaque colonne. Le contraste élevé renforce le texte et les traits.',
     themes: {
