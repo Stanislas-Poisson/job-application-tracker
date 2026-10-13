@@ -42,6 +42,15 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
     await element.clear()
     await element.sendKeys(value)
   }
+  // The page is loaded and has drawn something: a script run during a navigation finds no document.
+  const loaded = () =>
+    waitFor(
+      async () =>
+        (await driver.executeScript(
+          `return document.readyState === 'complete' && !!document.documentElement && !!document.body && document.body.children.length > 0`
+        )) === true,
+      { message: 'the page to be loaded' }
+    )
   const choose = (selector, value) =>
     driver.executeScript(
       `const select = document.querySelector(arguments[0]);
@@ -875,6 +884,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
     test('the pages hold when the writing runs from right to left', async () => {
       for (const page of ['options', 'popup']) {
         await open(page, 'body')
+        await loaded()
         await driver.executeScript(`document.documentElement.dir = 'rtl'`)
         const overflow = await driver.executeScript(
           `return document.documentElement.scrollWidth - document.documentElement.clientWidth`
@@ -882,6 +892,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         assert.ok(overflow <= 1, `${page} is ${overflow}px too wide from right to left`)
       }
       await open('board', '.column')
+      await loaded()
       await driver.executeScript(`document.documentElement.dir = 'rtl'`)
       // The first column is at the start of the line, which is now on the right.
       const side = await driver.executeScript(`
@@ -924,6 +935,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       `
       // The check sees a text that is cut: a control, made on purpose, must be found.
       await open('options', 'body')
+      await loaded()
       await driver.executeScript(`
         const cut = document.createElement('div');
         cut.id = 'cut-control';
@@ -941,6 +953,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       for (const dir of ['ltr', 'rtl']) {
         for (const page of ['options', 'popup', 'board']) {
           await open(page, page === 'board' ? '.column' : 'body')
+          await loaded()
           await driver.executeScript(`document.documentElement.dir = '${dir}'`)
           await driver.executeScript(stretch)
           const problems = await driver.executeScript(check)
