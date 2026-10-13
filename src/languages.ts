@@ -1,3 +1,5 @@
+import { customLanguage } from './customLanguages'
+
 // The languages of the extension. Each is described by its code, its name in its own language (so that a person who cannot
 // read the page can still find theirs), the direction of its writing and its script. Adding a language is adding a line here
 // and a file of texts.
@@ -26,5 +28,5 @@ export const languageOf = (code: string): Language | undefined => LANGUAGES.find
 export function applyLanguage(root: HTMLElement, code: string) {
   const language = languageOf(code)
   root.setAttribute('lang', code)
-  root.setAttribute('dir', language?.dir ?? 'ltr')
+  root.setAttribute('dir', language?.dir ?? customLanguage(code)?.dir ?? 'ltr')
 }

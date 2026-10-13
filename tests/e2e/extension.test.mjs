@@ -914,7 +914,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
           if (!text.trim() || node.parentElement.closest('script, style')) continue;
           const accented = text.replace(/[aeioucnAEOU]/g, (c) => accents[c]);
           const extra = Math.ceil(text.trim().length * 0.4);
-          node.nodeValue = accented + ' ' + 'xyzwv'.repeat(Math.ceil(extra / 5)).slice(0, extra);
+          node.nodeValue = accented + ' ' + 'xyzw '.repeat(Math.ceil(extra / 5)).slice(0, extra).trim();
         }
         document.documentElement.style.lineHeight = '1.9';
       `
@@ -922,7 +922,14 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const check = `
         const problems = [];
         const page = document.documentElement.scrollWidth - document.documentElement.clientWidth;
-        if (page > 1) problems.push('page ' + page + 'px too wide');
+        if (page > 1) {
+          const wide = [...document.body.querySelectorAll('*')]
+            .filter((el) => el.scrollWidth > el.clientWidth + 1 && el.clientWidth > 0)
+            .filter((el, _i, all) => !all.some((other) => other !== el && el.contains(other)))
+            .slice(0, 4)
+            .map((el) => el.tagName + '#' + el.id + '.' + el.className + ' ' + (el.textContent || '').trim().slice(0, 30));
+          problems.push('page ' + page + 'px too wide: ' + wide.join(' | '));
+        }
         for (const el of document.body.querySelectorAll('*')) {
           const style = getComputedStyle(el);
           if (style.display === 'none' || !el.textContent.trim()) continue;
@@ -1018,6 +1025,69 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       )
       await waitFor(async () => (await all('#theme-editor')).length === 0, { message: 'the theme to be deleted' })
       await choose('select[name=theme]', 'auto')
+    })
+
+    test('a language of the user is imported from a file, checked before it is kept, used, and removed', async () => {
+      const file = path.join(os.tmpdir(), `jat-language-${Date.now()}.json`)
+      fs.writeFileSync(
+        file,
+        JSON.stringify({
+          app: 'job-application-tracker-language',
+          code: 'es',
+          name: 'Español',
+          dir: 'ltr',
+          messages: {
+            options: { language: 'Idioma' },
+            // Refused: it looks like markup. Refused: it drops the placeholder of the English text.
+            nav: { board: '<img src=x onerror=alert(1)>' },
+            trash: { related: { one: '{count} relacionado', other: '{count} {extra}' } },
+            made: { up: 'ignored' },
+          },
+        })
+      )
+      await open('options', '#language-file')
+      await driver.executeScript('window.confirm = () => true')
+      // A file that is not a language file is refused with its reason.
+      const wrong = path.join(os.tmpdir(), `jat-wrong-${Date.now()}.json`)
+      fs.writeFileSync(wrong, JSON.stringify({ hello: 'world' }))
+      await css('#language-file').then((input) => input.sendKeys(wrong))
+      await waitFor(async () => (await all('.error')).length > 0, { message: 'the error' })
+      assert.match(await text('.error'), /not a language file/)
+      fs.unlinkSync(wrong)
+
+      await css('#language-file').then((input) => input.sendKeys(file))
+      await waitFor(async () => (await all('#language-preview')).length > 0, { message: 'the preview' })
+      const preview = await text('#language-preview')
+      assert.match(preview, /Español/)
+      assert.match(preview, /2 texts were refused/)
+      assert.match(await text('#language-problems'), /nav\.board/)
+      assert.match(await text('#language-problems'), /trash\.related/)
+      assert.match(preview, /not in the extension and is ignored/)
+      // Nothing is kept before the answer.
+      assert.equal((await all('#language-installed')).length, 0)
+
+      await css('#language-keep').then((button) => button.click())
+      await waitFor(async () => (await all('#language-installed')).length > 0, { message: 'the language to be kept' })
+      await choose('select[name=language]', 'es')
+      await waitFor(async () => (await driver.executeScript(`return document.documentElement.lang`)) === 'es', {
+        message: 'lang to be es',
+      })
+      await waitFor(async () => /Idioma/.test(await text('main')), { message: 'the translated text' })
+      // A text that was refused is English.
+      await open('board', '.column')
+      assert.match(await text('header, .header'), /Board/)
+
+      // Removing it: the page is back to English.
+      await open('options', '#language-installed')
+      await driver.executeScript('window.confirm = () => true')
+      await driver.executeScript(`document.querySelector('#language-installed button').click()`)
+      await waitFor(async () => (await all('#language-installed')).length === 0, {
+        message: 'the language to be removed',
+      })
+      await waitFor(async () => (await driver.executeScript(`return document.documentElement.lang`)) === 'en', {
+        message: 'back to English',
+      })
+      fs.unlinkSync(file)
     })
 
     test('the checksum of a backup is checked: a file that was changed needs an explicit yes', async () => {

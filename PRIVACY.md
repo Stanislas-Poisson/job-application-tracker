@@ -64,3 +64,7 @@ The merge reads a backup file you choose, on your computer, and adds its content
 ## Your look
 
 The font, the size and spacing of the text, your colours and your own themes are settings. They stay in your browser, with your backups. A font you name is one installed on your computer: nothing is downloaded.
+
+## A language of your own
+
+If you add a language from a file, the file is read on your computer, checked, and kept in your browser. Nothing is downloaded or sent.
