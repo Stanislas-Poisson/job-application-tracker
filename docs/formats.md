@@ -366,3 +366,14 @@ A few profiles can be added and edited: France (employee, executive or not; free
 ### Where it shows
 
 The drawer of an application has the estimate of the profile chosen in the options, with the calculation line by line on request. The CSV export has the net per year (the middle of the range) and the name of the profile.
+
+## Freelance day rate
+
+A helper in the options, for a freelance: from the **income wanted** it finds the **day rate** to ask, or from a **day rate** it shows what is left. It uses the same pay profiles as the net pay (see above), so the charges are whatever the user wrote for their country and regime: a flat rate, or a scale.
+
+- **Inputs.** The days billed in the year (200 by default: fewer than the days worked), the hours of a day, the costs of the year, and the income wanted (or the day rate). The charges come from a profile, or from a flat rate typed in percent.
+- **What the charges apply to** is the user's choice, because it changes the answer: **the turnover** (a micro-enterprise: the costs cannot be deducted) or **the profit** (the turnover less the costs).
+- **How it is found.** A profile can be a scale, which has no formula to turn round, so the search is made the other way: the **smallest turnover whose net is enough** is found by halving, then divided by the days billed (day rate) and by the days and hours (hourly rate), rounded up so that the net is kept. The net never goes down when the turnover goes up, which is what makes the search sound.
+- **What it shows.** The day and hourly rates, the turnover, the costs and each line of the charges, and what is left, per year and per month.
+- **When it cannot be done.** If the charges take everything above some level (a rate of 100%), no turnover leaves the income, and it says so.
+- **An estimate.** It does not count the VAT, nor the days without a mission. Like the net pay of an employee, it is never a promise.
