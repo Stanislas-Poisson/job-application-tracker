@@ -1,10 +1,10 @@
 <script setup lang="ts">
   import { FormButton, FormInput } from '@zairakai/vue-components/Form'
-  import { ref } from 'vue'
+  import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { useFormat } from '../../composables/useFormat'
   import { backupText, backupToFile, browserEnvironment } from '../../services/backup'
-  import { importData, settingsFromExport, wipeData } from '../../services/data'
+  import { type RestorePlan, importData, planRestore, settingsFromExport, wipeData } from '../../services/data'
   import { todayIn } from '../../utils/time'
 
   const { t, settings, updateSettings } = useApp()
@@ -33,27 +33,50 @@
     }
   }
 
-  async function upload(event: Event) {
+  // The backup the user chose, read and compared with what is stored, waiting for the answer. Nothing is applied yet.
+  const pending = ref<{ content: unknown; plan: RestorePlan } | null>(null)
+
+  async function choose(event: Event) {
     const input = event.target as HTMLInputElement
     const file = input.files?.[0]
-    if (!file || !window.confirm(t('options.confirmImport'))) {
-      input.value = ''
+    input.value = ''
+    pending.value = null
+    if (!file) {
       return
     }
     try {
       const content: unknown = JSON.parse(await file.text())
-      importData(content)
+      pending.value = { content, plan: planRestore(content) }
+      message.value = ''
+    } catch (error) {
+      say(
+        error instanceof SyntaxError ? t('options.notJson') : error instanceof Error ? error.message : String(error),
+        true
+      )
+    }
+  }
+
+  async function restore() {
+    if (!pending.value) {
+      return
+    }
+    try {
+      importData(pending.value.content)
       // The settings of the backup come back with the data.
-      const restored = settingsFromExport(content)
+      const restored = settingsFromExport(pending.value.content)
       if (restored) {
         await updateSettings(restored)
       }
+      pending.value = null
       say(t('options.imported'))
     } catch (error) {
       say(error instanceof Error ? error.message : String(error), true)
     }
-    input.value = ''
   }
+
+  // The kinds of data the restore touches, with their counts.
+  const rows = computed(() => pending.value?.plan.models.filter((model) => 0 < model.incoming || 0 < model.lost) ?? [])
+  const sum = (key: 'added' | 'changed' | 'same' | 'lost') => rows.value.reduce((total, row) => total + row[key], 0)
 
   function setReminder(text: string) {
     const value = Number(text.trim())
@@ -109,13 +132,14 @@
   <p class="muted">{{ t('options.reminderHint') }}</p>
 
   <h3>{{ t('options.restore') }}</h3>
+  <p class="muted">{{ t('options.restoreHint') }}</p>
   <div class="row">
     <label class="row">
       {{ t('options.import') }}
       <input
         type="file"
         accept="application/json,.json"
-        @change="upload"
+        @change="choose"
       />
     </label>
     <FormButton
@@ -124,6 +148,61 @@
       >{{ t('options.wipe') }}</FormButton
     >
   </div>
+
+  <section
+    v-if="pending"
+    id="restore-preview"
+    class="card stack"
+  >
+    <p>
+      <strong>{{
+        pending.plan.exportedAt
+          ? t('options.backupOf', { date: format.instant(pending.plan.exportedAt) })
+          : t('options.backupOfUnknown')
+      }}</strong>
+      · {{ pending.plan.hasSettings ? t('options.withSettings') : t('options.withoutSettings') }}
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th>{{ t('options.colData') }}</th>
+          <th>{{ t('options.colBackup') }}</th>
+          <th>{{ t('options.colNew') }}</th>
+          <th>{{ t('options.colDifferent') }}</th>
+          <th>{{ t('options.colSame') }}</th>
+          <th>{{ t('options.colLost') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          v-for="row in rows"
+          :key="row.entity"
+        >
+          <td>{{ t(`options.entities.${row.entity}`) }}</td>
+          <td>{{ row.incoming }}</td>
+          <td>{{ row.added }}</td>
+          <td>{{ row.changed }}</td>
+          <td>{{ row.same }}</td>
+          <td :class="{ error: 0 < row.lost }">{{ row.lost }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>{{ t('options.restoreSummary', { added: sum('added'), changed: sum('changed'), lost: sum('lost') }) }}</p>
+    <p class="muted">{{ t('options.restoreWarning') }}</p>
+    <div class="row">
+      <FormButton
+        id="restore-apply"
+        type="button"
+        @click="restore"
+        >{{ t('options.restoreApply') }}</FormButton
+      >
+      <FormButton
+        type="button"
+        @click="pending = null"
+        >{{ t('options.cancel') }}</FormButton
+      >
+    </div>
+  </section>
   <p
     v-if="message"
     :class="failed ? 'error' : 'success'"

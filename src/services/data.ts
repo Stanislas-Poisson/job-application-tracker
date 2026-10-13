@@ -52,10 +52,11 @@ export function exportData(pinia?: Pinia, settings?: Settings): ExportFile {
   }
 }
 
-// Replaces what is stored by the content of an export. Throws, and changes nothing, when the file is not one.
-export function importData(file: unknown, pinia?: Pinia) {
+// The export in a file, checked. Throws, and touches nothing, when the file is not an export of this extension or comes
+// from a newer version.
+export function readExport(file: unknown): ExportFile {
   const candidate = file as Partial<ExportFile> | null
-  if (EXPORT_APP !== candidate?.app || 'object' !== typeof candidate.data) {
+  if (EXPORT_APP !== candidate?.app || 'object' !== typeof candidate.data || null === candidate.data) {
     throw new Error('This file is not an export of Job Application Tracker.')
   }
   if ('number' !== typeof candidate.schema || SCHEMA_VERSION < candidate.schema) {
@@ -68,11 +69,100 @@ export function importData(file: unknown, pinia?: Pinia) {
       throw new Error(`The data of ${model.entity} is not a list.`)
     }
   }
+  return candidate as ExportFile
+}
 
+// Replaces what is stored by the content of an export. Throws, and changes nothing, when the file is not one.
+export function importData(file: unknown, pinia?: Pinia) {
+  const { data } = readExport(file)
   for (const model of MODELS) {
     useRepo(model, pinia).fresh((data[model.entity] as never[] | undefined) ?? [])
   }
   seedDefaults(pinia)
+}
+
+// What a restore would do to one kind of data.
+export interface ModelDiff {
+  entity: string
+  // In the backup.
+  incoming: number
+  // In the backup and not stored here.
+  added: number
+  // In both, and different.
+  changed: number
+  // In both, and the same.
+  same: number
+  // Stored here and not in the backup: the restore removes them.
+  lost: number
+}
+
+export interface RestorePlan {
+  exportedAt: string | null
+  hasSettings: boolean
+  models: ModelDiff[]
+}
+
+// A record as text with its keys in order, to tell whether two are the same.
+const canonical = (record: unknown): string => {
+  const sorted = (value: unknown): unknown =>
+    Array.isArray(value)
+      ? value.map(sorted)
+      : 'object' === typeof value && null !== value
+        ? Object.fromEntries(
+            Object.entries(value)
+              .sort(([a], [b]) => (a < b ? -1 : 1))
+              .map(([key, item]) => [key, sorted(item)])
+          )
+        : value
+  return JSON.stringify(sorted(record))
+}
+
+/**
+ * What restoring a backup would change, kind of data by kind of data, before anything is applied. Nothing is written.
+ * A record of the backup is read like a stored one (the fields an older backup lacks get their defaults), so that
+ * only a real difference counts.
+ */
+export function planRestore(file: unknown, pinia?: Pinia): RestorePlan {
+  const { data, exportedAt, settings } = readExport(file)
+  const models = MODELS.map((model): ModelDiff => {
+    const repo = useRepo(model, pinia)
+    const storedJson = new Map(
+      repo
+        .all()
+        .map((record) => [
+          String((record as unknown as { id: unknown }).id),
+          JSON.parse(JSON.stringify(record.$toJson())) as Record<string, unknown>,
+        ])
+    )
+    const incoming = ((data[model.entity] as Record<string, unknown>[] | undefined) ?? []).map(
+      (record) => repo.make(record as never) as unknown as { id: unknown; $toJson: () => Record<string, unknown> }
+    )
+    const diff: ModelDiff = { entity: model.entity, incoming: incoming.length, added: 0, changed: 0, same: 0, lost: 0 }
+    const seen = new Set<string>()
+    for (const record of incoming) {
+      const id = String(record.id)
+      seen.add(id)
+      const before = storedJson.get(id)
+      if (undefined === before) {
+        diff.added++
+        continue
+      }
+      // A made record also holds its (empty) relations and pivot keys: only the fields a stored record has are compared.
+      const fields = Object.fromEntries(
+        Object.entries(JSON.parse(JSON.stringify(record.$toJson())) as Record<string, unknown>).filter(
+          ([key]) => key in before
+        )
+      )
+      if (canonical(before) === canonical(fields)) {
+        diff.same++
+      } else {
+        diff.changed++
+      }
+    }
+    diff.lost = [...storedJson.keys()].filter((id) => !seen.has(id)).length
+    return diff
+  })
+  return { exportedAt: 'string' === typeof exportedAt ? exportedAt : null, hasSettings: undefined !== settings, models }
 }
 
 // Removes everything, then puts the defaults back.

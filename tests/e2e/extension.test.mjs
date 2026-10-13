@@ -675,5 +675,38 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.switchTo().window(await open('options', '#last-backup'))
       await type('input[name=backupReminderDays]', '30')
     })
+
+    test('a backup file is previewed before it replaces the data, and cancelling changes nothing', async () => {
+      const file = path.join(os.tmpdir(), `jat-restore-${Date.now()}.json`)
+      // A backup of an empty extension: every application stored here would be lost by the restore.
+      const empty = { app: 'job-application-tracker', schema: 1, exportedAt: '2026-10-01T08:00:00.000Z', data: {} }
+      fs.writeFileSync(file, JSON.stringify(empty))
+
+      await open('options', 'input[type=file]')
+      await css('input[type=file]').then((input) => input.sendKeys(file))
+      await waitFor(async () => (await all('#restore-preview')).length > 0, { message: 'the preview' })
+
+      const preview = await text('#restore-preview')
+      assert.match(preview, /Backup of/)
+      assert.match(preview, /without the settings/)
+      assert.match(preview, /will be removed/)
+      assert.match(preview, /Applications/)
+
+      // Cancel: the preview goes away and the data is still there.
+      const buttons = await all('#restore-preview button')
+      await buttons[1].click()
+      await waitFor(async () => (await all('#restore-preview')).length === 0, { message: 'the preview to close' })
+      await open('board', '.column')
+      assert.ok((await all('.application-card')).length > 0)
+
+      // A file that is not a backup says so and changes nothing.
+      fs.writeFileSync(file, JSON.stringify({ hello: 'world' }))
+      await open('options', 'input[type=file]')
+      await css('input[type=file]').then((input) => input.sendKeys(file))
+      await waitFor(async () => (await all('.error')).length > 0, { message: 'the error' })
+      assert.match(await text('.error'), /not an export/)
+      assert.equal((await all('#restore-preview')).length, 0)
+      fs.unlinkSync(file)
+    })
   })
 })
