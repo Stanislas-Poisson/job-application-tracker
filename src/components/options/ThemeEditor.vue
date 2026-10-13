@@ -138,7 +138,7 @@
     />
 
     <form
-      class="row"
+      class="row wrap"
       @submit.prevent="add"
     >
       <FormInput
@@ -148,7 +148,7 @@
         :field="false"
       />
       <FormButton type="submit">{{ t('customTheme.create') }}</FormButton>
-      <label class="row">
+      <label class="row wrap">
         {{ t('customTheme.import') }}
         <input
           id="theme-file"

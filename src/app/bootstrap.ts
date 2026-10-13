@@ -4,6 +4,7 @@ import { type Component, createApp, h, reactive, watchEffect } from 'vue'
 import { applyAppearance } from '../appearance'
 import '../assets/main.scss'
 import { warnBeforeLeaving } from '../composables/useDirty'
+import { LANGUAGES_KEY, loadCustomLanguages } from '../customLanguages'
 import { createTranslator, resolveLocale } from '../i18n'
 import { applyLanguage } from '../languages'
 import { createPersistence } from '../persistence'
@@ -15,6 +16,13 @@ import { CONTEXT_KEY } from './context'
 // Starts a page of the extension: the settings and the store loaded from the storage, then the page itself.
 export async function mountApp(root: Component, selector = '#app') {
   const pinia = createPinia().use(createORM())
+  // The languages the user added come before the settings are used: the language in use may be one of them.
+  await loadCustomLanguages(browserAdapter)
+  browserAdapter.onChanged((keys) => {
+    if (keys.includes(LANGUAGES_KEY)) {
+      void loadCustomLanguages(browserAdapter)
+    }
+  })
   const settings = reactive<Settings>(await loadSettings(browserAdapter))
 
   // The look is on the page before anything is drawn, and follows the settings.
