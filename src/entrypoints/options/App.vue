@@ -6,6 +6,7 @@
   import ExchangeSetting from '../../components/options/ExchangeSetting.vue'
   import FreelanceRate from '../../components/options/FreelanceRate.vue'
   import LanguageSetting from '../../components/options/LanguageSetting.vue'
+  import MapSetting from '../../components/options/MapSetting.vue'
   import MoneySetting from '../../components/options/MoneySetting.vue'
   import PayProfiles from '../../components/options/PayProfiles.vue'
   import RegionalSetting from '../../components/options/RegionalSetting.vue'
@@ -34,6 +35,7 @@
       <section class="card"><ExchangeSetting /></section>
       <section class="card"><StatusEditor /></section>
       <section class="card"><TagEditor /></section>
+      <section class="card"><MapSetting /></section>
       <section class="card"><PayProfiles /></section>
       <section class="card"><FreelanceRate /></section>
       <section class="card"><ReminderSetting /></section>

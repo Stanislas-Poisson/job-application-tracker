@@ -286,6 +286,36 @@ describe('real-world postings', () => {
     expect(read({ employmentType: 'CDI' }).contractType).toBe('CDI')
   })
 
+  it('reads the street address on one line, with the postal code and the city', () => {
+    const address = (parts: object) => read({ jobLocation: { address: parts } }).address
+    expect(
+      address({ streetAddress: '1 rue X', postalCode: '75001', addressLocality: 'Paris', addressCountry: 'FR' })
+    ).toBe('1 rue X, 75001 Paris, FR')
+    expect(address({ streetAddress: '1 rue X', addressLocality: 'Paris', addressCountry: { name: 'France' } })).toBe(
+      '1 rue X, Paris, France'
+    )
+    // No street: the page gave a city, not an address to look up.
+    expect(address({ addressLocality: 'Paris', postalCode: '75001' })).toBeUndefined()
+    expect(address({ streetAddress: '   ' })).toBeUndefined()
+  })
+
+  it('does not repeat the postal code and the city when the street already holds the whole address', () => {
+    // Welcome to the Jungle writes "18 Place des Reflets, 92400 Courbevoie, France" as the street.
+    const offer = read({
+      jobLocation: [
+        {
+          address: {
+            streetAddress: '18 Place des Reflets, 92400 Courbevoie, France',
+            postalCode: '92400',
+            addressLocality: 'Courbevoie',
+            addressCountry: 'FR',
+          },
+        },
+      ],
+    })
+    expect(offer.address).toBe('18 Place des Reflets, 92400 Courbevoie, France')
+  })
+
   it('reads a date with an offset written with a space (APEC)', () => {
     expect(read({ datePosted: '2026-10-07 21:07:54 +0200' }).postedOn).toBe('2026-10-07')
   })

@@ -1266,6 +1266,79 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await waitFor(async () => /78,000/.test(await text('#freelance-result')), { message: 'the income' })
     })
 
+    test('the address of an offer opens in the map service chosen, and what is found there is kept in the offer', async () => {
+      // The address the routes start from, in the options.
+      await open('options', 'input[name=homeAddress]')
+      await type('input[name=homeAddress]', '10 rue de Rivoli, 75001 Paris')
+      await choose('select[name=mapProvider]', 'google')
+      await choose('select[name=travelMode]', 'transit')
+
+      await open('board', '.application-card')
+      const cards = await all('.application-card')
+      const lines = await Promise.all(cards.map((card) => card.getText()))
+      await cards[lines.findIndex((line) => /Follow me/.test(line))].click()
+      await waitFor(async () => (await all('input[name=address]')).length > 0, { message: 'the place section' })
+
+      // No address, no link.
+      assert.equal((await all('#map-place')).length, 0)
+      await type('input[name=address]', "5 avenue de l'Opéra, 69001 Lyon")
+      await waitFor(async () => (await all('#map-place')).length > 0, { message: 'the link to the place' })
+
+      // The links carry the address, in the service and the way of travelling chosen. They open a new tab, with no referrer.
+      const place = await css('#map-place')
+      assert.match(await place.getAttribute('href'), /^https:\/\/www\.google\.com\/maps\/search\/\?api=1&query=/)
+      assert.match(await place.getAttribute('rel'), /noopener/)
+      assert.equal(await place.getAttribute('target'), '_blank')
+      const route = await css('#map-route').then((link) => link.getAttribute('href'))
+      assert.match(route, /origin=10%20rue%20de%20Rivoli/)
+      assert.match(route, /destination=5%20avenue%20de%20l(?:'|%27)Op%C3%A9ra/)
+      assert.match(route, /travelmode=transit/)
+
+      // What was found on the map is kept in the offer.
+      await type('input[name=commuteKm]', '12,4')
+      await type('input[name=commuteMinutes]', '35')
+      await choose('select[name=commuteMode]', 'transit')
+      await driver.executeScript(`document.querySelector('#place form').requestSubmit()`)
+      await waitFor(async () => /12\.4 km - 35 min/.test(await text('#commute-saved')), {
+        message: 'the way there kept',
+      })
+
+      // A distance that is not a number is refused.
+      await type('input[name=commuteKm]', 'far')
+      await driver.executeScript(`document.querySelector('#place form').requestSubmit()`)
+      await waitFor(async () => /is a number/.test(await text('#place .error')), { message: 'the refusal' })
+      await type('input[name=commuteKm]', '12.4')
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      // The card tells the way there.
+      await waitFor(
+        async () => (await texts('.application-card .commute-line')).some((line) => /12\.4 km - 35 min/.test(line)),
+        {
+          message: 'the way there on the card',
+        }
+      )
+
+      // With OpenStreetMap there is a place but no route, and the page says why.
+      await open('options', 'select[name=mapProvider]')
+      await choose('select[name=mapProvider]', 'osm')
+      await open('board', '.application-card')
+      const again = await all('.application-card')
+      const names = await Promise.all(again.map((card) => card.getText()))
+      await again[names.findIndex((line) => /Follow me/.test(line))].click()
+      await waitFor(async () => (await all('#map-place')).length > 0, { message: 'the place link' })
+      assert.match(
+        await css('#map-place').then((link) => link.getAttribute('href')),
+        /openstreetmap\.org\/search\?query=/
+      )
+      assert.equal((await all('#map-route')).length, 0)
+      assert.match(await text('#place'), /cannot make a route/)
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      // Back to the service the other tests expect.
+      await open('options', 'select[name=mapProvider]')
+      await choose('select[name=mapProvider]', 'google')
+    })
+
     test('a deleted application goes to the trash, and comes back from it', async () => {
       await open('board', '.application-card')
       const before = (await all('.application-card')).length

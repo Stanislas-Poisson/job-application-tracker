@@ -52,3 +52,7 @@ If you turn on "Protect the backups with a passphrase", the backup file is encry
 ## Notifications of the reminders
 
 If you turn on "Notify me when a reminder is due", the extension asks the browser for the permission to show notifications, and gives it back when you turn the option off. A notification is made on your computer from your own data (the title of the reminder, the offer and the company) and shown by your system. Nothing is sent anywhere. The number on the icon of the extension is computed the same way, and needs no permission.
+
+## Addresses and maps
+
+An offer can keep the address of its workplace, and the settings can hold the address you leave from. They stay in your browser, with your backups. The extension never sends them anywhere by itself. A link such as "Show on the map" or "Route from home" is built from them, and **only when you click it** your browser opens the map service you chose (Google Maps, OpenStreetMap, Apple Maps or a link of your own) with the address in the link. What that service does with it is governed by its own policy.

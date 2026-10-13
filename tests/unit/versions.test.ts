@@ -13,7 +13,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 20))
 
 describe('the version of the structure', () => {
   it('is a number of its own, with a migration for every step up to it', () => {
-    expect(SCHEMA_VERSION).toBe(5)
+    expect(SCHEMA_VERSION).toBe(6)
     for (let version = 1; version < SCHEMA_VERSION; version++) {
       expect(MIGRATIONS[version]).toBeTypeOf('function')
     }
@@ -84,6 +84,23 @@ describe('the version of the structure', () => {
     // Run again on its own result: nothing is made twice.
     expect(migrate(v4, 3).contactCompanies).toHaveLength(1)
     expect(migrate({}, 3).contactCompanies).toEqual([])
+  })
+
+  it('goes from version 5 to version 6 by giving the offers an address and a way there, and keeps what they have', () => {
+    const next = migrate(
+      {
+        jobOffers: [
+          { id: 'o1', title: 'Dev' },
+          { id: 'o2', address: '1 rue X', commuteMinutes: 20 },
+        ],
+      },
+      5
+    )
+    expect(next.jobOffers).toEqual([
+      { id: 'o1', title: 'Dev', address: null, commuteMeters: null, commuteMinutes: null, commuteMode: null },
+      { id: 'o2', address: '1 rue X', commuteMeters: null, commuteMinutes: 20, commuteMode: null },
+    ])
+    expect(migrate({}, 5).jobOffers).toEqual([])
   })
 
   it('goes from version 4 to version 5 by adding the pay profiles, and keeps those there are', () => {
