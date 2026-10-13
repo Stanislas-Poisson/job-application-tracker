@@ -855,6 +855,23 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       )
     })
 
+    test('the page tells its language and direction, and the language list names each language in itself', async () => {
+      await open('options', 'select[name=language]')
+      const names = await driver.executeScript(
+        `return [...document.querySelectorAll('select[name=language] option')].map((o) => o.textContent.trim())`
+      )
+      assert.ok(names.includes('English') && names.includes('Français'), names.join(', '))
+      await choose('select[name=language]', 'fr')
+      await waitFor(async () => (await driver.executeScript(`return document.documentElement.lang`)) === 'fr', {
+        message: 'lang to be fr',
+      })
+      assert.equal(await driver.executeScript(`return document.documentElement.dir`), 'ltr')
+      await choose('select[name=language]', 'en')
+      await waitFor(async () => (await driver.executeScript(`return document.documentElement.lang`)) === 'en', {
+        message: 'lang to be en',
+      })
+    })
+
     test('the checksum of a backup is checked: a file that was changed needs an explicit yes', async () => {
       const canonical = (value) =>
         JSON.stringify(

@@ -789,6 +789,7 @@ const fr: TranslationObject = {
     },
     restore: 'Restaurer',
     title: 'Options',
+    languageAuto: 'Comme le navigateur',
     language: 'Langue',
     statuses: 'Colonnes du tableau',
     statusesHint: 'Une colonne est un statut. Renommez-les, changez leur couleur ou leur ordre, ou ajoutez les vôtres.',
