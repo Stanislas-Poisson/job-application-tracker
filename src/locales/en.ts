@@ -42,6 +42,7 @@ const en: TranslationObject = {
     another: 'Save another',
     save: 'Save the offer',
     report: 'Something missing? Report a reading that broke',
+    reportMail: 'No GitHub account? Report it by e-mail',
     found: 'Also read from the page: {list}.',
     foundKeys: { postedOn: 'date', salary: 'salary', contractType: 'contract', description: 'description' },
   },
