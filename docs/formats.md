@@ -419,3 +419,13 @@ An offer keeps any number of **journeys**, each a list of **legs** found by the 
 - **One journey per direction is the preferred one** (the first one made; the user can change it; when it is deleted the shortest takes its place). The card shows the time of the preferred outbound journey, and the CSV has its time, its distance, the journey in words and the time of the preferred way back.
 - **No time or distance is computed by the extension**: it would need a service to find the way. The user does the search on the map and keeps the result.
 - Stored in `journeys` (`id`, `updatedAt`, `jobOfferId`, `direction`, `name`, `preferred`, `legs`). Before structure version 8 the distance, time and means kept in an offer are turned into a journey of one leg (`jy_<offer id>`), the preferred outbound one.
+
+## Bringing two computers together
+
+A process of its own, different from the restore: the restore replaces what is stored after a loss, the merge **adds** the data of another computer's backup to the data stored here. Nothing is deleted.
+
+- **A preview** shows, per kind of data, what is in the file, what would be added, what would be replaced by a more recent version, what is kept as it is here and what is the same. The user must accept the risk of duplicates before it can be applied. The settings are not merged.
+- **A record on both sides** (same id) keeps its most recent version, by `updatedAt` (UTC); a record never stamped is the oldest, and on a tie the one stored here stays.
+- **The default columns and sources** (`status_<key>`, `source_<key>`, but with a random id in older installs) are matched by their `key`, not doubled, and the applications, activities and offers of the file that point to them follow.
+- **A deletion is not a record that is missing.** What was deleted here (it is in the trash) is not brought back from the file. What was deleted on the other computer is not deleted here: the trash of the file is not merged.
+- **Duplicates are possible**: a company, contact or tag created on both computers has two ids, so it is there twice. The preview counts the likely ones (same company name, same contact name, same address of an offer) and the user merges them by hand.

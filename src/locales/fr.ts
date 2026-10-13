@@ -718,6 +718,20 @@ const fr: TranslationObject = {
         'La somme de contrôle ne correspond pas : le fichier a été modifié depuis son enregistrement. Il est peut-être abîmé, tronqué ou édité à la main.',
       acknowledge: 'Je sais qu’il a été modifié et je veux quand même le restaurer',
     },
+    merge: 'Rassembler deux ordinateurs',
+    mergeHint:
+      'Pour le cas où vous avez travaillé sur deux ordinateurs avant d’en rassembler les données. Ce n’est pas une restauration : rien n’est remplacé et rien n’est supprimé. Les enregistrements du fichier qui manquent dans ce navigateur sont ajoutés, et un enregistrement présent des deux côtés garde sa version la plus récente.',
+    mergeChoose: 'Choisir la sauvegarde de l’autre ordinateur',
+    mergeUpdated: 'Plus récents dans le fichier',
+    mergeKept: 'Gardés comme ici',
+    mergeSummary: '{added} seront ajoutés et {updated} remplacés par une version plus récente.',
+    mergeDuplicates:
+      '{count} des enregistrements à ajouter ressemblent à ceux que vous avez déjà sous une autre identité (même nom d’entreprise, même contact, même adresse d’offre). Ils seraient là en double.',
+    mergeWarning:
+      'Une même entreprise, un même contact ou une même étiquette créés sur les deux ordinateurs ne sont pas le même enregistrement : ils seront en double, et il faudra les fusionner à la main. Les colonnes et sources fournies avec l’extension sont rapprochées, pas doublées. Ce que vous avez supprimé ici reste supprimé ; ce qui a été supprimé sur l’autre ordinateur ne l’est pas ici. Les réglages ne sont pas fusionnés. Faites d’abord une sauvegarde.',
+    mergeUnderstood: 'Je sais que des doublons sont possibles et que cela ne peut pas être annulé',
+    mergeApply: 'Rassembler les données',
+    merged: 'Les données des deux ordinateurs sont rassemblées.',
     restoreHint:
       'Récupérez vos données depuis un fichier de sauvegarde, après une perte ou sur un nouvel ordinateur. Vous voyez ce qui change avant que rien ne soit appliqué.',
     notJson: "Ce fichier n'est pas un fichier JSON.",
