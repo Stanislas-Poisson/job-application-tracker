@@ -8,7 +8,7 @@ import { createTranslator, resolveLocale } from '../i18n'
 import { createPersistence } from '../persistence'
 import { browserAdapter } from '../persistence/adapter'
 import { refreshRates } from '../services/rates'
-import { SETTINGS_KEY, type Settings, loadSettings, saveSettings } from '../settings'
+import { SETTINGS_KEY, type Settings, changeSettings, loadSettings } from '../settings'
 import { CONTEXT_KEY } from './context'
 
 // Starts a page of the extension: the settings and the store loaded from the storage, then the page itself.
@@ -48,7 +48,8 @@ export async function mountApp(root: Component, selector = '#app') {
   app.use(pinia)
   const updateSettings = async (changes: Partial<Settings>) => {
     Object.assign(settings, changes)
-    await saveSettings(browserAdapter, { ...settings })
+    // Only these settings are written, into what the storage holds now: another page may have changed others since this one loaded.
+    await changeSettings(browserAdapter, changes)
   }
   app.provide(CONTEXT_KEY, {
     translator: createTranslator(settings.locale),
