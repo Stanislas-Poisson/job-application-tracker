@@ -33,6 +33,18 @@ A machine finds about a third of the problems: it does not replace a read with a
 - **Targets.** A checkbox or a radio button is 20 pixels with 3 around it, which is 24 (WCAG 2.5.8).
 - **Colour.** The text of the pills of the footer is the text colour of the page; only their icons take the colour of the pill. A
   custom theme is checked for contrast as the user chooses it (`docs/formats.md`).
+- **Vision and contrast** are two settings that combine. The vision (`data-vision`) is standard, red-green, blue-yellow or monochrome
+  (no colour). The contrast (`data-contrast`) is `auto` (default), `standard` or `high`: `auto` takes the high contrast when the
+  system asks for more (`prefers-contrast: more`) or forces its colours (`forced-colors: active`). It is done in the style sheet
+  alone, with no script to listen to the system. The colours of the high contrast are `!important`, so that a custom theme does
+  not take them back: a need comes before a taste.
+- **Colours checked, not guessed.** The colours of the messages (success, warning, error, information) of each look and each
+  vision keep 4.5:1 against their surface, and the ones of the columns 3:1 against the light and the dark surface; the colours
+  of a colour-blind mode were chosen to stay apart under the simulation of protanopia, deuteranopia and tritanopia (Machado et
+  al., 2009). The unit tests read the style sheet and fail under those ratios.
+- **Colour is never alone.** A column has a shape in every vision mode but the standard, and always when the system forces its
+  colours (the dot of the column draws its shape); a message of error or success has a sign (⚠, ✓) in the same cases. The sign
+  has an empty alternative text, since the role of the message already tells it to a screen reader.
 - **Motion and text.** Movement follows the system and can be reduced; the text can be made larger and more spaced (up to 200%
   and the spacing of WCAG 1.4.12) and the pages hold.
 

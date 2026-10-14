@@ -138,6 +138,7 @@ const nl: TranslationObject = {
     theme: 'Thema',
     accent: 'Accentkleur',
     vision: 'Zicht',
+    contrast: 'Contrast',
     textTitle: 'Tekst',
     font: 'Lettertype',
     fontCustom: 'Naam van het lettertype',
@@ -158,7 +159,9 @@ const nl: TranslationObject = {
     densities: { comfortable: 'Comfortabel', compact: 'Compact' },
     motions: { auto: 'Het systeem volgen', reduce: 'Beweging verminderen' },
     visionHint:
-      'De modi voor kleurenblindheid gebruiken kleuren die uit elkaar blijven bij rood-groen- of blauw-geelblindheid en geven elke kolom een vorm. Hoog contrast maakt de tekst en de lijnen sterker.',
+      'De modi voor kleurenblindheid gebruiken kleuren die uit elkaar blijven bij rood-groen- of blauw-geelkleurenblindheid. De modus zonder kleur houdt één grijs. Elke modus geeft elke kolom een vorm en de meldingen een teken.',
+    contrastHint:
+      'Hoog contrast maakt de tekst en de lijnen sterker. Het systeem volgen zet het aan wanneer het systeem meer contrast vraagt of zijn kleuren afdwingt, en het gaat vóór een eigen thema.',
     themes: {
       auto: 'Het systeem volgen',
       light: 'Licht',
@@ -173,11 +176,12 @@ const nl: TranslationObject = {
       pink: 'Roze',
       orange: 'Oranje',
     },
+    contrasts: { auto: 'Het systeem volgen', standard: 'Standaard', high: 'Hoog contrast' },
     visions: {
       standard: 'Standaard',
       'red-green': 'Rood-groenblindheid',
       'blue-yellow': 'Blauw-geelblindheid',
-      'high-contrast': 'Hoog contrast',
+      monochrome: 'Zonder kleur (monochroom)',
     },
   },
   regional: {

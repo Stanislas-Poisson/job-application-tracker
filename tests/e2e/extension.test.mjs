@@ -120,9 +120,14 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await choose('select[name=theme]', 'dark')
       await css('button[data-accent-choice=purple]').then((swatch) => swatch.click())
       await choose('select[name=vision]', 'red-green')
-      await waitFor(async () => (await root('data-theme')) === 'dark' && (await root('data-vision')) === 'red-green', {
-        message: 'the appearance of the options page',
-      })
+      await choose('select[name=contrast]', 'high')
+      await waitFor(
+        async () =>
+          (await root('data-theme')) === 'dark' &&
+          (await root('data-vision')) === 'red-green' &&
+          (await root('data-contrast')) === 'high',
+        { message: 'the appearance of the options page' }
+      )
       assert.equal(await root('data-accent'), 'purple')
 
       // The board, open in another tab, follows without a reload: dark, and a shape on each column.
@@ -140,7 +145,13 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await choose('select[name=theme]', 'auto')
       await css('button[data-accent-choice=slate]').then((swatch) => swatch.click())
       await choose('select[name=vision]', 'standard')
-      await waitFor(async () => (await root('data-vision')) === 'standard', { message: 'the standard appearance' })
+      await choose('select[name=contrast]', 'auto')
+      await waitFor(
+        async () => (await root('data-vision')) === 'standard' && (await root('data-contrast')) === 'auto',
+        {
+          message: 'the standard appearance',
+        }
+      )
     })
 
     test('a column is renamed, and the board shows its new name', async () => {

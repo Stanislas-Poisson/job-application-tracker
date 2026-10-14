@@ -138,6 +138,7 @@ const zhHant: TranslationObject = {
     theme: '主題',
     accent: '強調色',
     vision: '視覺',
+    contrast: '對比度',
     textTitle: '文字',
     font: '字型',
     fontCustom: '字型名稱',
@@ -152,7 +153,10 @@ const zhHant: TranslationObject = {
     spacings: { default: '常規', wide: '寬', wcag: '寬 (WCAG 1.4.12)', widest: '最寬' },
     densities: { comfortable: '舒適', compact: '緊湊' },
     motions: { auto: '跟隨系統', reduce: '減少動效' },
-    visionHint: '色盲模式使用在紅綠色盲或藍黃色盲下仍能區分的顏色，併為每一列加上形狀。高對比度會讓文字和線條更醒目。',
+    visionHint:
+      '色盲模式使用在紅綠色盲或藍黃色盲下仍能區分的顏色。無顏色模式只保留一種灰色。每種模式都會為每一欄加上形狀，並為訊息加上符號。',
+    contrastHint:
+      '高對比度會讓文字和線條更醒目。選擇跟隨系統後，系統要求更高對比度或強制使用其顏色時會自動開啟，並且優先於自訂主題。',
     themes: {
       auto: '跟隨系統',
       light: '淺色',
@@ -167,11 +171,12 @@ const zhHant: TranslationObject = {
       pink: '粉色',
       orange: '橙色',
     },
+    contrasts: { auto: '跟隨系統', standard: '標準', high: '高對比度' },
     visions: {
       standard: '標準',
       'red-green': '紅綠色盲',
       'blue-yellow': '藍黃色盲',
-      'high-contrast': '高對比度',
+      monochrome: '無顏色（單色）',
     },
   },
   regional: {

@@ -107,12 +107,66 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
     await waitFor(async () => (await all('#theme-editor')).length > 0, { message: 'the theme editor' })
     await look('light')
     await scan('options/theme-editor')
-    for (const vision of ['red-green', 'blue-yellow', 'high-contrast']) {
-      await driver.executeScript(`document.documentElement.setAttribute('data-vision', arguments[0])`, vision)
-      await driver.sleep(200)
-      await scan(`options/${vision}`)
+    // Each vision mode in the light and the dark look, and the high contrast alone and with each of them.
+    const modes = [
+      ['red-green', 'auto'],
+      ['blue-yellow', 'auto'],
+      ['monochrome', 'auto'],
+      ['standard', 'high'],
+      ['red-green', 'high'],
+      ['monochrome', 'high'],
+    ]
+    for (const theme of ['light', 'dark']) {
+      await look(theme)
+      for (const [vision, contrast] of modes) {
+        await driver.executeScript(
+          `document.documentElement.setAttribute('data-vision', arguments[0]); document.documentElement.setAttribute('data-contrast', arguments[1])`,
+          vision,
+          contrast
+        )
+        await driver.sleep(200)
+        await scan(`options/${theme}/${vision}/${contrast}`)
+      }
     }
   })
+
+  // The system settings are emulated with the protocol of Chrome: Firefox has no such door.
+  test(
+    'the contrast follows the system: more contrast asked, or the colours forced',
+    { skip: 'firefox' === browser && 'emulating the system settings needs the protocol of Chrome' },
+    async () => {
+      const emulate = (features) => driver.sendDevToolsCommand('Emulation.setEmulatedMedia', { features })
+      const colours = () =>
+        driver.executeScript(
+          `const dot = document.querySelector('.column h2 .dot'); return { body: getComputedStyle(document.body).color, line: getComputedStyle(document.querySelector('.application-card')).borderTopWidth, dot: dot && getComputedStyle(dot, '::before').content }`
+        )
+      await open('board', '.column')
+      await look('light')
+      const usual = await colours()
+      assert.notEqual(usual.body, 'rgb(0, 0, 0)', 'the usual look is not the pure black of high contrast')
+      assert.notEqual(usual.line, '2px', 'the lines of the usual look are not the thick ones of high contrast')
+      try {
+        await emulate([{ name: 'prefers-contrast', value: 'more' }])
+        await waitFor(async () => (await colours()).body === 'rgb(0, 0, 0)', { message: 'more contrast, light' })
+        assert.equal((await colours()).line, '2px')
+        await look('dark')
+        await waitFor(async () => (await colours()).body === 'rgb(255, 255, 255)', { message: 'more contrast, dark' })
+        // The choice of the user comes before the system: the standard contrast stays as it was.
+        await driver.executeScript(`document.documentElement.setAttribute('data-contrast', 'standard')`)
+        await waitFor(async () => (await colours()).body !== 'rgb(255, 255, 255)', {
+          message: 'the standard contrast chosen',
+        })
+        await driver.executeScript(`document.documentElement.setAttribute('data-contrast', 'auto')`)
+        await emulate([{ name: 'prefers-contrast', value: 'no-preference' }])
+        await waitFor(async () => (await colours()).body !== 'rgb(0, 0, 0)', { message: 'the system asks for nothing' })
+      } finally {
+        await emulate([
+          { name: 'prefers-contrast', value: '' },
+          { name: 'forced-colors', value: '' },
+        ])
+      }
+    }
+  )
 
   test('the board is used with the keyboard: the title of a card opens it, escape closes it, and the focus comes back', async () => {
     await open('board', '.application-card')
