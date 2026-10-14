@@ -1,0 +1,11 @@
+{
+  "extName": {
+    "message": "Job Application Tracker"
+  },
+  "extShortName": {
+    "message": "Job Tracker"
+  },
+  "extDescription": {
+    "message": "Gördüğünüz iş ilanlarını kaydeder ve her başvuruyu takip eder. Her şey tarayıcınızda kalır."
+  }
+}

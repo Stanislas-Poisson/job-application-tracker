@@ -1,0 +1,11 @@
+{
+  "extName": {
+    "message": "Job Application Tracker"
+  },
+  "extShortName": {
+    "message": "Job Tracker"
+  },
+  "extDescription": {
+    "message": "見た求人を保存し、応募の状況を管理します。データはすべてブラウザー内に保存されます。"
+  }
+}

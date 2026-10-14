@@ -119,7 +119,9 @@ describe('translations', () => {
 
   it('has the plural forms its language needs in every text that has them, and no empty text', () => {
     for (const [code, messages] of Object.entries(OTHERS)) {
-      const needed = 'ar' === code ? ['zero', 'one', 'two', 'few', 'many', 'other'] : ['one', 'other']
+      // The forms the language has for whole numbers: Japanese has one, English two, Hebrew three, Russian four, Arabic six.
+      const rules = new Intl.PluralRules(code)
+      const needed = [...new Set(Array.from({ length: 201 }, (_, count) => rules.select(count)))]
       for (const path of paths(messages as Record<string, unknown>)) {
         const value = valueAt(messages as Record<string, unknown>, path)
         if (isPlural(value)) {
@@ -137,8 +139,20 @@ describe('translations', () => {
     expect(resolveLocale('auto', 'fr-FR')).toBe('fr')
     expect(resolveLocale('auto', 'de-DE')).toBe('de')
     expect(resolveLocale('auto', 'pt-BR')).toBe('pt')
-    expect(resolveLocale('auto', 'ja-JP')).toBe('en')
+    expect(resolveLocale('auto', 'is-IS')).toBe('en')
     expect(resolveLocale('fr', 'en-US')).toBe('fr')
+  })
+
+  it('finds the language of the browser by its script or its region, down to the language', () => {
+    expect(resolveLocale('auto', 'zh-CN')).toBe('zh-Hans')
+    expect(resolveLocale('auto', 'zh')).toBe('zh-Hans')
+    expect(resolveLocale('auto', 'zh-SG')).toBe('zh-Hans')
+    expect(resolveLocale('auto', 'zh-Hans-CN')).toBe('zh-Hans')
+    expect(resolveLocale('auto', 'zh-TW')).toBe('zh-Hant')
+    expect(resolveLocale('auto', 'zh-HK')).toBe('zh-Hant')
+    expect(resolveLocale('auto', 'zh-Hant-TW')).toBe('zh-Hant')
+    expect(resolveLocale('auto', 'he-IL')).toBe('he')
+    expect(resolveLocale('auto', 'ja-JP')).toBe('ja')
   })
 
   it('translates once the language is read, and speaks English until then', async () => {
