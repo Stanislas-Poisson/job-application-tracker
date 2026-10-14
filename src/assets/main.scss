@@ -21,6 +21,13 @@ body {
   word-spacing: var(--jat-word-spacing, 0);
 }
 
+// The spacing of the letters is for scripts that have letters apart. In the ones that join them (Arabic and the scripts written
+// the same way) or draw a syllable as one block (the Indic scripts and those of South-East Asia), it breaks the word: the
+// spacing of the words and of the lines stays, the one of the letters is left out. The language of the page is on the root.
+body:lang(ar, fa, ur, ps, sd, ug, ckb, dv, hi, bn, ta, te, mr, gu, kn, ml, pa, or, as, ne, si, my, km, lo, th) {
+  letter-spacing: 0;
+}
+
 // The density of the interface: less room around and between what is shown.
 :root[data-density="compact"] {
   .card {
