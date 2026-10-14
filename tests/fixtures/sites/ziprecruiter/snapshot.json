@@ -1,0 +1,13 @@
+{
+  "url": "https://www.ziprecruiter.com/c/Example/Job/Example/-in-Paris",
+  "title": "Example job title | ZipRecruiter France",
+  "jsonLd": [
+    "{\"@context\":\"http://schema.org/\",\"@type\":\"JobPosting\",\"title\":\"Example job title\",\"datePosted\":\"2026-10-02\",\"validThrough\":\"2026-11-01T22:28:57.301Z\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\",\"directApply\":false,\"hiringOrganization\":{\"@type\":\"Organization\",\"name\":\"Example Corp\"},\"jobLocation\":{\"@type\":\"Place\",\"geo\":{\"@type\":\"GeoCoordinates\",\"longitude\":6.0103,\"latitude\":43.1247},\"address\":{\"@type\":\"PostalAddress\",\"addressLocality\":\"La Garde\",\"addressRegion\":\"Provence-Alpes-Côte d'Azur\",\"postalCode\":\"83130\",\"addressCountry\":\"France\"}},\"employmentType\":\"CDI\",\"baseSalary\":{\"@type\":\"MonetaryAmount\",\"currency\":\"USD\",\"value\":{\"@type\":\"QuantitativeValue\",\"minValue\":\"35000.0\",\"maxValue\":\"45000.0\",\"unitText\":\"YEAR\"}}}"
+  ],
+  "meta": {
+    "og:title": "Example text",
+    "og:site_name": "ZipRecruiter France",
+    "og:description": "Example text",
+    "description": "Example text"
+  }
+}
