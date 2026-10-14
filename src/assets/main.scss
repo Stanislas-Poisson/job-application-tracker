@@ -28,6 +28,11 @@ body:lang(ar, fa, ur, ps, sd, ug, ckb, dv, hi, bn, ta, te, mr, gu, kn, ml, pa, o
   letter-spacing: 0;
 }
 
+// The target of the link that skips the header takes the focus by the script and not by the user: no ring around the page.
+main[tabindex="-1"]:focus {
+  outline: none;
+}
+
 // The density of the interface: less room around and between what is shown.
 :root[data-density="compact"] {
   .card {

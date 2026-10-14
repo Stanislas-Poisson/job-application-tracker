@@ -22,7 +22,11 @@
 </script>
 
 <template>
-  <main class="page page-options">
+  <main
+    id="main"
+    class="page page-options"
+    tabindex="-1"
+  >
     <AppHeader :title="t('options.title')">
       <a :href="boardUrl">{{ t('nav.board') }}</a>
     </AppHeader>

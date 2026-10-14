@@ -420,6 +420,7 @@ const ja: TranslationObject = {
       '設定したパスフレーズではありません。別のパスフレーズで作ったバックアップは、これでは開けません。',
     needsPassphrase: '先にパスフレーズを入力してください。',
   },
+  a11y: { skip: '本文へ移動' },
   notice: {
     region: 'メッセージ',
     close: '閉じる',

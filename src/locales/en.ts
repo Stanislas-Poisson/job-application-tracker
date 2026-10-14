@@ -419,6 +419,7 @@ const en: TranslationObject = {
     notThePassphrase: 'This is not the passphrase you set. A backup made with another one could not be opened with it.',
     needsPassphrase: 'Type the passphrase first.',
   },
+  a11y: { skip: 'Skip to the content' },
   notice: {
     region: 'Messages',
     close: 'Close',

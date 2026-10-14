@@ -423,6 +423,7 @@ const pt: TranslationObject = {
     notThePassphrase: 'Esta não é a frase-passe que definiu. Uma cópia feita com outra não poderia ser aberta com ela.',
     needsPassphrase: 'Escreva primeiro a frase-passe.',
   },
+  a11y: { skip: 'Saltar para o conteúdo' },
   notice: {
     region: 'Mensagens',
     close: 'Fechar',

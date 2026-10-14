@@ -25,6 +25,11 @@ A machine finds about a third of the problems: it does not replace a read with a
 - **Controls.** The form components of the library draw a label whose `for` does not point at the control, and a select has none.
   `src/app/fieldAccessibility.ts` gives every `FormInput`, `FormSelect` and `FormTextarea` an `id` its label points at. Where the page
   shows no label, the field takes `data-label="…"` (translated) and the control gets it as its `aria-label`.
+- **A link that skips the header** is the first stop of the keyboard on every page; it puts the focus on the `main` element.
+- **Errors tied to their field.** A message of error (`role="alert"` with the class `error`) is also tied to the field it is about:
+  `src/app/fieldErrors.ts` gives that field `aria-describedby` and `aria-invalid`, and takes them back when the message goes. The
+  pages show the message where the error is, so the field is the last control that had the focus in the same block, else the one
+  just before the message.
 - **Messages.** An error is `role="alert"`, a confirmation or a state `role="status"`: a screen reader says them when they appear.
 - **The board.** Each column is a region named by its heading. A card is an article with one button (its title); the card as a whole
   opens with a click. A card can be dragged, and the same move is done without dragging from the status field of the drawer
