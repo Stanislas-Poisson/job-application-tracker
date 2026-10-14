@@ -11,6 +11,7 @@
   import { useBoardShortcuts } from '../../composables/useBoardShortcuts'
   import { useBoardView } from '../../composables/useBoardView'
   import { useFormat } from '../../composables/useFormat'
+  import { useKeyboardLayout } from '../../composables/useKeyboardLayout'
   import { say } from '../../composables/useNotices'
   import { Application, CompanyRelation, PayProfile, Status } from '../../models'
   import { LEG_MODES } from '../../models/Journey'
@@ -131,8 +132,11 @@
   }
 
   // The keys of the board; a card moved with them is said to be in its new column.
+  const layout = useKeyboardLayout()
   useBoardShortcuts({
     enabled: () => settings.shortcuts,
+    keys: () => settings.shortcutKeys,
+    layoutKnown: () => layout.known.value,
     drop,
     moved(statusId) {
       const status = useRepo(Status).find(statusId)

@@ -206,38 +206,42 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
     assert.notEqual(tie.text, '', 'the field is described by the message')
   })
 
-  test('the board is worked with the keys: / for the search, Shift and the arrows to move a card, and the setting turns them on (off by default)', async () => {
+  // The settings are written in the storage as the options page does: every page open follows at once.
+  const setSettings = (patch) =>
+    driver.executeAsyncScript(
+      `const done = arguments[arguments.length - 1];
+       chrome.storage.local.get('jat:settings', (stored) => chrome.storage.local.set({ 'jat:settings': { ...(stored['jat:settings'] || {}), ...arguments[0] } }, () => done(true)))`,
+      patch
+    )
+  const getSettings = () =>
+    driver.executeAsyncScript(
+      `const done = arguments[arguments.length - 1]; chrome.storage.local.get('jat:settings', (stored) => done(stored['jat:settings'] || {}))`
+    )
+  const press = (key) => driver.actions().sendKeys(key).perform()
+  const arrow = (key) => driver.actions().keyDown('\uE008').sendKeys(key).keyUp('\uE008').perform()
+  const activeName = () => driver.executeScript(`return document.activeElement && document.activeElement.name`)
+
+  test('the board is worked with the keys: a key for the search, the arrows, Shift and the arrows to move a card; off by default', async () => {
     const columnOfCard = () =>
       driver.executeScript(
         `const card = document.querySelector('.application-card'); return card && card.closest('.column').dataset.status`
       )
-    // The slash of the number pad: the browser driver types the one of the main keys as a Shift and a key of another sign.
-    const slash = () => driver.actions().sendKeys('\uE029').perform()
-    const focused = () => driver.executeScript(`return document.activeElement && document.activeElement.className`)
-    const setShortcuts = (on) =>
-      driver.executeAsyncScript(
-        `const done = arguments[arguments.length - 1];
-         chrome.storage.local.get('jat:settings', (stored) => chrome.storage.local.set({ 'jat:settings': { ...(stored['jat:settings'] || {}), shortcuts: arguments[0] } }, () => done(true)))`,
-        on
-      )
+    await setSettings({ shortcuts: false, shortcutKeys: { search: { code: 'KeyF', shift: false, label: 'f' } } })
     await open('board', '.application-card')
 
-    // By default the keys are off: a slash and Shift with an arrow do nothing.
+    // By default the keys are off: nothing happens for the key of the search.
     await driver.executeScript(`document.activeElement && document.activeElement.blur()`)
-    await slash()
-    assert.notEqual(
-      await driver.executeScript(`return document.activeElement && document.activeElement.name`),
-      'search'
-    )
-    await setShortcuts(true)
-    await driver.sleep(400)
+    await press('f')
+    assert.notEqual(await activeName(), 'search')
 
-    // The search takes the focus with a slash, and a slash typed in it stays a slash.
+    await setSettings({ shortcuts: true })
+    await driver.sleep(400)
+    // The search takes the focus with its key, and the same letter typed in it stays a letter.
     await driver.executeScript(`document.activeElement && document.activeElement.blur()`)
-    await slash()
-    assert.equal(await driver.executeScript(`return document.activeElement && document.activeElement.name`), 'search')
-    await driver.actions().sendKeys('a', '\uE029', 'b').perform()
-    assert.equal(await driver.executeScript(`return document.querySelector('input[name=search]').value`), 'a/b')
+    await press('f')
+    assert.equal(await activeName(), 'search')
+    await driver.actions().sendKeys('afb').perform()
+    assert.equal(await driver.executeScript(`return document.querySelector('input[name=search]').value`), 'afb')
     await driver.executeScript(
       `const search = document.querySelector('input[name=search]'); search.value = ''; search.dispatchEvent(new Event('input', { bubbles: true }))`
     )
@@ -245,28 +249,78 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
     // A card moves to the next column with Shift and an arrow, keeps the focus, and the move is said.
     const first = await columnOfCard()
     await driver.executeScript(`document.querySelector('.application-card .card-open').focus()`)
-    const arrow = (key) => driver.actions().keyDown('\uE008').sendKeys(key).keyUp('\uE008').perform()
     await arrow('\uE014')
     await waitFor(async () => (await columnOfCard()) !== first, { message: 'the card in the next column' })
-    assert.equal(await focused(), 'card-open', 'the focus stays on the card')
+    assert.equal(
+      await driver.executeScript(`return document.activeElement && document.activeElement.className`),
+      'card-open',
+      'the focus stays on the card'
+    )
     await waitFor(async () => (await all('.toast')).length > 0, { message: 'the move said' })
     await arrow('\uE012')
     await waitFor(async () => (await columnOfCard()) === first, { message: 'the card back in its column' })
 
     // With the setting off, the same keys do nothing.
-    await setShortcuts(false)
+    await setSettings({ shortcuts: false })
     await driver.sleep(400)
     await driver.executeScript(`document.querySelector('.application-card .card-open').focus()`)
     await arrow('\uE014')
     await driver.sleep(500)
     assert.equal(await columnOfCard(), first, 'no move with the keys off')
     await driver.executeScript(`document.activeElement && document.activeElement.blur()`)
-    await slash()
-    assert.notEqual(
-      await driver.executeScript(`return document.activeElement && document.activeElement.name`),
-      'search'
+    await press('f')
+    assert.notEqual(await activeName(), 'search')
+  })
+
+  test('the keys are chosen in the options: a clash holds the save, keys can be swapped, and a key follows its place', async () => {
+    await setSettings({ shortcuts: true, shortcutKeys: {} })
+    await open('options', 'button[name=key-search]')
+    const keyOf = (action) =>
+      driver.executeScript(`return document.querySelector('[data-key="${action}"]').textContent.trim()`)
+    const choose = async (action, key) => {
+      await css(`button[name=key-${action}]`).then((button) => button.click())
+      await waitFor(async () => (await all('[role=status]')).length > 0, { message: 'the key is waited for' })
+      await press(key)
+    }
+    const saved = async () => (await getSettings()).shortcutKeys ?? {}
+
+    // A key is chosen by pressing it, and saved.
+    await choose('search', 'g')
+    await waitFor(async () => (await saved()).search?.code === 'KeyG', { message: 'the key of the search saved' })
+    assert.equal((await saved()).search.shift, false)
+
+    // The key of the search is given to another action: they clash, the clash is said, and nothing more is saved.
+    await choose('up', 'g')
+    await waitFor(async () => (await all('#key-conflict')).length > 0, { message: 'the clash said' })
+    assert.equal((await saved()).up, undefined, 'the clashing key is not saved')
+    assert.equal(await keyOf('up'), await keyOf('search'))
+
+    // The search takes another key: the clash is gone and both keys are saved.
+    await choose('search', 'h')
+    await waitFor(async () => (await all('#key-conflict')).length === 0, { message: 'the clash gone' })
+    await waitFor(async () => (await saved()).up?.code === 'KeyG' && (await saved()).search?.code === 'KeyH', {
+      message: 'both keys saved',
+    })
+
+    // A key the page keeps is refused at once, and a key that is removed is a null.
+    await choose('down', '\uE004')
+    await waitFor(async () => (await all('[role=alert]')).length > 0, { message: 'the refusal said' })
+    await press('\uE00C')
+    await css('button[name=key-down]').then(() =>
+      driver.executeScript(
+        `[...document.querySelectorAll('li.row')].find((row) => row.querySelector('[data-key=down]')).querySelectorAll('button')[1].click()`
+      )
     )
-    await setShortcuts(false)
+    await waitFor(async () => (await saved()).down === null, { message: 'the key removed' })
+
+    // The key follows its place: the board answers to the place of the key, whatever letter it has.
+    await open('board', '.application-card')
+    await driver.executeScript(`document.activeElement && document.activeElement.blur()`)
+    await press('h')
+    assert.equal(await activeName(), 'search')
+
+    // Back to the defaults.
+    await setSettings({ shortcuts: false, shortcutKeys: {} })
   })
 
   test('the spacing of the letters is left out where the letters join or a syllable is one block', async () => {

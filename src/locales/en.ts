@@ -425,11 +425,32 @@ const en: TranslationObject = {
     title: 'Keyboard',
     enable: 'Keyboard shortcuts in the pages',
     hint: 'Off by default, because a key made of one character can clash with a screen reader or your own keyboard. Turn them on if you want them. The keys of the browser, below, are set in the browser and not here.',
-    search: 'Go to the search of the board',
     cards: 'Move from one card to another',
     move: 'Move the card to the next or the previous column',
     browser:
       'In the browser, by default: Alt+Shift+J saves the offer of the page, Alt+Shift+L opens the board. Change them in the shortcuts of your browser (the extensions page of Chrome and Edge, the manager of shortcuts in the add-ons of Firefox).',
+    actions: {
+      search: 'Go to the search',
+      up: 'Card above',
+      down: 'Card below',
+      left: 'Column on the left',
+      right: 'Column on the right',
+      moveLeft: 'Move the card to the left',
+      moveRight: 'Move the card to the right',
+    },
+    change: 'Change',
+    remove: 'Remove',
+    notSet: 'None',
+    press: 'Press the key you want (Escape to give up).',
+    reset: 'Restore the default keys',
+    discard: 'Discard my changes',
+    conflict: 'Two actions use the same key ({keys}). Change one of them: nothing is saved until then.',
+    forbidden:
+      'This key is kept for the page or the browser (Tab, Enter, Space, Escape, the arrows, or any key with Control, Alt or Meta): choose another.',
+    unknownLayout:
+      'Your browser does not tell the extension which keyboard you have, so no key is suggested: set the ones you want. The arrows always work.',
+    layoutHint:
+      'A key is a place on the keyboard: it stays at the same place if you change the layout (the A of a QWERTY keyboard is the Q of an AZERTY one).',
   },
   notice: {
     region: 'Messages',

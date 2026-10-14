@@ -429,11 +429,32 @@ const tr: TranslationObject = {
     title: 'Klavye',
     enable: 'Sayfalardaki klavye kısayolları',
     hint: 'Varsayılan olarak kapalı, çünkü tek karakterlik bir tuş ekran okuyucu ya da kendi klavyenizle çakışabilir. İstiyorsanız açın. Aşağıdaki tarayıcı tuşları burada değil, tarayıcıda ayarlanır.',
-    search: 'Panonun aramasına git',
     cards: 'Bir karttan diğerine geç',
     move: 'Kartı sonraki veya önceki sütuna taşı',
     browser:
       'Tarayıcıda, varsayılan olarak: Alt+Shift+J sayfadaki ilanı kaydeder, Alt+Shift+L panoyu açar. Bunları tarayıcınızın kısayollarından değiştirin (Chrome ve Edge’de uzantılar sayfası, Firefox’ta eklenti kısayolları yöneticisi).',
+    actions: {
+      search: 'Aramaya git',
+      up: 'Üstteki kart',
+      down: 'Alttaki kart',
+      left: 'Soldaki sütun',
+      right: 'Sağdaki sütun',
+      moveLeft: 'Kartı sola taşı',
+      moveRight: 'Kartı sağa taşı',
+    },
+    change: 'Değiştir',
+    remove: 'Kaldır',
+    notSet: 'Yok',
+    press: 'İstediğiniz tuşa basın (vazgeçmek için Esc).',
+    reset: 'Varsayılan tuşları geri yükle',
+    discard: 'Değişikliklerimi at',
+    conflict: 'İki eylem aynı tuşu kullanıyor ({keys}). Birini değiştirin: o zamana kadar hiçbir şey kaydedilmez.',
+    forbidden:
+      'Bu tuş sayfaya veya tarayıcıya ayrılmıştır (Tab, Enter, Boşluk, Esc, oklar veya Ctrl, Alt ya da Meta ile herhangi bir tuş): başka bir tane seçin.',
+    unknownLayout:
+      'Tarayıcınız uzantıya hangi klavyeye sahip olduğunuzu söylemiyor, bu yüzden hiçbir tuş önerilmiyor: kendi tuşlarınızı belirleyin. Oklar her zaman çalışır.',
+    layoutHint:
+      'Tuş, klavyede bir yerdir: düzeni değiştirseniz de aynı yerde kalır (QWERTY klavyenin A’sı, AZERTY klavyenin Q’sudur).',
   },
   notice: {
     region: 'İletiler',
