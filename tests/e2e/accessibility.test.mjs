@@ -168,6 +168,24 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
     }
   )
 
+  test('the spacing of the letters is left out where the letters join or a syllable is one block', async () => {
+    await open('board', '.column')
+    const spacing = async (language) => {
+      await driver.executeScript(
+        `document.documentElement.lang = arguments[0]; document.documentElement.style.setProperty('--jat-letter-spacing', '0.16em')`,
+        language
+      )
+      return driver.executeScript(`return getComputedStyle(document.body).letterSpacing`)
+    }
+    const none = ['normal', '0px']
+    assert.ok(!none.includes(await spacing('en')), 'a Latin text gets the spacing')
+    assert.ok(!none.includes(await spacing('he')), 'Hebrew has letters apart and gets it')
+    for (const language of ['ar', 'ar-x-mine', 'hi', 'th']) {
+      assert.ok(none.includes(await spacing(language)), `${language} does not`)
+    }
+    await driver.executeScript(`document.documentElement.style.removeProperty('--jat-letter-spacing')`)
+  })
+
   test('the board is used with the keyboard: the title of a card opens it, escape closes it, and the focus comes back', async () => {
     await open('board', '.application-card')
     const opener = await css('.application-card .card-open')
