@@ -96,6 +96,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Clean the output of an earlier run
+        run: rm -rf .output firefox-package
+
       - name: Build the zips
         run: |
           npm run zip
@@ -156,6 +159,10 @@ jobs:
       - name: Install the test dependencies
         working-directory: tests/e2e
         run: npm ci
+
+      # The tests load the zip they find: one left by an earlier run on the same runner would be tested instead of this code.
+      - name: Clean the output of an earlier run
+        run: rm -rf .output firefox-package
 
       - name: Build the package
         run: npm run ${{ matrix.browser == 'firefox' && 'zip:firefox' || 'zip' }}

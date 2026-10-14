@@ -1,5 +1,13 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { applicationIdOf, cardOf, isTyping, moveOfKey, neighbour, neighbourColumn } from '../../src/services/boardKeys'
+import {
+  applicationIdOf,
+  cardOf,
+  isTyping,
+  moveOfAction,
+  movesCard,
+  neighbour,
+  neighbourColumn,
+} from '../../src/services/boardKeys'
 
 // Three columns: two cards, none, one.
 beforeEach(() => {
@@ -14,18 +22,27 @@ beforeEach(() => {
 
 const card = (id: string) => document.getElementById(id) as HTMLElement
 
-describe('the key of an arrow', () => {
+describe('the move of an action', () => {
   it('goes to the previous or next column by what is on the screen, and the other way round from right to left', () => {
-    expect(moveOfKey('ArrowLeft', false)).toBe('previous')
-    expect(moveOfKey('ArrowRight', false)).toBe('next')
-    expect(moveOfKey('ArrowLeft', true)).toBe('next')
-    expect(moveOfKey('ArrowRight', true)).toBe('previous')
+    expect(moveOfAction('left', false)).toBe('previous')
+    expect(moveOfAction('right', false)).toBe('next')
+    expect(moveOfAction('moveLeft', false)).toBe('previous')
+    expect(moveOfAction('left', true)).toBe('next')
+    expect(moveOfAction('right', true)).toBe('previous')
+    expect(moveOfAction('moveRight', true)).toBe('previous')
   })
 
-  it('keeps up and down as they are, and ignores any other key', () => {
-    expect(moveOfKey('ArrowUp', true)).toBe('up')
-    expect(moveOfKey('ArrowDown', false)).toBe('down')
-    expect(moveOfKey('a', false)).toBeNull()
+  it('keeps up and down as they are, and has none for the search', () => {
+    expect(moveOfAction('up', true)).toBe('up')
+    expect(moveOfAction('down', false)).toBe('down')
+    expect(moveOfAction('search', false)).toBeNull()
+  })
+
+  it('tells the actions that move the card from those that move the focus', () => {
+    expect(movesCard('moveLeft')).toBe(true)
+    expect(movesCard('moveRight')).toBe(true)
+    expect(movesCard('left')).toBe(false)
+    expect(movesCard('search')).toBe(false)
   })
 })
 

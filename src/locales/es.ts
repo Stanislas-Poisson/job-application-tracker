@@ -437,11 +437,32 @@ const es: TranslationObject = {
     title: 'Teclado',
     enable: 'Atajos de teclado en las páginas',
     hint: 'Desactivados por defecto, porque una tecla sola puede chocar con un lector de pantalla o con su propio teclado. Actívelos si los quiere. Las teclas del navegador, más abajo, se configuran en el navegador y no aquí.',
-    search: 'Ir a la búsqueda del tablero',
     cards: 'Pasar de una tarjeta a otra',
     move: 'Mover la tarjeta a la columna siguiente o anterior',
     browser:
       'En el navegador, por defecto: Alt+Mayús+J guarda la oferta de la página, Alt+Mayús+L abre el tablero. Cámbielas en los atajos de su navegador (la página de extensiones de Chrome y Edge, el gestor de atajos de los complementos de Firefox).',
+    actions: {
+      search: 'Ir a la búsqueda',
+      up: 'Tarjeta de arriba',
+      down: 'Tarjeta de abajo',
+      left: 'Columna de la izquierda',
+      right: 'Columna de la derecha',
+      moveLeft: 'Mover la tarjeta a la izquierda',
+      moveRight: 'Mover la tarjeta a la derecha',
+    },
+    change: 'Cambiar',
+    remove: 'Quitar',
+    notSet: 'Ninguna',
+    press: 'Pulse la tecla que quiera (Escape para renunciar).',
+    reset: 'Restablecer las teclas por defecto',
+    discard: 'Descartar mis cambios',
+    conflict: 'Dos acciones usan la misma tecla ({keys}). Cambie una de ellas: no se guarda nada hasta entonces.',
+    forbidden:
+      'Esta tecla está reservada a la página o al navegador (Tab, Intro, Espacio, Escape, las flechas, o cualquier tecla con Control, Alt o Meta): elija otra.',
+    unknownLayout:
+      'Su navegador no dice a la extensión qué teclado tiene, así que no se sugiere ninguna tecla: elija las suyas. Las flechas siempre funcionan.',
+    layoutHint:
+      'Una tecla es un lugar del teclado: se queda en el mismo sitio si cambia la distribución (la A de un teclado QWERTY es la Q de uno AZERTY).',
   },
   notice: {
     region: 'Mensajes',

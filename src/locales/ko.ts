@@ -420,11 +420,31 @@ const ko: TranslationObject = {
     title: '키보드',
     enable: '페이지의 키보드 단축키',
     hint: '기본값은 꺼짐입니다. 글자 하나로 된 키는 스크린 리더나 직접 쓰는 키보드와 충돌할 수 있기 때문입니다. 필요하면 켜세요. 아래 브라우저 키는 여기가 아니라 브라우저에서 설정합니다.',
-    search: '보드의 검색으로 이동',
     cards: '카드에서 카드로 이동',
     move: '카드를 다음 또는 이전 열로 이동',
     browser:
       '브라우저 기본값: Alt+Shift+J는 이 페이지의 공고를 저장하고, Alt+Shift+L은 보드를 엽니다. 브라우저의 단축키 설정(Chrome과 Edge의 확장 프로그램 페이지, Firefox의 부가 기능 단축키 관리)에서 바꿀 수 있습니다.',
+    actions: {
+      search: '검색으로 이동',
+      up: '위의 카드',
+      down: '아래의 카드',
+      left: '왼쪽 열',
+      right: '오른쪽 열',
+      moveLeft: '카드를 왼쪽으로 이동',
+      moveRight: '카드를 오른쪽으로 이동',
+    },
+    change: '변경',
+    remove: '제거',
+    notSet: '없음',
+    press: '원하는 키를 누르세요(Esc로 취소).',
+    reset: '기본 키로 되돌리기',
+    discard: '내 변경 취소',
+    conflict: '두 동작이 같은 키({keys})를 쓰고 있습니다. 하나를 바꾸세요. 그때까지 아무것도 저장되지 않습니다.',
+    forbidden:
+      '이 키는 페이지나 브라우저용으로 예약되어 있습니다(Tab, Enter, 스페이스, Esc, 화살표, 또는 Ctrl·Alt·Meta와 함께 누르는 키). 다른 키를 고르세요.',
+    unknownLayout:
+      '브라우저가 확장 프로그램에 키보드 종류를 알려 주지 않아 제안되는 키가 없습니다. 원하는 키를 직접 설정하세요. 화살표는 항상 작동합니다.',
+    layoutHint: '키는 키보드 위의 자리입니다. 자판 배열을 바꿔도 같은 자리에 있습니다(QWERTY의 A는 AZERTY의 Q입니다).',
   },
   notice: {
     region: '메시지',

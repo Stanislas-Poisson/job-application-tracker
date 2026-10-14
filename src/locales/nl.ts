@@ -432,11 +432,32 @@ const nl: TranslationObject = {
     title: 'Toetsenbord',
     enable: 'Sneltoetsen in de pagina’s',
     hint: 'Standaard uit, want een enkele toets kan botsen met een schermlezer of je eigen toetsenbord. Zet ze aan als je ze wilt. De toetsen van de browser, hieronder, stel je in de browser in en niet hier.',
-    search: 'Naar het zoeken op het bord gaan',
     cards: 'Van de ene kaart naar de andere gaan',
     move: 'De kaart naar de volgende of vorige kolom verplaatsen',
     browser:
       'In de browser, standaard: Alt+Shift+J bewaart het aanbod van de pagina, Alt+Shift+L opent het bord. Wijzig ze in de sneltoetsen van je browser (de extensiepagina van Chrome en Edge, het beheer van sneltoetsen bij de add-ons van Firefox).',
+    actions: {
+      search: 'Naar het zoeken gaan',
+      up: 'Kaart erboven',
+      down: 'Kaart eronder',
+      left: 'Kolom links',
+      right: 'Kolom rechts',
+      moveLeft: 'De kaart naar links verplaatsen',
+      moveRight: 'De kaart naar rechts verplaatsen',
+    },
+    change: 'Wijzigen',
+    remove: 'Verwijderen',
+    notSet: 'Geen',
+    press: 'Druk op de gewenste toets (Esc om af te zien).',
+    reset: 'Standaardtoetsen herstellen',
+    discard: 'Mijn wijzigingen verwerpen',
+    conflict: 'Twee acties gebruiken dezelfde toets ({keys}). Wijzig er een: tot dan wordt niets opgeslagen.',
+    forbidden:
+      'Deze toets is gereserveerd voor de pagina of de browser (Tab, Enter, spatie, Esc, de pijlen, of elke toets met Ctrl, Alt of Meta): kies een andere.',
+    unknownLayout:
+      'Je browser zegt de extensie niet welk toetsenbord je hebt, dus er wordt geen toets voorgesteld: stel zelf toetsen in. De pijlen werken altijd.',
+    layoutHint:
+      'Een toets is een plek op het toetsenbord: hij blijft op dezelfde plek als je de indeling wisselt (de A van een QWERTY-toetsenbord is de Q van een AZERTY).',
   },
   notice: {
     region: 'Berichten',
