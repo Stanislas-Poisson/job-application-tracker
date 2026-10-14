@@ -604,9 +604,18 @@ footer {
   margin-inline-end: 0.25em;
 }
 
-.symbol-input {
+// The field of the symbol keeps its small width: the rule of the text fields above is as specific, so the element is named.
+input.symbol-input {
+  flex: none;
   width: 3rem;
   text-align: center;
+}
+
+// A badge that does not fit on one line is a rounded box and not a bubble: a pill is a radius of half its line.
+.badge {
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+  border-radius: 0.8em;
 }
 
 // A line of the lists of columns and tags goes on the next line rather than out of the page, as the text gets larger.
