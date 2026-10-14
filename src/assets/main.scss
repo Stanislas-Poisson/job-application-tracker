@@ -532,6 +532,11 @@ $accents: (
     }
   }
 
+  // A badge is a background and a text: with no background left it is a text lost among the others, so it gets a line.
+  .badge {
+    border: 1px solid CanvasText;
+  }
+
   .card,
   .application-card,
   .column {
