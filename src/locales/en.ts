@@ -424,7 +424,7 @@ const en: TranslationObject = {
   keyboard: {
     title: 'Keyboard',
     enable: 'Keyboard shortcuts in the pages',
-    hint: 'Turn them off if they get in the way of your screen reader or your own keyboard. The keys of the browser, below, are set in the browser and not here.',
+    hint: 'Off by default, because a key made of one character can clash with a screen reader or your own keyboard. Turn them on if you want them. The keys of the browser, below, are set in the browser and not here.',
     search: 'Go to the search of the board',
     cards: 'Move from one card to another',
     move: 'Move the card to the next or the previous column',

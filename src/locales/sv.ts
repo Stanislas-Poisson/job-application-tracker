@@ -429,7 +429,7 @@ const sv: TranslationObject = {
   keyboard: {
     title: 'Tangentbord',
     enable: 'Kortkommandon på sidorna',
-    hint: 'Stäng av dem om de stör din skärmläsare eller ditt eget tangentbord. Webbläsarens tangenter, längre ner, ställs in i webbläsaren och inte här.',
+    hint: 'Avstängda som standard, eftersom en enskild tangent kan krocka med en skärmläsare eller ditt eget tangentbord. Slå på dem om du vill ha dem. Webbläsarens tangenter, längre ner, ställs in i webbläsaren och inte här.',
     search: 'Gå till sökningen på tavlan',
     cards: 'Gå från ett kort till ett annat',
     move: 'Flytta kortet till nästa eller föregående kolumn',

@@ -431,7 +431,7 @@ const nl: TranslationObject = {
   keyboard: {
     title: 'Toetsenbord',
     enable: 'Sneltoetsen in de pagina’s',
-    hint: 'Zet ze uit als ze je schermlezer of je eigen toetsenbord hinderen. De toetsen van de browser, hieronder, stel je in de browser in en niet hier.',
+    hint: 'Standaard uit, want een enkele toets kan botsen met een schermlezer of je eigen toetsenbord. Zet ze aan als je ze wilt. De toetsen van de browser, hieronder, stel je in de browser in en niet hier.',
     search: 'Naar het zoeken op het bord gaan',
     cards: 'Van de ene kaart naar de andere gaan',
     move: 'De kaart naar de volgende of vorige kolom verplaatsen',
