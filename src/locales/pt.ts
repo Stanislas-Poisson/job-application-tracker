@@ -428,7 +428,7 @@ const pt: TranslationObject = {
   keyboard: {
     title: 'Teclado',
     enable: 'Atalhos de teclado nas páginas',
-    hint: 'Desative-os se atrapalharem o seu leitor de ecrã ou o seu próprio teclado. As teclas do navegador, mais abaixo, definem-se no navegador e não aqui.',
+    hint: 'Desativados por predefinição, porque uma tecla isolada pode chocar com um leitor de ecrã ou com o seu próprio teclado. Ative-os se os quiser. As teclas do navegador, mais abaixo, definem-se no navegador e não aqui.',
     search: 'Ir para a pesquisa do quadro',
     cards: 'Passar de um cartão para outro',
     move: 'Mover o cartão para a coluna seguinte ou anterior',

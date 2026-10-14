@@ -206,7 +206,7 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
     assert.notEqual(tie.text, '', 'the field is described by the message')
   })
 
-  test('the board is worked with the keys: / for the search, Shift and the arrows to move a card, and the setting turns them off', async () => {
+  test('the board is worked with the keys: / for the search, Shift and the arrows to move a card, and the setting turns them on (off by default)', async () => {
     const columnOfCard = () =>
       driver.executeScript(
         `const card = document.querySelector('.application-card'); return card && card.closest('.column').dataset.status`
@@ -221,6 +221,14 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
         on
       )
     await open('board', '.application-card')
+
+    // By default the keys are off: a slash and Shift with an arrow do nothing.
+    await driver.executeScript(`document.activeElement && document.activeElement.blur()`)
+    await slash()
+    assert.notEqual(
+      await driver.executeScript(`return document.activeElement && document.activeElement.name`),
+      'search'
+    )
     await setShortcuts(true)
     await driver.sleep(400)
 
@@ -258,7 +266,7 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
       await driver.executeScript(`return document.activeElement && document.activeElement.name`),
       'search'
     )
-    await setShortcuts(true)
+    await setShortcuts(false)
   })
 
   test('the spacing of the letters is left out where the letters join or a syllable is one block', async () => {

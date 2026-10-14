@@ -55,8 +55,8 @@ A machine finds about a third of the problems: it does not replace a read with a
   search, the arrows go from card to card and column to column (by what is on the screen, so reversed from right to left), and
   Shift and an arrow move the card to the neighbour column and say it. They do nothing while someone types or chooses in a field,
   while the drawer or a question is open, or with Control, Alt or Meta held, which are the keys of the browser and of the screen
-  reader. The setting "Keyboard shortcuts in the pages" (on by default) turns them off, as WCAG 2.1.4 asks of a key made of one
-  character.
+  reader. They are off by default, since a key made of one character can clash with a screen reader or the keyboard of the user: the
+  setting "Keyboard shortcuts in the pages" turns them on, and off again (WCAG 2.1.4).
 - **Colour is never alone.** A column has a shape in every vision mode but the standard, and always when the system forces its
   colours (the dot of the column draws its shape); a message of error or success has a sign (⚠, ✓) in the same cases. The sign
   has an empty alternative text, since the role of the message already tells it to a screen reader.

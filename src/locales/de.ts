@@ -434,7 +434,7 @@ const de: TranslationObject = {
   keyboard: {
     title: 'Tastatur',
     enable: 'Tastenkürzel in den Seiten',
-    hint: 'Schalten Sie sie aus, wenn sie Ihren Screenreader oder Ihre eigene Tastatur stören. Die Tasten des Browsers weiter unten stellen Sie im Browser ein, nicht hier.',
+    hint: 'Standardmäßig aus, denn eine einzelne Taste kann mit einem Screenreader oder Ihrer eigenen Tastatur kollidieren. Schalten Sie sie ein, wenn Sie sie wollen. Die Tasten des Browsers weiter unten stellen Sie im Browser ein, nicht hier.',
     search: 'Zur Suche des Boards springen',
     cards: 'Von einer Karte zur nächsten wechseln',
     move: 'Die Karte in die nächste oder vorherige Spalte verschieben',
