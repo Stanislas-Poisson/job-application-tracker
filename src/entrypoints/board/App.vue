@@ -8,8 +8,10 @@
   import BoardColumn from '../../components/board/BoardColumn.vue'
   import BoardFilters from '../../components/board/BoardFilters.vue'
   import { useApp } from '../../composables/useApp'
+  import { useBoardShortcuts } from '../../composables/useBoardShortcuts'
   import { useBoardView } from '../../composables/useBoardView'
   import { useFormat } from '../../composables/useFormat'
+  import { say } from '../../composables/useNotices'
   import { Application, CompanyRelation, PayProfile, Status } from '../../models'
   import { LEG_MODES } from '../../models/Journey'
   import { moveApplication } from '../../services/applications'
@@ -127,6 +129,18 @@
     moveApplication(applicationId, statusId)
     await persistence.flush()
   }
+
+  // The keys of the board; a card moved with them is said to be in its new column.
+  useBoardShortcuts({
+    enabled: () => settings.shortcuts,
+    drop,
+    moved(statusId) {
+      const status = useRepo(Status).find(statusId)
+      if (status) {
+        say(t('board.movedTo', { status: statusName(status) }))
+      }
+    },
+  })
 </script>
 
 <template>

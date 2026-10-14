@@ -54,6 +54,7 @@ const pl: TranslationObject = {
     },
   },
   board: {
+    movedTo: 'Przeniesiono do: {status}.',
     backupLate: 'Twoja ostatnia kopia zapasowa ma {days} dni.',
     backupNever: 'Nie wykonano jeszcze kopii zapasowej danych.',
     backupLater: 'Później',
@@ -434,6 +435,16 @@ const pl: TranslationObject = {
     needsPassphrase: 'Najpierw wpisz hasło.',
   },
   a11y: { skip: 'Przejdź do treści' },
+  keyboard: {
+    title: 'Klawiatura',
+    enable: 'Skróty klawiszowe na stronach',
+    hint: 'Wyłącz je, jeśli przeszkadzają czytnikowi ekranu lub Twojej własnej klawiaturze. Klawisze przeglądarki, poniżej, ustawia się w przeglądarce, a nie tutaj.',
+    search: 'Przejdź do wyszukiwania tablicy',
+    cards: 'Przejdź z jednej karty do drugiej',
+    move: 'Przenieś kartę do następnej lub poprzedniej kolumny',
+    browser:
+      'W przeglądarce, domyślnie: Alt+Shift+J zapisuje ofertę ze strony, Alt+Shift+L otwiera tablicę. Zmienisz je w skrótach przeglądarki (strona rozszerzeń w Chrome i Edge, menedżer skrótów dodatków w Firefoksie).',
+  },
   notice: {
     region: 'Wiadomości',
     close: 'Zamknij',

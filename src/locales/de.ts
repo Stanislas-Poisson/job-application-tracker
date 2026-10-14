@@ -54,6 +54,7 @@ const de: TranslationObject = {
     },
   },
   board: {
+    movedTo: 'Verschoben nach {status}.',
     backupLate: 'Ihre letzte Sicherung ist {days} Tage alt.',
     backupNever: 'Sie haben Ihre Daten noch nicht gesichert.',
     backupLater: 'Später',
@@ -430,6 +431,16 @@ const de: TranslationObject = {
     needsPassphrase: 'Geben Sie zuerst die Passphrase ein.',
   },
   a11y: { skip: 'Zum Inhalt springen' },
+  keyboard: {
+    title: 'Tastatur',
+    enable: 'Tastenkürzel in den Seiten',
+    hint: 'Schalten Sie sie aus, wenn sie Ihren Screenreader oder Ihre eigene Tastatur stören. Die Tasten des Browsers weiter unten stellen Sie im Browser ein, nicht hier.',
+    search: 'Zur Suche des Boards springen',
+    cards: 'Von einer Karte zur nächsten wechseln',
+    move: 'Die Karte in die nächste oder vorherige Spalte verschieben',
+    browser:
+      'Im Browser, standardmäßig: Alt+Umschalt+J speichert das Angebot der Seite, Alt+Umschalt+L öffnet das Board. Ändern Sie sie in den Tastenkürzeln Ihres Browsers (Erweiterungsseite von Chrome und Edge, Verwaltung der Tastenkürzel bei den Add-ons von Firefox).',
+  },
   notice: {
     region: 'Meldungen',
     close: 'Schließen',

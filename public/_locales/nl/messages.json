@@ -7,5 +7,11 @@
   },
   "extDescription": {
     "message": "Bewaart de vacatures die je zag en volgt elke sollicitatie. Alles blijft in je browser."
+  },
+  "commandPopup": {
+    "message": "Het aanbod van deze pagina bewaren"
+  },
+  "commandBoard": {
+    "message": "Het bord openen"
   }
 }

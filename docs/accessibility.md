@@ -49,6 +49,14 @@ A machine finds about a third of the problems: it does not replace a read with a
   al., 2009). The unit tests read the style sheet and fail under those ratios.
 - **Forced colours.** The background of a badge is gone, so it gets a line; the cards and columns do too. The grey of what is
   disabled and of the hint of a field is the one of the system.
+- **Keys.** Two kinds, both left to the user. The keys of the browser are commands of the extension (`commands` of the manifest):
+  Alt+Shift+J saves the offer of the page (opens the popup) and Alt+Shift+L opens the board; they are suggested, never forced, and
+  changed in the shortcuts of the browser. The keys of the pages are in `src/composables/useBoardShortcuts.ts`: `/` goes to the
+  search, the arrows go from card to card and column to column (by what is on the screen, so reversed from right to left), and
+  Shift and an arrow move the card to the neighbour column and say it. They do nothing while someone types or chooses in a field,
+  while the drawer or a question is open, or with Control, Alt or Meta held, which are the keys of the browser and of the screen
+  reader. The setting "Keyboard shortcuts in the pages" (on by default) turns them off, as WCAG 2.1.4 asks of a key made of one
+  character.
 - **Colour is never alone.** A column has a shape in every vision mode but the standard, and always when the system forces its
   colours (the dot of the column draws its shape); a message of error or success has a sign (⚠, ✓) in the same cases. The sign
   has an empty alternative text, since the role of the message already tells it to a screen reader.
