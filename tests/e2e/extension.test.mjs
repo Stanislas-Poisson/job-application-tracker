@@ -1127,8 +1127,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         file,
         JSON.stringify({
           app: 'job-application-tracker-language',
-          code: 'sv',
-          name: 'Svenska',
+          code: 'eo',
+          name: 'Esperanto',
           dir: 'ltr',
           messages: {
             options: { language: 'Språk' },
@@ -1151,7 +1151,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await css('#language-file').then((input) => input.sendKeys(file))
       await waitFor(async () => (await all('#language-preview')).length > 0, { message: 'the preview' })
       const preview = await text('#language-preview')
-      assert.match(preview, /Svenska/)
+      assert.match(preview, /Esperanto/)
       assert.match(preview, /2 texts were refused/)
       assert.match(await text('#language-problems'), /nav\.board/)
       assert.match(await text('#language-problems'), /trash\.related/)
@@ -1161,8 +1161,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       await css('#language-keep').then((button) => button.click())
       await waitFor(async () => (await all('#language-installed')).length > 0, { message: 'the language to be kept' })
-      await choose('select[name=language]', 'sv')
-      await waitFor(async () => (await driver.executeScript(`return document.documentElement.lang`)) === 'sv', {
+      await choose('select[name=language]', 'eo')
+      await waitFor(async () => (await driver.executeScript(`return document.documentElement.lang`)) === 'eo', {
         message: 'lang to be sv',
       })
       await waitFor(async () => /Språk/.test(await text('main')), { message: 'the translated text' })
