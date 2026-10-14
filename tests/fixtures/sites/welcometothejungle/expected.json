@@ -1,0 +1,27 @@
+{
+  "title": "Example job title",
+  "description": "Example description of the offer.\nSecond paragraph.",
+  "companyName": "Example Corp",
+  "location": "Courbevoie, Hauts-de-Seine",
+  "country": "FR",
+  "address": {
+    "line1": "1 rue de l’Exemple",
+    "line2": "",
+    "line3": "",
+    "postalCode": "92400",
+    "city": "Courbevoie",
+    "region": "Hauts-de-Seine",
+    "country": "FR",
+    "latitude": null,
+    "longitude": null
+  },
+  "contractType": "Full time",
+  "postedOn": "2026-10-08",
+  "salary": {
+    "min": 5500000,
+    "max": null,
+    "currency": "EUR",
+    "period": "year",
+    "kind": null
+  }
+}

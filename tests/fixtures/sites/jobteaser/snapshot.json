@@ -1,0 +1,13 @@
+{
+  "url": "https://www.jobteaser.com/fr/job-offers/00000000-example",
+  "title": "Example job title | JobTeaser",
+  "jsonLd": [
+    "{\"@context\":\"https://schema.org\",\"@type\":\"JobPosting\",\"applicantLocationRequirements\":{\"@type\":\"Country\",\"name\":\"Example Corp\"},\"baseSalary\":{\"@type\":\"MonetaryAmount\",\"currency\":\"EUR\",\"value\":{\"@type\":\"QuantitativeValue\",\"unitText\":\"YEARLY\",\"maxValue\":32,\"minValue\":30}},\"datePosted\":\"2026-10-13T08:37:22.005Z\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\",\"directApply\":true,\"educationRequirements\":{\"@type\":\"EducationalOccupationalCredential\",\"credentialCategory\":\"Example text\"},\"employerOverview\":\"Example text\",\"employmentType\":\"FULL_TIME\",\"employmentUnit\":{\"@type\":\"Organization\",\"name\":\"Example Corp\"},\"hiringOrganization\":{\"@type\":\"Organization\",\"name\":\"Example Corp\"},\"jobImmediateStart\":true,\"jobLocation\":{\"@type\":\"Place\",\"address\":{\"@type\":\"PostalAddress\",\"addressCountry\":\"France\",\"addressLocality\":\"Estrées-Mons\",\"addressRegion\":\"Hauts-de-France\"}},\"jobLocationType\":\"TELECOMMUTE\",\"title\":\"Example job title\",\"validThrough\":\"2026-11-12T08:37:22.965Z\"}",
+    "{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Example Corp\",\"item\":\"https://example.org/\"},{\"@type\":\"ListItem\",\"position\":2,\"name\":\"Example Corp\",\"item\":\"https://example.org/\"},{\"@type\":\"ListItem\",\"position\":3,\"name\":\"Example Corp\"}]}"
+  ],
+  "meta": {
+    "og:title": "Example text",
+    "og:description": "Example text",
+    "description": "Example text"
+  }
+}

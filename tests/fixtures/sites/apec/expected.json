@@ -1,0 +1,27 @@
+{
+  "title": "Example job title",
+  "description": "Example description of the offer.\nSecond paragraph.",
+  "companyName": "Example Corp",
+  "location": "ST LAURENT BLANGY",
+  "country": "FR",
+  "address": {
+    "line1": "",
+    "line2": "",
+    "line3": "",
+    "postalCode": "62753",
+    "city": "ST LAURENT BLANGY",
+    "region": "ST LAURENT BLANGY",
+    "country": "FR",
+    "latitude": 50.3083217,
+    "longitude": 2.8116473
+  },
+  "contractType": "Full time",
+  "postedOn": "2026-10-07",
+  "salary": {
+    "min": 8000000,
+    "max": 8500000,
+    "currency": "EUR",
+    "period": "year",
+    "kind": "gross"
+  }
+}

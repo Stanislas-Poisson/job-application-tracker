@@ -1,0 +1,16 @@
+{
+  "url": "https://www.hellowork.com/fr-fr/emplois/00000000.html",
+  "title": "Example job title | Hellowork",
+  "jsonLd": [
+    "{\"@context\":\"https://schema.org\",\"@type\":\"WebSite\",\"name\":\"Example Corp\"}",
+    "{\"@context\":\"https://schema.org\",\"@type\":\"Organization\",\"name\":\"Example Corp\"}",
+    "{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"name\":\"Example Corp\",\"itemListElement\":[{\"@type\":\"ListItem\",\"name\":\"Example Corp\",\"item\":\"https://example.org/\",\"position\":1},{\"@type\":\"ListItem\",\"name\":\"Example Corp\",\"item\":\"https://example.org/\",\"position\":2},{\"@type\":\"ListItem\",\"name\":\"Example Corp\",\"item\":\"https://example.org/\",\"position\":3},{\"@type\":\"ListItem\",\"name\":\"Example Corp\",\"item\":\"https://example.org/\",\"position\":4},{\"@type\":\"ListItem\",\"name\":\"Example Corp\",\"item\":\"https://example.org/\",\"position\":5},{\"@type\":\"ListItem\",\"name\":\"Example Corp\",\"position\":6}]}",
+    "{\"@context\":\"https://schema.org\",\"@type\":\"JobPosting\",\"title\":\"Example job title\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\",\"applicantLocationRequirements\":{\"@type\":\"Country\",\"name\":\"Example Corp\"},\"baseSalary\":{\"@type\":\"MonetaryAmount\",\"currency\":\"EUR\",\"value\":{\"@type\":\"QuantitativeValue\"}},\"datePosted\":\"2026-10-06T16:01:27Z\",\"directApply\":true,\"educationRequirements\":{\"@type\":\"EducationalOccupationalCredential\",\"credentialCategory\":\"Example text\"},\"employmentType\":\"FULL_TIME\",\"estimatedSalary\":{\"@type\":\"MonetaryAmountDistribution\",\"name\":\"Example Corp\",\"duration\":\"Example text\",\"median\":43800,\"percentile10\":26200,\"percentile25\":36200,\"percentile75\":51100,\"percentile90\":62500,\"currency\":\"EUR\"},\"experienceRequirements\":{\"@type\":\"OccupationalExperienceRequirements\",\"monthsOfExperience\":12},\"hiringOrganization\":{\"@type\":\"Organization\",\"name\":\"Example Corp\"},\"industry\":\"Example industry\",\"jobLocation\":{\"@type\":\"Place\",\"address\":{\"@type\":\"PostalAddress\",\"addressCountry\":\"FR\",\"addressLocality\":\"Angers\",\"addressRegion\":\"Pays de la Loire\",\"postalCode\":\"49000\"}},\"jobLocationType\":\"TELECOMMUTE\",\"occupationalCategory\":\"Example category\",\"qualifications\":\"Example qualification\",\"salaryCurrency\":\"EUR\",\"skills\":[\"Example skill\",\"Example skill\",\"Example skill\",\"Example skill\",\"Example skill\"],\"validThrough\":\"2026-11-05T16:01:27Z\"}"
+  ],
+  "meta": {
+    "og:title": "Example text",
+    "og:site_name": "www.hellowork.com",
+    "og:description": "Example text",
+    "description": "Example text"
+  }
+}
