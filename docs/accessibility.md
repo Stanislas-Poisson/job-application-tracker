@@ -15,8 +15,8 @@ BROWSER=firefox node tests/e2e/accessibility.test.mjs
   controls, roles, contrast, landmarks, headings, target size. The suite fails on any finding.
 - **The keyboard**: the title of a card is a button; Enter opens the drawer, Escape closes it, and the focus comes back to the title.
 - **The size of the window**: 1024 pixels is the smallest, 1280 the usual one and 1920 the largest it is made for. At each, no page
-  scrolls sideways; from 1280 the six columns that come with the extension are all seen, and the sections of the options are in two
-  columns (one below).
+  scrolls sideways; from 1200 pixels of page (a window of 1280 minus its frame) the six columns that come with the extension are all seen, and the
+  sections of the options are in two columns (one below).
 
 A machine finds about a third of the problems: it does not replace a read with a screen reader and a use with the keyboard alone.
 

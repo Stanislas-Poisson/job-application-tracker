@@ -147,21 +147,23 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
         columns.every((w) => w >= 160),
         `a column is too narrow at ${width}: ${columns.join(', ')}`
       )
-      // From 1280 pixels, the six columns that come with the extension are all seen with no sideways scroll of the board.
-      if (width >= 1280) {
+      // The window is not the page: what counts is the width of the page itself (the frame of the window takes some).
+      const inner = await driver.executeScript(`return window.innerWidth`)
+      // From 1200 pixels of page, the six columns that come with the extension are all seen with no sideways scroll of the board.
+      if (inner >= 1200) {
         const scrolls = await driver.executeScript(
           `const board = document.querySelector('.board'); return board.scrollWidth - board.clientWidth`
         )
         assert.ok(scrolls <= 1, `the board scrolls sideways at ${width}: ${scrolls}px`)
       }
-      // The options come in two columns from 1280 pixels, in one below.
+      // The options come in two columns from 1200 pixels of page, in one below.
       await open('options', 'footer')
       const sections = await driver.executeScript(
         `return new Set([...document.querySelectorAll('.options-grid > .card')].map((card) => Math.round(card.getBoundingClientRect().left))).size`
       )
       assert.equal(
         sections,
-        width >= 1280 ? 2 : 1,
+        inner >= 1200 ? 2 : 1,
         `the sections of the options are in ${sections} columns at ${width}`
       )
     })
