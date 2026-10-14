@@ -432,11 +432,32 @@ const it: TranslationObject = {
     title: 'Tastiera',
     enable: 'Scorciatoie da tastiera nelle pagine',
     hint: 'Disattivate di default, perché un tasto singolo può entrare in conflitto con un lettore di schermo o con la tua tastiera. Attivale se le vuoi. I tasti del browser, qui sotto, si impostano nel browser e non qui.',
-    search: 'Vai alla ricerca della bacheca',
     cards: 'Passa da una scheda all’altra',
     move: 'Sposta la scheda nella colonna successiva o precedente',
     browser:
       'Nel browser, di default: Alt+Maiusc+J salva l’offerta della pagina, Alt+Maiusc+L apre la bacheca. Cambiali nelle scorciatoie del browser (la pagina delle estensioni di Chrome e Edge, il gestore delle scorciatoie dei componenti aggiuntivi di Firefox).',
+    actions: {
+      search: 'Vai alla ricerca',
+      up: 'Scheda sopra',
+      down: 'Scheda sotto',
+      left: 'Colonna a sinistra',
+      right: 'Colonna a destra',
+      moveLeft: 'Sposta la scheda a sinistra',
+      moveRight: 'Sposta la scheda a destra',
+    },
+    change: 'Cambia',
+    remove: 'Rimuovi',
+    notSet: 'Nessuno',
+    press: 'Premi il tasto che vuoi (Esc per rinunciare).',
+    reset: 'Ripristina i tasti predefiniti',
+    discard: 'Annulla le mie modifiche',
+    conflict: 'Due azioni usano lo stesso tasto ({keys}). Cambiane una: fino ad allora non viene salvato nulla.',
+    forbidden:
+      'Questo tasto è riservato alla pagina o al browser (Tab, Invio, Spazio, Esc, le frecce, o qualsiasi tasto con Ctrl, Alt o Meta): scegline un altro.',
+    unknownLayout:
+      'Il tuo browser non dice all’estensione quale tastiera hai, quindi nessun tasto è proposto: imposta i tuoi. Le frecce funzionano sempre.',
+    layoutHint:
+      'Un tasto è un posto sulla tastiera: resta nello stesso posto se cambi layout (la A di una tastiera QWERTY è la Q di una AZERTY).',
   },
   notice: {
     region: 'Messaggi',

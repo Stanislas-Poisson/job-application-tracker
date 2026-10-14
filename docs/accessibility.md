@@ -51,12 +51,21 @@ A machine finds about a third of the problems: it does not replace a read with a
   disabled and of the hint of a field is the one of the system.
 - **Keys.** Two kinds, both left to the user. The keys of the browser are commands of the extension (`commands` of the manifest):
   Alt+Shift+J saves the offer of the page (opens the popup) and Alt+Shift+L opens the board; they are suggested, never forced, and
-  changed in the shortcuts of the browser. The keys of the pages are in `src/composables/useBoardShortcuts.ts`: `/` goes to the
-  search, the arrows go from card to card and column to column (by what is on the screen, so reversed from right to left), and
-  Shift and an arrow move the card to the neighbour column and say it. They do nothing while someone types or chooses in a field,
-  while the drawer or a question is open, or with Control, Alt or Meta held, which are the keys of the browser and of the screen
-  reader. They are off by default, since a key made of one character can clash with a screen reader or the keyboard of the user: the
-  setting "Keyboard shortcuts in the pages" turns them on, and off again (WCAG 2.1.4).
+  changed in the shortcuts of the browser. The keys of the pages are in `src/composables/useBoardShortcuts.ts`; they are off by default (a key made of one
+  character can clash with a screen reader or the keyboard of the user) and the setting "Keyboard shortcuts in the pages" turns
+  them on and off (WCAG 2.1.4). The arrows always work: they go from card to card and column to column (by what is on the
+  screen, so reversed from right to left), and Shift with left or right moves the card to the neighbour column and says it.
+  The other keys are set by the user in the options (`src/services/shortcutKeys.ts`), seven actions: the search, up, down, left,
+  right, and the move of the card to the left or to the right. They do nothing while someone types or chooses in a field, while
+  the drawer or a question is open, or with Control, Alt or Meta held, which are the keys of the browser and of the screen reader.
+- **A key is a place on the keyboard.** It is kept as `KeyboardEvent.code`, not as a letter: the A of a QWERTY keyboard is the Q of an
+  AZERTY one, and the key stays where the hand has it when the layout changes. The defaults are drawn on QWERTY (F to find, W A S D to
+  move, Shift with A or D to move the card). A key shows the letter the keyboard of the person has, from `navigator.keyboard.getLayoutMap()`,
+  which Chrome and Edge have and Firefox and Safari do not. Where the layout is not known there is no default key and none in use,
+  since nobody could tell which keys they are: the person sets their own by pressing them, and the letter they pressed is kept to show.
+- **Changing keys never blocks.** The options keep a draft: a key can be given to an action that has it already, to swap two keys
+  one after the other; the clash is said and marked, and nothing is saved until it is put right, or the changes are discarded. A key the page
+  keeps (Tab, Enter, Space, Escape, Backspace, the arrows, a key held with Control, Alt or Meta) is refused when pressed.
 - **Colour is never alone.** A column has a shape in every vision mode but the standard, and always when the system forces its
   colours (the dot of the column draws its shape); a message of error or success has a sign (⚠, ✓) in the same cases. The sign
   has an empty alternative text, since the role of the message already tells it to a screen reader.

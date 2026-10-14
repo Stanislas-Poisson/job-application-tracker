@@ -435,11 +435,32 @@ const de: TranslationObject = {
     title: 'Tastatur',
     enable: 'Tastenkürzel in den Seiten',
     hint: 'Standardmäßig aus, denn eine einzelne Taste kann mit einem Screenreader oder Ihrer eigenen Tastatur kollidieren. Schalten Sie sie ein, wenn Sie sie wollen. Die Tasten des Browsers weiter unten stellen Sie im Browser ein, nicht hier.',
-    search: 'Zur Suche des Boards springen',
     cards: 'Von einer Karte zur nächsten wechseln',
     move: 'Die Karte in die nächste oder vorherige Spalte verschieben',
     browser:
       'Im Browser, standardmäßig: Alt+Umschalt+J speichert das Angebot der Seite, Alt+Umschalt+L öffnet das Board. Ändern Sie sie in den Tastenkürzeln Ihres Browsers (Erweiterungsseite von Chrome und Edge, Verwaltung der Tastenkürzel bei den Add-ons von Firefox).',
+    actions: {
+      search: 'Zur Suche gehen',
+      up: 'Karte darüber',
+      down: 'Karte darunter',
+      left: 'Spalte links',
+      right: 'Spalte rechts',
+      moveLeft: 'Karte nach links verschieben',
+      moveRight: 'Karte nach rechts verschieben',
+    },
+    change: 'Ändern',
+    remove: 'Entfernen',
+    notSet: 'Keine',
+    press: 'Drücken Sie die gewünschte Taste (Esc zum Abbrechen).',
+    reset: 'Standardtasten wiederherstellen',
+    discard: 'Meine Änderungen verwerfen',
+    conflict: 'Zwei Aktionen haben dieselbe Taste ({keys}). Ändern Sie eine davon: bis dahin wird nichts gespeichert.',
+    forbidden:
+      'Diese Taste ist für die Seite oder den Browser reserviert (Tab, Eingabe, Leertaste, Esc, die Pfeile oder jede Taste mit Strg, Alt oder Meta): wählen Sie eine andere.',
+    unknownLayout:
+      'Ihr Browser sagt der Erweiterung nicht, welche Tastatur Sie haben, daher wird keine Taste vorgeschlagen: legen Sie Ihre eigenen fest. Die Pfeile funktionieren immer.',
+    layoutHint:
+      'Eine Taste ist ein Ort auf der Tastatur: Sie bleibt am selben Ort, wenn Sie das Layout wechseln (das A einer QWERTY-Tastatur ist das Q einer AZERTY-Tastatur).',
   },
   notice: {
     region: 'Meldungen',

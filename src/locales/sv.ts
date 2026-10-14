@@ -430,11 +430,32 @@ const sv: TranslationObject = {
     title: 'Tangentbord',
     enable: 'Kortkommandon på sidorna',
     hint: 'Avstängda som standard, eftersom en enskild tangent kan krocka med en skärmläsare eller ditt eget tangentbord. Slå på dem om du vill ha dem. Webbläsarens tangenter, längre ner, ställs in i webbläsaren och inte här.',
-    search: 'Gå till sökningen på tavlan',
     cards: 'Gå från ett kort till ett annat',
     move: 'Flytta kortet till nästa eller föregående kolumn',
     browser:
       'I webbläsaren, som standard: Alt+Skift+J sparar jobbet på sidan, Alt+Skift+L öppnar tavlan. Ändra dem i webbläsarens kortkommandon (tilläggssidan i Chrome och Edge, hanteraren för kortkommandon bland tilläggen i Firefox).',
+    actions: {
+      search: 'Gå till sökningen',
+      up: 'Kortet ovanför',
+      down: 'Kortet under',
+      left: 'Kolumnen till vänster',
+      right: 'Kolumnen till höger',
+      moveLeft: 'Flytta kortet åt vänster',
+      moveRight: 'Flytta kortet åt höger',
+    },
+    change: 'Ändra',
+    remove: 'Ta bort',
+    notSet: 'Ingen',
+    press: 'Tryck på den tangent du vill ha (Esc för att avbryta).',
+    reset: 'Återställ standardtangenterna',
+    discard: 'Ångra mina ändringar',
+    conflict: 'Två åtgärder använder samma tangent ({keys}). Ändra en av dem: ingenting sparas förrän dess.',
+    forbidden:
+      'Den här tangenten är reserverad för sidan eller webbläsaren (Tab, Retur, mellanslag, Esc, piltangenterna eller någon tangent med Ctrl, Alt eller Meta): välj en annan.',
+    unknownLayout:
+      'Din webbläsare berättar inte för tillägget vilket tangentbord du har, så ingen tangent föreslås: ställ in dina egna. Piltangenterna fungerar alltid.',
+    layoutHint:
+      'En tangent är en plats på tangentbordet: den ligger kvar på samma plats om du byter layout (A på ett QWERTY-tangentbord är Q på ett AZERTY).',
   },
   notice: {
     region: 'Meddelanden',

@@ -439,11 +439,33 @@ const pl: TranslationObject = {
     title: 'Klawiatura',
     enable: 'Skróty klawiszowe na stronach',
     hint: 'Domyślnie wyłączone, bo pojedynczy klawisz może kolidować z czytnikiem ekranu lub Twoją własną klawiaturą. Włącz je, jeśli ich chcesz. Klawisze przeglądarki, poniżej, ustawia się w przeglądarce, a nie tutaj.',
-    search: 'Przejdź do wyszukiwania tablicy',
     cards: 'Przejdź z jednej karty do drugiej',
     move: 'Przenieś kartę do następnej lub poprzedniej kolumny',
     browser:
       'W przeglądarce, domyślnie: Alt+Shift+J zapisuje ofertę ze strony, Alt+Shift+L otwiera tablicę. Zmienisz je w skrótach przeglądarki (strona rozszerzeń w Chrome i Edge, menedżer skrótów dodatków w Firefoksie).',
+    actions: {
+      search: 'Przejdź do wyszukiwania',
+      up: 'Karta powyżej',
+      down: 'Karta poniżej',
+      left: 'Kolumna po lewej',
+      right: 'Kolumna po prawej',
+      moveLeft: 'Przenieś kartę w lewo',
+      moveRight: 'Przenieś kartę w prawo',
+    },
+    change: 'Zmień',
+    remove: 'Usuń',
+    notSet: 'Brak',
+    press: 'Naciśnij wybrany klawisz (Esc, aby zrezygnować).',
+    reset: 'Przywróć domyślne klawisze',
+    discard: 'Odrzuć moje zmiany',
+    conflict:
+      'Dwie akcje używają tego samego klawisza ({keys}). Zmień jedną z nich: do tego czasu nic nie jest zapisywane.',
+    forbidden:
+      'Ten klawisz jest zarezerwowany dla strony lub przeglądarki (Tab, Enter, spacja, Esc, strzałki lub dowolny klawisz z Ctrl, Alt albo Meta): wybierz inny.',
+    unknownLayout:
+      'Twoja przeglądarka nie podaje rozszerzeniu, jaką masz klawiaturę, więc żaden klawisz nie jest proponowany: ustaw własne. Strzałki działają zawsze.',
+    layoutHint:
+      'Klawisz to miejsce na klawiaturze: zostaje w tym samym miejscu po zmianie układu (A klawiatury QWERTY to Q klawiatury AZERTY).',
   },
   notice: {
     region: 'Wiadomości',
