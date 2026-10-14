@@ -3,6 +3,7 @@ import { type CustomTheme, normalizeThemes } from './customTheme'
 import type { StorageAdapter } from './persistence/adapter'
 import { type AddressParts, emptyAddress, normalizeAddress } from './services/address'
 import { type PassphraseCheck, normalizeCheck } from './services/encryption'
+import { type ShortcutKeys, normalizeShortcutKeys } from './services/shortcutKeys'
 import { isCountry, normalizeEmail } from './utils/contact'
 import {
   DATE_FORMATS,
@@ -77,6 +78,8 @@ export interface Settings {
   // The keys of the pages (search, moving between the cards and moving a card). Off until the user turns them on: a key made of
   // one character can clash with a screen reader or a keyboard of their own (WCAG 2.1.4 asks that it can be turned off).
   shortcuts: boolean
+  // The keys the user chose for the keys of the board (see services/shortcutKeys.ts); an action not in it has its default.
+  shortcutKeys: ShortcutKeys
   // How dates are written: "auto" follows the language. The pattern is the one of the "custom" format. Relative dates say how long ago.
   dateFormat: DateFormat
   timeFormat: TimeFormat
@@ -141,6 +144,7 @@ export const DEFAULT_SETTINGS: Settings = {
   timeZone: 'auto',
   developerMode: false,
   shortcuts: false,
+  shortcutKeys: {},
   dateFormat: 'auto',
   timeFormat: 'auto',
   dateCustom: DEFAULT_PATTERN,
@@ -176,7 +180,14 @@ const VALID: {
   [
     K in Exclude<
       keyof Settings,
-      'rates' | 'ownEmails' | 'autoRatesData' | 'lastBackupAt' | 'backupPassphraseCheck' | 'home' | 'customThemes'
+      | 'rates'
+      | 'ownEmails'
+      | 'autoRatesData'
+      | 'lastBackupAt'
+      | 'backupPassphraseCheck'
+      | 'home'
+      | 'customThemes'
+      | 'shortcutKeys'
     >
   ]: (value: unknown) => boolean
 } = {
@@ -272,6 +283,7 @@ export function normalizeSettings(stored: unknown): Settings {
     ...DEFAULT_SETTINGS,
     rates: normalizeRates(source.rates),
     customThemes: normalizeThemes(source.customThemes),
+    shortcutKeys: normalizeShortcutKeys(source.shortcutKeys),
     autoRatesData: normalizeFetched(source.autoRatesData),
     ownEmails: normalizeEmails(source.ownEmails),
     lastBackupAt: isInstant(source.lastBackupAt) ? source.lastBackupAt : null,

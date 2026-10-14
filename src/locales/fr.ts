@@ -433,11 +433,32 @@ const fr: TranslationObject = {
     title: 'Clavier',
     enable: 'Raccourcis clavier dans les pages',
     hint: 'Désactivés par défaut, car une touche seule peut gêner un lecteur d’écran ou votre propre clavier. Activez-les si vous les voulez. Les touches du navigateur, plus bas, se règlent dans le navigateur et non ici.',
-    search: 'Aller à la recherche du tableau',
     cards: 'Passer d’une carte à une autre',
     move: 'Déplacer la carte dans la colonne suivante ou précédente',
     browser:
       'Dans le navigateur, par défaut : Alt+Maj+J enregistre l’offre de la page, Alt+Maj+L ouvre le tableau. Changez-les dans les raccourcis de votre navigateur (page des extensions de Chrome et Edge, gestionnaire de raccourcis des modules de Firefox).',
+    actions: {
+      search: 'Aller à la recherche',
+      up: 'Carte au-dessus',
+      down: 'Carte en dessous',
+      left: 'Colonne de gauche',
+      right: 'Colonne de droite',
+      moveLeft: 'Déplacer la carte vers la gauche',
+      moveRight: 'Déplacer la carte vers la droite',
+    },
+    change: 'Changer',
+    remove: 'Retirer',
+    notSet: 'Aucune',
+    press: 'Appuyez sur la touche voulue (Échap pour renoncer).',
+    reset: 'Rétablir les touches par défaut',
+    discard: 'Annuler mes changements',
+    conflict: 'Deux actions ont la même touche ({keys}). Changez-en une : rien n’est enregistré d’ici là.',
+    forbidden:
+      'Cette touche est réservée à la page ou au navigateur (Tab, Entrée, Espace, Échap, les flèches, ou toute touche avec Ctrl, Alt ou Méta) : choisissez-en une autre.',
+    unknownLayout:
+      'Votre navigateur ne dit pas à l’extension quel clavier vous avez, donc aucune touche n’est proposée : choisissez les vôtres. Les flèches marchent toujours.',
+    layoutHint:
+      'Une touche est un emplacement du clavier : elle reste au même endroit si vous changez de disposition (le A d’un clavier QWERTY est le Q d’un clavier AZERTY).',
   },
   notice: {
     region: 'Messages',

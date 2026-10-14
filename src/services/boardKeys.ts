@@ -1,30 +1,27 @@
 // The keys of the board, on what the page draws: the cards are the buttons that open them, in the columns, side by side. They are
 // found in the page itself, so that what the keys do is what is on the screen (a filter, a search, a sort) and nothing else.
 
+import type { KeyAction } from './shortcutKeys'
+
 const CARD = '.application-card .card-open'
 const EDITABLE = 'input, textarea, select, [contenteditable=""], [contenteditable="true"]'
 
 export type Move = 'up' | 'down' | 'previous' | 'next'
 
-const KEYS: Record<string, Move | 'left' | 'right'> = {
-  ArrowUp: 'up',
-  ArrowDown: 'down',
-  ArrowLeft: 'left',
-  ArrowRight: 'right',
+// An action says where on the screen, so in a language read from right to left the previous column is on the right.
+export function moveOfAction(action: KeyAction, rtl: boolean): Move | null {
+  if ('up' === action || 'down' === action) {
+    return action
+  }
+  if ('left' === action || 'right' === action || 'moveLeft' === action || 'moveRight' === action) {
+    const towardsStart = rtl ? 'right' === action || 'moveRight' === action : 'left' === action || 'moveLeft' === action
+    return towardsStart ? 'previous' : 'next'
+  }
+  return null
 }
 
-// The key says where on the screen, so in a language read from right to left the previous column is on the right.
-export function moveOfKey(key: string, rtl: boolean): Move | null {
-  const found = KEYS[key]
-  if (!found) {
-    return null
-  }
-  if ('left' !== found && 'right' !== found) {
-    return found
-  }
-  const towardsStart = rtl ? 'right' === found : 'left' === found
-  return towardsStart ? 'previous' : 'next'
-}
+// The actions that move the card itself, and not the focus.
+export const movesCard = (action: KeyAction): boolean => 'moveLeft' === action || 'moveRight' === action
 
 // A person typing, or choosing in a list: the keys belong to the field, not to the page.
 export function isTyping(target: EventTarget | null): boolean {
