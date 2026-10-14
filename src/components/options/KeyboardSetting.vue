@@ -40,13 +40,22 @@
   const clashing = (action: KeyAction) => clashes.value.some((group) => group.includes(action))
   const clashText = computed(() => clashes.value.map((group) => show(draft.value[group[0] as KeyAction])).join(', '))
 
-  // Only what differs from the defaults is stored: a key that is the default stays the default.
+  const same = (a: KeyBinding | null, b: KeyBinding | null) =>
+    a === b || (null !== a && null !== b && a.code === b.code && a.shift === b.shift)
+
+  // What is stored: an action the person did not touch stays as it was stored (no key of its own: its default, where the layout
+  // is known), a key that is the default is not stored, and a key that was removed is a null.
   function stored(table: Table): ShortcutKeys {
     const found: ShortcutKeys = {}
     for (const action of KEY_ACTIONS) {
       const binding = table[action]
       const fallback = DEFAULT_KEYS[action]
-      if (null === binding) {
+      const before = settings.shortcutKeys[action]
+      if (same(binding, saved.value[action])) {
+        if (undefined !== before) {
+          found[action] = before
+        }
+      } else if (null === binding) {
         found[action] = null
       } else if (binding.code !== fallback.code || binding.shift !== fallback.shift) {
         found[action] = binding
