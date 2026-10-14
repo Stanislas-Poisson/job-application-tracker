@@ -425,6 +425,7 @@ const ko: TranslationObject = {
     browser:
       '브라우저 기본값: Alt+Shift+J는 이 페이지의 공고를 저장하고, Alt+Shift+L은 보드를 엽니다. 브라우저의 단축키 설정(Chrome과 Edge의 확장 프로그램 페이지, Firefox의 부가 기능 단축키 관리)에서 바꿀 수 있습니다.',
     actions: {
+      open: '카드 열기',
       search: '검색으로 이동',
       up: '위의 카드',
       down: '아래의 카드',

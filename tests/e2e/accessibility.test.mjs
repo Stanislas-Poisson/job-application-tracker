@@ -228,7 +228,13 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
       driver.executeScript(
         `const card = document.querySelector('.application-card'); return card && card.closest('.column').dataset.status`
       )
-    await setSettings({ shortcuts: false, shortcutKeys: { search: { code: 'KeyF', shift: false, label: 'f' } } })
+    await setSettings({
+      shortcuts: false,
+      shortcutKeys: {
+        search: { code: 'KeyF', shift: false, label: 'f' },
+        open: { code: 'KeyE', shift: false, label: 'e' },
+      },
+    })
     await open('board', '.application-card')
 
     // By default the keys are off: nothing happens for the key of the search.
@@ -261,6 +267,25 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
     await waitFor(async () => (await all('.toast')).length > 0, { message: 'the move said' })
     await arrow('\uE012')
     await waitFor(async () => (await columnOfCard()) === first, { message: 'the card back in its column' })
+
+    // The key to open the card opens it; what is typed in the drawer is typed, whatever the keys of the board are.
+    await driver.executeScript(`document.querySelector('.application-card .card-open').focus()`)
+    await press('e')
+    await waitFor(async () => (await all('dialog[open] textarea[name=newNote]')).length > 0, {
+      message: 'the card opened',
+    })
+    await css('dialog[open] textarea[name=newNote]').then((field) => field.sendKeys('fewer words, e and f'))
+    assert.equal(
+      await driver.executeScript(`return document.querySelector('dialog[open] textarea[name=newNote]').value`),
+      'fewer words, e and f'
+    )
+    assert.equal(await columnOfCard(), first, 'the keys typed in the drawer moved nothing')
+    await driver.executeScript(`document.querySelector('dialog[open] textarea[name=newNote]').value = ''`)
+    await driver.executeScript(
+      `document.querySelector('dialog[open] textarea[name=newNote]').dispatchEvent(new Event('input', { bubbles: true }))`
+    )
+    await driver.actions().sendKeys('\uE00C').perform()
+    await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the card closed' })
 
     // With the setting off, the same keys do nothing.
     await setSettings({ shortcuts: false })

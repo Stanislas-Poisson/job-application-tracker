@@ -55,12 +55,12 @@ A machine finds about a third of the problems: it does not replace a read with a
   character can clash with a screen reader or the keyboard of the user) and the setting "Keyboard shortcuts in the pages" turns
   them on and off (WCAG 2.1.4). The arrows always work: they go from card to card and column to column (by what is on the
   screen, so reversed from right to left), and Shift with left or right moves the card to the neighbour column and says it.
-  The other keys are set by the user in the options (`src/services/shortcutKeys.ts`), seven actions: the search, up, down, left,
-  right, and the move of the card to the left or to the right. They do nothing while someone types or chooses in a field, while
+  The other keys are set by the user in the options (`src/services/shortcutKeys.ts`), eight actions: the search, up, down, left,
+  right, to open the card, and the move of the card to the left or to the right. They do nothing while someone types or chooses in a field (also an editable part or what plays the role of a field), while a word is being composed with an input method, while
   the drawer or a question is open, or with Control, Alt or Meta held, which are the keys of the browser and of the screen reader.
 - **A key is a place on the keyboard.** It is kept as `KeyboardEvent.code`, not as a letter: the A of a QWERTY keyboard is the Q of an
   AZERTY one, and the key stays where the hand has it when the layout changes. The defaults are drawn on QWERTY (F to find, W A S D to
-  move, Shift with A or D to move the card). A key shows the letter the keyboard of the person has, from `navigator.keyboard.getLayoutMap()`,
+  move, E to open the card, Shift with A or D to move it). A key shows the letter the keyboard of the person has, from `navigator.keyboard.getLayoutMap()`,
   which Chrome and Edge have and Firefox and Safari do not. Where the layout is not known there is no default key and none in use,
   since nobody could tell which keys they are: the person sets their own by pressing them, and the letter they pressed is kept to show.
 - **Changing keys never blocks.** The options keep a draft: a key can be given to an action that has it already, to swap two keys

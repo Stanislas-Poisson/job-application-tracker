@@ -444,6 +444,7 @@ const ar: TranslationObject = {
     browser:
       'في المتصفح، افتراضيًا: Alt+Shift+J يحفظ عرض الصفحة، وAlt+Shift+L يفتح اللوحة. غيّرها من اختصارات متصفحك (صفحة الإضافات في Chrome وEdge، ومدير الاختصارات في إضافات Firefox).',
     actions: {
+      open: 'فتح البطاقة',
       search: 'الانتقال إلى البحث',
       up: 'البطاقة أعلاه',
       down: 'البطاقة أدناه',
