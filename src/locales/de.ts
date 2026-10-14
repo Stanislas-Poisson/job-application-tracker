@@ -139,6 +139,7 @@ const de: TranslationObject = {
     theme: 'Design',
     accent: 'Akzentfarbe',
     vision: 'Sehen',
+    contrast: 'Kontrast',
     textTitle: 'Text',
     font: 'Schrift',
     fontCustom: 'Name der Schrift',
@@ -159,7 +160,9 @@ const de: TranslationObject = {
     densities: { comfortable: 'Komfortabel', compact: 'Kompakt' },
     motions: { auto: 'Dem System folgen', reduce: 'Bewegung verringern' },
     visionHint:
-      'Die Modi für Farbsehschwäche verwenden Farben, die bei Rot-Grün- oder Blau-Gelb-Schwäche auseinanderbleiben, und geben jeder Spalte eine Form. Hoher Kontrast macht Text und Linien kräftiger.',
+      'Die Modi für Farbenblindheit verwenden Farben, die bei Rot-Grün- oder Blau-Gelb-Blindheit auseinanderbleiben. Der Modus ohne Farbe behält ein einziges Grau. Jeder gibt jeder Spalte eine Form und den Meldungen ein Zeichen.',
+    contrastHint:
+      'Hoher Kontrast verstärkt Text und Linien. Dem System zu folgen schaltet ihn ein, wenn das System mehr Kontrast verlangt oder seine Farben erzwingt, und er hat Vorrang vor einem eigenen Design.',
     themes: {
       auto: 'Dem System folgen',
       light: 'Hell',
@@ -174,11 +177,12 @@ const de: TranslationObject = {
       pink: 'Rosa',
       orange: 'Orange',
     },
+    contrasts: { auto: 'Dem System folgen', standard: 'Standard', high: 'Hoher Kontrast' },
     visions: {
       standard: 'Standard',
       'red-green': 'Rot-Grün-Schwäche',
       'blue-yellow': 'Blau-Gelb-Schwäche',
-      'high-contrast': 'Hoher Kontrast',
+      monochrome: 'Ohne Farbe (monochrom)',
     },
   },
   regional: {

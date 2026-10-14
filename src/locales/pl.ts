@@ -138,6 +138,7 @@ const pl: TranslationObject = {
     theme: 'Motyw',
     accent: 'Kolor akcentu',
     vision: 'Widzenie',
+    contrast: 'Kontrast',
     textTitle: 'Tekst',
     font: 'Czcionka',
     fontCustom: 'Nazwa czcionki',
@@ -158,7 +159,9 @@ const pl: TranslationObject = {
     densities: { comfortable: 'Wygodna', compact: 'Zwarta' },
     motions: { auto: 'Zgodnie z systemem', reduce: 'Ogranicz ruch' },
     visionHint:
-      'Tryby dla daltonistów używają kolorów, które pozostają odróżnialne przy ślepocie na czerwień i zieleń lub na błękit i żółć, i nadają każdej kolumnie kształt. Wysoki kontrast wzmacnia tekst i linie.',
+      'Tryby dla daltonizmu używają kolorów, które pozostają rozróżnialne przy daltonizmie czerwono-zielonym lub niebiesko-żółtym. Tryb bez koloru zachowuje jeden szary. Każdy nadaje każdej kolumnie kształt, a komunikatom znak.',
+    contrastHint:
+      'Wysoki kontrast wzmacnia tekst i linie. Zgodność z systemem włącza go, gdy system prosi o większy kontrast albo narzuca swoje kolory, i ma pierwszeństwo przed własnym motywem.',
     themes: {
       auto: 'Zgodnie z systemem',
       light: 'Jasny',
@@ -173,11 +176,12 @@ const pl: TranslationObject = {
       pink: 'Różowy',
       orange: 'Pomarańczowy',
     },
+    contrasts: { auto: 'Zgodnie z systemem', standard: 'Standardowy', high: 'Wysoki kontrast' },
     visions: {
       standard: 'Standardowe',
       'red-green': 'Ślepota na czerwień i zieleń',
       'blue-yellow': 'Ślepota na błękit i żółć',
-      'high-contrast': 'Wysoki kontrast',
+      monochrome: 'Bez koloru (monochromatyczny)',
     },
   },
   regional: {

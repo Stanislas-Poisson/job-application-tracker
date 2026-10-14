@@ -138,6 +138,7 @@ const pt: TranslationObject = {
     theme: 'Tema',
     accent: 'Cor de destaque',
     vision: 'Visão',
+    contrast: 'Contraste',
     textTitle: 'Texto',
     font: 'Tipo de letra',
     fontCustom: 'Nome do tipo de letra',
@@ -158,7 +159,9 @@ const pt: TranslationObject = {
     densities: { comfortable: 'Confortável', compact: 'Compacta' },
     motions: { auto: 'Seguir o sistema', reduce: 'Reduzir o movimento' },
     visionHint:
-      'Os modos para daltonismo usam cores que se distinguem bem com daltonismo vermelho-verde ou azul-amarelo e dão uma forma a cada coluna. O contraste elevado reforça o texto e as linhas.',
+      'Os modos para o daltonismo usam cores que se distinguem no daltonismo vermelho-verde ou azul-amarelo. O modo sem cor mantém um único cinzento. Cada um dá uma forma a cada coluna e um sinal às mensagens.',
+    contrastHint:
+      'O alto contraste reforça o texto e as linhas. Seguir o sistema ativa-o quando o sistema pede mais contraste ou impõe as suas cores, e tem prioridade sobre um tema personalizado.',
     themes: {
       auto: 'Seguir o sistema',
       light: 'Claro',
@@ -173,11 +176,12 @@ const pt: TranslationObject = {
       pink: 'Rosa',
       orange: 'Laranja',
     },
+    contrasts: { auto: 'Seguir o sistema', standard: 'Padrão', high: 'Alto contraste' },
     visions: {
       standard: 'Padrão',
       'red-green': 'Daltonismo vermelho-verde',
       'blue-yellow': 'Daltonismo azul-amarelo',
-      'high-contrast': 'Contraste elevado',
+      monochrome: 'Sem cor (monocromático)',
     },
   },
   regional: {

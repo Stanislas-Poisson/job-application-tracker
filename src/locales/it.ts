@@ -138,6 +138,7 @@ const it: TranslationObject = {
     theme: 'Tema',
     accent: 'Colore di accento',
     vision: 'Vista',
+    contrast: 'Contrasto',
     textTitle: 'Testo',
     font: 'Carattere',
     fontCustom: 'Nome del carattere',
@@ -158,7 +159,9 @@ const it: TranslationObject = {
     densities: { comfortable: 'Comoda', compact: 'Compatta' },
     motions: { auto: 'Segui il sistema', reduce: 'Riduci il movimento' },
     visionHint:
-      'Le modalità per il daltonismo usano colori che restano distinti con daltonismo rosso-verde o blu-giallo e danno una forma a ogni colonna. Il contrasto elevato rende più forti il testo e le linee.',
+      'Le modalità per il daltonismo usano colori che restano distinti con il daltonismo rosso-verde o blu-giallo. La modalità senza colore mantiene un solo grigio. Ognuna dà una forma a ogni colonna e un segno ai messaggi.',
+    contrastHint:
+      'Il contrasto elevato rende più forti il testo e le linee. Seguire il sistema lo attiva quando il sistema chiede più contrasto o impone i suoi colori, e ha la precedenza su un tema personalizzato.',
     themes: {
       auto: 'Segui il sistema',
       light: 'Chiaro',
@@ -173,11 +176,12 @@ const it: TranslationObject = {
       pink: 'Rosa',
       orange: 'Arancione',
     },
+    contrasts: { auto: 'Segui il sistema', standard: 'Standard', high: 'Contrasto elevato' },
     visions: {
       standard: 'Standard',
       'red-green': 'Daltonismo rosso-verde',
       'blue-yellow': 'Daltonismo blu-giallo',
-      'high-contrast': 'Contrasto elevato',
+      monochrome: 'Senza colore (monocromatico)',
     },
   },
   regional: {

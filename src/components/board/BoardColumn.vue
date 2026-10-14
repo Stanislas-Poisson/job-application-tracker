@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { computed, ref } from 'vue'
-  import { statusColor, statusShape } from '../../appearance'
+  import { columnShape, statusColor, statusShape } from '../../appearance'
   import { useApp } from '../../composables/useApp'
   import type { Application, Status } from '../../models'
   import { symbolToShow } from '../../services/symbol'
@@ -50,6 +50,7 @@
       <span
         v-else
         class="dot"
+        :data-shape="columnShape(index)"
       />
       {{ statusName(status) }}
       <span class="count">{{ applications.length }}</span>

@@ -138,6 +138,7 @@ const ja: TranslationObject = {
     theme: 'テーマ',
     accent: 'アクセントカラー',
     vision: '見え方',
+    contrast: 'コントラスト',
     textTitle: '文字',
     font: 'フォント',
     fontCustom: 'フォント名',
@@ -158,7 +159,9 @@ const ja: TranslationObject = {
     densities: { comfortable: 'ゆったり', compact: 'コンパクト' },
     motions: { auto: 'システムに従う', reduce: '動きを減らす' },
     visionHint:
-      '色覚モードでは、赤緑色覚または青黄色覚でも区別できる色を使い、各列に形を付けます。ハイコントラストは文字と線を強調します。',
+      '色覚モードでは、赤緑色覚または青黄色覚でも区別できる色を使います。色なしのモードは灰色1色だけを使います。どのモードも各列に形を、メッセージに記号を付けます。',
+    contrastHint:
+      'ハイコントラストは文字と線を強調します。システムに従うを選ぶと、システムがより高いコントラストを求めるか色を強制するときに有効になり、カスタムテーマより優先されます。',
     themes: {
       auto: 'システムに従う',
       light: 'ライト',
@@ -173,11 +176,12 @@ const ja: TranslationObject = {
       pink: 'ピンク',
       orange: 'オレンジ',
     },
+    contrasts: { auto: 'システムに従う', standard: '標準', high: 'ハイコントラスト' },
     visions: {
       standard: '標準',
       'red-green': '赤緑色覚',
       'blue-yellow': '青黄色覚',
-      'high-contrast': 'ハイコントラスト',
+      monochrome: '色なし（モノクロ）',
     },
   },
   regional: {

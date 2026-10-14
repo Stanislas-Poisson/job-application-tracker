@@ -138,6 +138,7 @@ const sv: TranslationObject = {
     theme: 'Tema',
     accent: 'Accentfärg',
     vision: 'Syn',
+    contrast: 'Kontrast',
     textTitle: 'Text',
     font: 'Teckensnitt',
     fontCustom: 'Teckensnittets namn',
@@ -158,7 +159,9 @@ const sv: TranslationObject = {
     densities: { comfortable: 'Bekväm', compact: 'Kompakt' },
     motions: { auto: 'Följ systemet', reduce: 'Minska rörelse' },
     visionHint:
-      'Lägena för färgblindhet använder färger som hålls isär vid röd-grön eller blå-gul färgblindhet och ger varje kolumn en form. Hög kontrast gör texten och linjerna starkare.',
+      'Lägena för färgblindhet använder färger som hålls isär vid rödgrön eller blågul färgblindhet. Läget utan färg behåller en enda grå. Varje läge ger varje kolumn en form och meddelandena ett tecken.',
+    contrastHint:
+      'Hög kontrast gör texten och linjerna starkare. Att följa systemet slår på den när systemet ber om mer kontrast eller tvingar sina färger, och den går före ett eget tema.',
     themes: {
       auto: 'Följ systemet',
       light: 'Ljust',
@@ -173,11 +176,12 @@ const sv: TranslationObject = {
       pink: 'Rosa',
       orange: 'Orange',
     },
+    contrasts: { auto: 'Följ systemet', standard: 'Standard', high: 'Hög kontrast' },
     visions: {
       standard: 'Standard',
       'red-green': 'Röd-grön färgblindhet',
       'blue-yellow': 'Blå-gul färgblindhet',
-      'high-contrast': 'Hög kontrast',
+      monochrome: 'Utan färg (monokrom)',
     },
   },
   regional: {

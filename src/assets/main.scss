@@ -349,80 +349,186 @@ $accents: (
   }
 }
 
-// Colour blindness: the success, warning and error colours are taken from the palette of Okabe and Ito, which stays
-// readable with the usual kinds of colour blindness. The columns also get a shape (see statusShape()).
+// The colours of the messages (success, warning, error, information) of the standard look, darkened on the light surface:
+// the ones of mithril-scss are under 4.5:1 there, and these are text colours (WCAG 1.4.3).
+@include for-light("[data-vision='standard']") {
+  --zk-success: #2e7d32;
+  --zk-warning: #a85d00;
+  --error: #d32f2f;
+  --zk-info: #1565c0;
+}
+
+// Colour blindness: the colours of the messages and of the columns (see COLOUR_BLIND_PALETTE) are chosen to stay apart under
+// the simulation of the kind of colour blindness (Machado et al.) and to keep 4.5:1 or more against their surface.
+// The columns also get a shape (see statusShape()), and the messages a sign (below).
 @include for-light("[data-vision='red-green']") {
-  --zk-success: #0072b2;
-  --zk-warning: #e69f00;
-  --error: #d55e00;
-  --zk-info: #56b4e9;
+  --zk-success: #156079;
+  --zk-warning: #a35f00;
+  --error: #792615;
+  --zk-info: #8612d9;
 }
 
 @include for-dark("[data-vision='red-green']") {
-  --zk-success: #56b4e9;
-  --zk-warning: #f0e442;
-  --error: #e69f00;
-  --zk-info: #0072b2;
+  --zk-success: #8ed4eb;
+  --zk-warning: #ffd400;
+  --error: #e06952;
+  --zk-info: #a666ff;
 }
 
 @include for-light("[data-vision='blue-yellow']") {
-  --zk-success: #009e73;
-  --zk-warning: #cc79a7;
-  --error: #d55e00;
-  --zk-info: #000;
+  --zk-success: #0b841f;
+  --zk-warning: #975d0c;
+  --error: #d91222;
+  --zk-info: #850aff;
 }
 
 @include for-dark("[data-vision='blue-yellow']") {
-  --zk-success: #009e73;
-  --zk-warning: #cc79a7;
-  --error: #e69f00;
-  --zk-info: #fff;
+  --zk-success: #38dc53;
+  --zk-warning: #fff152;
+  --error: #ff3c14;
+  --zk-info: #d3f;
 }
 
-// High contrast: black on white or white on black, strong lines, underlined links.
-@include for-light("[data-vision='high-contrast']") {
-  --background: #fff;
-  --on-background: #000;
-  --surface: #fff;
-  --on-surface: #000;
-  --primary: #03c;
+// No colour at all: the messages keep the colour of the text, the accent is a grey, and the signs and shapes tell them apart.
+@include for-light("[data-vision='monochrome']") {
+  --primary: #4a4a4a;
   --on-primary: #fff;
-  --error: #b00020;
-  --zk-border: #000;
-  --zk-border-strong: #000;
-  --zk-muted: #000;
+  --zk-success: var(--on-surface);
+  --zk-warning: var(--on-surface);
+  --error: var(--on-surface);
+  --on-error: var(--surface);
+  --zk-info: var(--on-surface);
 }
 
-@include for-dark("[data-vision='high-contrast']") {
-  --background: #000;
-  --on-background: #fff;
-  --surface: #000;
-  --on-surface: #fff;
-  --primary: #66b3ff;
-  --on-primary: #000;
-  --error: #ff8a80;
-  --zk-border: #fff;
-  --zk-border-strong: #fff;
-  --zk-muted: #fff;
+@include for-dark("[data-vision='monochrome']") {
+  --primary: #c8c8c8;
+  --on-primary: #1e1e1e;
+  --zk-success: var(--on-surface);
+  --zk-warning: var(--on-surface);
+  --error: var(--on-surface);
+  --on-error: var(--surface);
+  --zk-info: var(--on-surface);
 }
 
-:root[data-vision="high-contrast"] {
-  a {
-    text-decoration: underline;
+// A sign goes with a message whenever the colour may not be seen: in the vision modes, and when the system forces its colours.
+// The alternative text after the slash keeps the screen readers from saying it: the role of the message already does.
+@mixin message-signs {
+  .error::before {
+    content: "\26A0\FE0E  " / "";
   }
 
-  button,
-  input,
-  select,
-  textarea,
+  .success::before {
+    content: "\2713  " / "";
+  }
+}
+
+:root:not([data-vision="standard"]) {
+  @include message-signs;
+}
+
+// High contrast: black on white or white on black, strong lines, underlined links. It is chosen, or it follows the system
+// (more contrast asked, or the colours forced). The colours are "important" so that a custom theme does not take them back:
+// a person who needs more contrast comes before a taste. The colours of the messages come only in the standard vision, since
+// the vision modes have colours made for their own need.
+@mixin more-contrast($scope) {
+  @include for-light($scope) {
+    --background: #fff !important;
+    --on-background: #000 !important;
+    --surface: #fff !important;
+    --on-surface: #000 !important;
+    --primary: #03c !important;
+    --on-primary: #fff !important;
+    --zk-border: #000 !important;
+    --zk-border-strong: #000 !important;
+    --zk-muted: #000 !important;
+  }
+
+  @include for-dark($scope) {
+    --background: #000 !important;
+    --on-background: #fff !important;
+    --surface: #000 !important;
+    --on-surface: #fff !important;
+    --primary: #66b3ff !important;
+    --on-primary: #000 !important;
+    --zk-border: #fff !important;
+    --zk-border-strong: #fff !important;
+    --zk-muted: #fff !important;
+  }
+
+  @include for-light("#{$scope}[data-vision='monochrome']") {
+    --primary: #000 !important;
+  }
+
+  @include for-dark("#{$scope}[data-vision='monochrome']") {
+    --primary: #fff !important;
+  }
+
+  @include for-light("#{$scope}[data-vision='standard']") {
+    --zk-success: #006400 !important;
+    --zk-warning: #7a4a00 !important;
+    --error: #b00020 !important;
+    --zk-info: #03c !important;
+  }
+
+  @include for-dark("#{$scope}[data-vision='standard']") {
+    --zk-success: #7cfc00 !important;
+    --zk-warning: #ffd54f !important;
+    --error: #ff8a80 !important;
+    --zk-info: #66b3ff !important;
+  }
+
+  :root#{$scope} {
+    a {
+      text-decoration: underline;
+    }
+
+    button,
+    input,
+    select,
+    textarea,
+    .card,
+    .application-card {
+      border-width: 2px;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--primary);
+      outline-offset: 2px;
+    }
+  }
+}
+
+@include more-contrast("[data-contrast='high']");
+
+@media (prefers-contrast: more), (forced-colors: active) {
+  @include more-contrast("[data-contrast='auto']");
+}
+
+// The system forces its colours (Windows contrast themes): the colour of a column is gone, so its shape takes its place, and a
+// message gets its sign. Borders are solid, since a transparent one disappears.
+@media (forced-colors: active) {
+  :root[data-contrast="auto"],
+  :root[data-contrast="high"] {
+    @include message-signs;
+
+    .dot {
+      width: auto;
+      height: auto;
+      border-radius: 0;
+      background: none;
+
+      &::before {
+        content: attr(data-shape) / "";
+        font-size: 0.9em;
+        line-height: 1;
+      }
+    }
+  }
+
   .card,
-  .application-card {
-    border-width: 2px;
-  }
-
-  :focus-visible {
-    outline: 3px solid var(--primary);
-    outline-offset: 2px;
+  .application-card,
+  .column {
+    border: 1px solid CanvasText;
   }
 }
 
