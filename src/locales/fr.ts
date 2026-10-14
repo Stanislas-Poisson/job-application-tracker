@@ -432,7 +432,7 @@ const fr: TranslationObject = {
   keyboard: {
     title: 'Clavier',
     enable: 'Raccourcis clavier dans les pages',
-    hint: 'Désactivez-les s’ils gênent votre lecteur d’écran ou votre propre clavier. Les touches du navigateur, plus bas, se règlent dans le navigateur et non ici.',
+    hint: 'Désactivés par défaut, car une touche seule peut gêner un lecteur d’écran ou votre propre clavier. Activez-les si vous les voulez. Les touches du navigateur, plus bas, se règlent dans le navigateur et non ici.',
     search: 'Aller à la recherche du tableau',
     cards: 'Passer d’une carte à une autre',
     move: 'Déplacer la carte dans la colonne suivante ou précédente',

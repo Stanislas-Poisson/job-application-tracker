@@ -438,7 +438,7 @@ const pl: TranslationObject = {
   keyboard: {
     title: 'Klawiatura',
     enable: 'Skróty klawiszowe na stronach',
-    hint: 'Wyłącz je, jeśli przeszkadzają czytnikowi ekranu lub Twojej własnej klawiaturze. Klawisze przeglądarki, poniżej, ustawia się w przeglądarce, a nie tutaj.',
+    hint: 'Domyślnie wyłączone, bo pojedynczy klawisz może kolidować z czytnikiem ekranu lub Twoją własną klawiaturą. Włącz je, jeśli ich chcesz. Klawisze przeglądarki, poniżej, ustawia się w przeglądarce, a nie tutaj.',
     search: 'Przejdź do wyszukiwania tablicy',
     cards: 'Przejdź z jednej karty do drugiej',
     move: 'Przenieś kartę do następnej lub poprzedniej kolumny',
