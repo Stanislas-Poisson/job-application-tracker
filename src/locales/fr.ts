@@ -98,7 +98,6 @@ const fr: TranslationObject = {
     archive: 'Archiver',
     unarchive: 'Restaurer',
     delete: 'Supprimer',
-    confirmDelete: 'Supprimer cette candidature, ses notes, ses rappels et son historique ?',
     notes: 'Notes',
     notePlaceholder: 'Écrire une note',
     addNote: 'Ajouter la note',
@@ -351,10 +350,6 @@ const fr: TranslationObject = {
       one: 'utilisée {count} fois',
       other: 'utilisée {count} fois',
     },
-    confirmDelete: {
-      one: 'Cette étiquette est sur {count} élément. La retirer ?',
-      other: 'Cette étiquette est sur {count} éléments. La retirer de tous ?',
-    },
     errors: {
       name: "Donnez à l'étiquette un nom qu'aucune autre n'utilise.",
       color: 'La couleur doit être écrite comme #0072b2.',
@@ -428,7 +423,18 @@ const fr: TranslationObject = {
       'Ce n’est pas la phrase secrète que vous avez définie. Une sauvegarde faite avec une autre ne pourrait pas être ouverte avec elle.',
     needsPassphrase: 'Saisissez d’abord la phrase secrète.',
   },
+  notice: {
+    region: 'Messages',
+    close: 'Fermer',
+    undo: 'Annuler',
+    removed: 'Supprimé : {name}.',
+  },
+  confirm: {
+    title: 'Veuillez confirmer',
+    ok: 'Confirmer',
+  },
   dirty: {
+    discard: 'Abandonner et fermer',
     unsaved: 'Modifications non enregistrées',
     confirmClose: 'Du texte saisi n’est pas enregistré. Fermer quand même ?',
   },
@@ -443,14 +449,6 @@ const fr: TranslationObject = {
     badgeHint: 'L’icône de l’extension indique combien de rappels sont échus et non faits, avec ou sans notifications.',
     followUpHint:
       'Une fois que vous avez postulé, la candidature propose un rappel de relance à 9 h du matin, dans votre fuseau horaire. Rien n’est ajouté tant que vous n’acceptez pas.',
-  },
-  notify: {
-    many: {
-      one: '{count} rappel est échu',
-      other: '{count} rappels sont échus',
-    },
-    more: 'et {count} de plus',
-    title: 'Rappel',
   },
   export: {
     link: 'Exporter (CSV)',
@@ -590,7 +588,6 @@ const fr: TranslationObject = {
     duplicate: 'Dupliquer',
     delete: 'Supprimer',
     copyOf: 'Copie de {name}',
-    confirmDelete: 'Supprimer le profil « {name} » ?',
     name: 'Nom',
     status: 'Statut (cadre, freelance…)',
     lines: 'Ce qui est prélevé',
@@ -722,6 +719,7 @@ const fr: TranslationObject = {
     preview: 'Tel que le service de cartes sera interrogé',
   },
   journeys: {
+    removed: 'Trajet supprimé.',
     title: 'Trajets jusqu’au travail',
     hint: 'Le trajet en étapes, avec la durée de chacune et le total : par exemple à pied, bus, train, métro, RER, à pied. Vous cherchez sur la carte et gardez le résultat ici. Rien n’est calculé pour vous.',
     none: 'Aucun trajet gardé pour l’instant.',
@@ -732,7 +730,6 @@ const fr: TranslationObject = {
     addReturn: 'Ajouter le retour',
     addOutbound: 'Ajouter l’aller',
     delete: 'Supprimer',
-    confirmDelete: 'Supprimer ce trajet ?',
     direction: 'Sens',
     name: 'Nom (facultatif)',
     nameHint: 'En train',
@@ -795,7 +792,6 @@ const fr: TranslationObject = {
     previewButton: 'Un bouton',
     export: 'Exporter ce thème',
     delete: 'Supprimer ce thème',
-    confirmDelete: 'Supprimer le thème « {name} » ?',
     imported: 'Le thème « {name} » a été ajouté.',
     notATheme: 'Ce fichier n’est pas un thème de cette extension.',
     tooMany: 'Il y a déjà autant de thèmes qu’on peut en garder. Supprimez-en un d’abord.',
@@ -822,6 +818,10 @@ const fr: TranslationObject = {
   },
   customLanguage: {
     developer: 'Mode développeur',
+    testNotification: 'Envoyer une notification de test',
+    testNotificationSent: 'La notification de test a été envoyée.',
+    testNotificationFailed:
+      "La notification n'a pas pu s'afficher. Activez d'abord les notifications des rappels (et autorisez-les).",
     developerHint:
       'Permet à un fichier de langue de prendre la place d’une langue de l’extension, sur cet ordinateur seulement, pour vérifier une traduction avant de l’envoyer. Le fichier est contrôlé comme toujours et vous voyez le résultat avant que rien ne soit gardé. Quand vous le désactivez, ce fichier reste une langue à part, avec un code qui finit par -x-mine.',
     replaces: 'Ce fichier remplace la langue « {name} » de l’extension, sur cet ordinateur seulement.',
@@ -843,7 +843,6 @@ const fr: TranslationObject = {
     keep: 'Ajouter cette langue',
     added: 'La langue « {name} » a été ajoutée. Choisissez-la dans la liste ci-dessus.',
     tooMany: 'Il y a déjà {max} langues ajoutées. Retirez-en une d’abord.',
-    confirmRemove: 'Retirer la langue « {name} » ?',
     errors: {
       'too-big': 'Ce fichier est trop gros pour être un fichier de langue.',
       json: 'Ce fichier n’est pas du JSON valide.',

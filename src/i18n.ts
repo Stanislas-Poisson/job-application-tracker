@@ -1,62 +1,58 @@
 import { createI18n } from '@zairakai/js-i18n'
-import ar from './locales/ar'
-import de from './locales/de'
-import en from './locales/en'
-import es from './locales/es'
-import fr from './locales/fr'
-import it from './locales/it'
-import nl from './locales/nl'
-import pt from './locales/pt'
-import type { Locale } from './settings'
-
+import { ref } from 'vue'
 import { installed } from './customLanguages'
+import { merged, pluralCategory, pluralText, resolveIn } from './localeCore'
+import en from './locales/en'
+import type { Locale } from './settings'
+import { SHIPPED } from './shipped'
+import { readShipped } from './shippedLocales'
 
-// The texts of the languages the extension comes with. A language is added here, in LANGUAGES, and in SHIPPED.
-const LOCALES = { en, fr, es, de, it, pt, nl, ar }
-
-export const SUPPORTED = Object.keys(LOCALES)
+export const SUPPORTED = SHIPPED
 
 // Every language the extension can show: the ones it has, and the ones the user added from a file.
 export const availableLocales = (): string[] => [...SUPPORTED, ...installed.value.map((language) => language.code)]
 
-// "auto" follows the language of the browser (the exact tag first, then its language), and falls back to English. A language
-// that is not there (a file that was removed) is English.
-export function resolveLocale(setting: Locale, browserLanguage: string): string {
-  const available = availableLocales()
-  if ('auto' !== setting) {
-    return available.includes(setting) ? setting : 'en'
-  }
-  const tag = browserLanguage.toLowerCase()
-  const exact = available.find((code) => code.toLowerCase() === tag)
-  if (exact) {
-    return exact
-  }
-  const language = tag.split('-')[0] ?? ''
-  return available.find((code) => code.toLowerCase() === language) ?? 'en'
-}
-
-// The texts of a language the user added: English with their texts over it, so that a text they left out is English.
-function merged(base: Record<string, unknown>, over: Record<string, unknown>): Record<string, unknown> {
-  const out: Record<string, unknown> = { ...base }
-  for (const [key, value] of Object.entries(over)) {
-    const current = out[key]
-    out[key] =
-      'object' === typeof value &&
-      null !== value &&
-      'object' === typeof current &&
-      null !== current &&
-      !('other' in value)
-        ? merged(current as Record<string, unknown>, value as Record<string, unknown>)
-        : value
-  }
-  return out
-}
+export const resolveLocale = (setting: Locale, browserLanguage: string): string =>
+  resolveIn(availableLocales(), setting, browserLanguage)
 
 const customMessages = () =>
   Object.fromEntries(installed.value.map((language) => [language.code, merged(en, language.messages)]))
 
 export function createTranslator(setting: Locale = 'auto', browserLanguage: string = navigator.language) {
-  return createI18n({ ...LOCALES, ...customMessages() } as never, resolveLocale(setting, browserLanguage))
+  // Only English is in it: the language in use is read by loadLocale(), which a page waits for before it draws.
+  return createI18n({ en, ...customMessages() } as never, resolveLocale(setting, browserLanguage))
+}
+
+// Changes when a language has been read, so that the texts that were drawn in English meanwhile are drawn again.
+export const loadedLanguages = ref(0)
+const reading = new WeakMap<object, Set<string>>()
+
+// Gives a translator the texts of a language the extension comes with, reading them from the extension the first time.
+// Nothing is read for English, for a language the user added, or for one that is there already.
+export async function loadLocale(translator: ReturnType<typeof createTranslator>, locale: string): Promise<void> {
+  const read = readShipped(locale)
+  const busy = reading.get(translator) ?? new Set<string>()
+  reading.set(translator, busy)
+  if (!read || busy.has(locale) || translator.getAvailableLocales().includes(locale)) {
+    return
+  }
+  busy.add(locale)
+  try {
+    translator.setTranslations(locale, (await read) as never)
+    loadedLanguages.value++
+  } finally {
+    busy.delete(locale)
+  }
+}
+
+// The language a translator can speak now: the one asked for once it is read, English until then.
+export function speakable(translator: ReturnType<typeof createTranslator>, locale: string): string {
+  void loadedLanguages.value
+  if (translator.getAvailableLocales().includes(locale)) {
+    return locale
+  }
+  void loadLocale(translator, locale)
+  return 'en'
 }
 
 // Gives a translator the texts of a language added after it was made.
@@ -67,23 +63,4 @@ export function ensureLocale(translator: ReturnType<typeof createTranslator>, lo
   }
 }
 
-// The plural categories of the language (CLDR): zero, one, two, few, many, other. English and French have one and other
-// (French also has many for large round numbers), Russian one, few, many and other, Arabic all six.
-export const pluralCategory = (locale: string, count: number): Intl.LDMLPluralRule =>
-  new Intl.PluralRules(locale).select(count)
-
-/**
- * The text of a key for a number: `path.one`, `path.few`… by the category of the language, else `path.other`. The number
- * is written in the language ({count}), with its digits.
- */
-export function pluralText(
-  translator: Pick<ReturnType<typeof createTranslator>, '__' | 'hasTranslation'>,
-  locale: string,
-  path: string,
-  count: number,
-  replacements: Record<string, string | number> = {}
-): string {
-  const category = pluralCategory(locale, count)
-  const key = translator.hasTranslation(`${path}.${category}`) ? `${path}.${category}` : `${path}.other`
-  return translator.__(key, { ...replacements, count: new Intl.NumberFormat(locale).format(count) })
-}
+export { pluralCategory, pluralText }

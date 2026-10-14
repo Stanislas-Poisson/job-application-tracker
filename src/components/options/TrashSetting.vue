@@ -1,9 +1,11 @@
 <script setup lang="ts">
   import { FormButton } from '@zairakai/vue-components/Form'
   import { useRepo } from 'pinia-orm'
-  import { computed, ref } from 'vue'
+  import { computed } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { confirmAction } from '../../composables/useConfirm'
   import { useFormat } from '../../composables/useFormat'
+  import { say } from '../../composables/useNotices'
   import { Trash } from '../../models'
   import { TRASH_DAYS } from '../../persistence'
   import { emptyTrash, listTrash, restoreFromTrash } from '../../services/trash'
@@ -11,20 +13,19 @@
   const { t, tn, persistence } = useApp()
   const format = useFormat()
 
-  const message = ref('')
   // Reading the repository makes the list follow every change, in this page and in the others.
   const groups = computed(() => (useRepo(Trash).all(), listTrash()))
 
   async function restore(batch: string) {
     const count = restoreFromTrash(batch)
     await persistence.flush()
-    message.value = tn('trash.restored', count)
+    say(tn('trash.restored', count))
   }
 
   async function empty() {
-    if (window.confirm(t('trash.confirmEmpty'))) {
+    if (await confirmAction({ message: t('trash.confirmEmpty'), danger: true })) {
       await persistence.forget(() => emptyTrash())
-      message.value = t('trash.emptied')
+      say(t('trash.emptied'))
     }
   }
 </script>
@@ -68,11 +69,4 @@
     @click="empty"
     >{{ t('trash.empty') }}</FormButton
   >
-  <p
-    v-if="message"
-    class="success"
-    role="status"
-  >
-    {{ message }}
-  </p>
 </template>

@@ -2,6 +2,7 @@
   import { FormButton } from '@zairakai/vue-components/Form'
   import { ref } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { notifyUndo, say } from '../../composables/useNotices'
   import {
     type LanguageReport,
     MAX_LANGUAGES,
@@ -15,14 +16,17 @@
 
   const { t, tn, settings, updateSettings } = useApp()
 
-  const message = ref('')
-  const failed = ref(false)
   // The file that was read and checked, waiting for the answer of the user. Nothing is kept yet.
   const pending = ref<{ language: StoredLanguage; report: LanguageReport } | null>(null)
 
-  function say(text: string, error = false) {
-    message.value = text
-    failed.value = error
+  // The developer mode: a notification with every text of the notifications in the language in use, to see a translation as
+  // it shows. The background is the one that shows it, with the file that was added.
+  async function sendTest() {
+    const sent = await browser.runtime.sendMessage({ type: 'jat:test-notification' }).then(
+      (answer: { ok?: boolean } | undefined) => true === answer?.ok,
+      () => false
+    )
+    say(t(sent ? 'customLanguage.testNotificationSent' : 'customLanguage.testNotificationFailed'), !sent)
   }
 
   function download() {
@@ -38,7 +42,6 @@
     const file = input.files?.[0]
     input.value = ''
     pending.value = null
-    say('')
     if (!file) {
       return
     }
@@ -64,12 +67,18 @@
   }
 
   async function remove(language: StoredLanguage) {
-    if (window.confirm(t('customLanguage.confirmRemove', { name: language.name }))) {
-      await removeCustomLanguage(browserAdapter, language.code)
-      if (settings.locale === language.code) {
-        await updateSettings({ locale: 'auto' })
-      }
+    const wasInUse = settings.locale === language.code
+    await removeCustomLanguage(browserAdapter, language.code)
+    if (wasInUse) {
+      await updateSettings({ locale: 'auto' })
     }
+    // A language kept only on this computer is not in the trash: the message puts it back from what was just read.
+    notifyUndo(t('notice.removed', { name: language.name }), t('notice.undo'), async () => {
+      await addCustomLanguage(browserAdapter, language)
+      if (wasInUse) {
+        await updateSettings({ locale: language.code })
+      }
+    })
   }
 </script>
 
@@ -93,6 +102,13 @@
         type="button"
         @click="download"
         >{{ t('customLanguage.template') }}</FormButton
+      >
+      <FormButton
+        v-if="settings.developerMode"
+        id="language-test-notification"
+        type="button"
+        @click="sendTest"
+        >{{ t('customLanguage.testNotification') }}</FormButton
       >
       <label class="row wrap">
         {{ t('customLanguage.choose') }}
@@ -167,14 +183,6 @@
         >
       </div>
     </section>
-
-    <p
-      v-if="message"
-      :class="failed ? 'error' : 'success'"
-      :role="failed ? 'alert' : 'status'"
-    >
-      {{ message }}
-    </p>
 
     <ul
       v-if="0 < installed.length"

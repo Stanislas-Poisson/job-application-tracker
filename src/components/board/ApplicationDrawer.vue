@@ -3,6 +3,7 @@
   import { useRepo } from 'pinia-orm'
   import { computed } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { confirmAction } from '../../composables/useConfirm'
   import { anyDirty } from '../../composables/useDirty'
   import { Application } from '../../models'
   import DrawerCompany from './DrawerCompany.vue'
@@ -23,9 +24,13 @@
   const { t } = useApp()
 
   // Escape, the close button and a click outside ask to close: unsaved text asks the user first, and can keep the drawer.
+  // The drawer stays open while the question is asked (the event cannot wait for an answer), and closes if the answer is yes.
   function onCancel(event: Event) {
-    if (anyDirty() && !window.confirm(t('dirty.confirmClose'))) {
+    if (anyDirty()) {
       event.preventDefault()
+      void confirmAction({ message: t('dirty.confirmClose'), confirmLabel: t('dirty.discard'), danger: true }).then(
+        (discard) => discard && emit('close')
+      )
     }
   }
 
