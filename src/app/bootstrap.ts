@@ -13,6 +13,7 @@ import { refreshRates } from '../services/rates'
 import { type Settings, loadSettings, syncSettings } from '../settings'
 import { CONTEXT_KEY } from './context'
 import { installFieldAccessibility } from './fieldAccessibility'
+import { installFieldErrors } from './fieldErrors'
 import { shell } from './shell'
 
 // Starts a page of the extension: the settings and the store loaded from the storage, then the page itself.
@@ -61,6 +62,7 @@ export async function mountApp(root: Component, selector = '#app') {
   const app = createApp(shell(root))
   app.use(pinia)
   installFieldAccessibility(app)
+  installFieldErrors()
   app.provide(CONTEXT_KEY, {
     translator,
     persistence,

@@ -433,6 +433,7 @@ const ar: TranslationObject = {
     notThePassphrase: 'هذه ليست عبارة المرور التي عيّنتها. لا يمكن فتح نسخة احتياطية أُنشئت بعبارة أخرى بها.',
     needsPassphrase: 'اكتب عبارة المرور أولًا.',
   },
+  a11y: { skip: 'تخطَّ إلى المحتوى' },
   notice: {
     region: 'رسائل',
     close: 'إغلاق',

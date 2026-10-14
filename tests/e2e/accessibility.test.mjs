@@ -177,6 +177,35 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
     }
   )
 
+  test('the first stop of the keyboard is a link that skips the header, and it puts the focus on the page', async () => {
+    for (const page of ['board', 'options', 'popup']) {
+      await open(page, 'main')
+      await driver.executeScript(`document.activeElement && document.activeElement.blur()`)
+      await driver.actions().sendKeys('\uE004').perform()
+      assert.equal(
+        await driver.executeScript(`return document.activeElement && document.activeElement.className`),
+        'skip-link',
+        `the first stop of ${page}`
+      )
+      await driver.actions().sendKeys('\uE007').perform()
+      assert.equal(await driver.executeScript(`return document.activeElement && document.activeElement.id`), 'main')
+    }
+  })
+
+  test('a message of error is tied to the field it is about', async () => {
+    await open('options', 'input[name=newTag]')
+    // A tag with no name is refused: the message comes in the block, and the field is the one the user was in.
+    await css('input[name=newTag]').then((field) => field.click())
+    await driver.executeScript(`document.querySelector('input[name=newTag]').closest('form').requestSubmit()`)
+    await waitFor(async () => (await all('[role=alert].error')).length > 0, { message: 'the message of error' })
+    const tie = await driver.executeScript(`
+      const field = document.querySelector('input[name=newTag]');
+      const alert = document.getElementById(field.getAttribute('aria-describedby') || 'none');
+      return { invalid: field.getAttribute('aria-invalid'), text: alert ? alert.textContent.trim() : '' }`)
+    assert.equal(tie.invalid, 'true')
+    assert.notEqual(tie.text, '', 'the field is described by the message')
+  })
+
   test('the spacing of the letters is left out where the letters join or a syllable is one block', async () => {
     await open('board', '.column')
     const spacing = async (language) => {

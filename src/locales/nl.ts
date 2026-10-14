@@ -426,6 +426,7 @@ const nl: TranslationObject = {
       'Dit is niet de wachtwoordzin die je hebt ingesteld. Een met een andere gemaakte back-up kan er niet mee worden geopend.',
     needsPassphrase: 'Typ eerst de wachtwoordzin.',
   },
+  a11y: { skip: 'Naar de inhoud springen' },
   notice: {
     region: 'Berichten',
     close: 'Sluiten',

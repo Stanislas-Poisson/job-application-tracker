@@ -410,6 +410,7 @@ const zhHans: TranslationObject = {
     notThePassphrase: '这不是您设置的密码短语。用另一个密码短语制作的备份无法用它打开。',
     needsPassphrase: '请先输入密码短语。',
   },
+  a11y: { skip: '跳到正文' },
   notice: {
     region: '消息',
     close: '关闭',

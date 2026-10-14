@@ -433,6 +433,7 @@ const pl: TranslationObject = {
       'To nie jest hasło, które ustawiłeś. Kopii zapasowej wykonanej z innym hasłem nie można nim otworzyć.',
     needsPassphrase: 'Najpierw wpisz hasło.',
   },
+  a11y: { skip: 'Przejdź do treści' },
   notice: {
     region: 'Wiadomości',
     close: 'Zamknij',
