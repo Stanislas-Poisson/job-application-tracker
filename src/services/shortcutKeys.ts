@@ -3,7 +3,7 @@
 // What the key says (its letter) is only for showing it, and it comes from the layout the browser reports (`getLayoutMap`),
 // or from the key the user pressed to set it. Where neither is known, no key is suggested and the defaults are not in use.
 
-export const KEY_ACTIONS = ['search', 'up', 'down', 'left', 'right', 'moveLeft', 'moveRight'] as const
+export const KEY_ACTIONS = ['search', 'up', 'down', 'left', 'right', 'open', 'moveLeft', 'moveRight'] as const
 export type KeyAction = (typeof KEY_ACTIONS)[number]
 
 export interface KeyBinding {
@@ -18,13 +18,14 @@ export interface KeyBinding {
 // What the user chose, by action. An action that is not in it keeps its default; null is "no key".
 export type ShortcutKeys = Partial<Record<KeyAction, KeyBinding | null>>
 
-// The defaults are drawn on the QWERTY keyboard: W A S D to move and F to find, Shift with A and D to move the card.
+// The defaults are drawn on the QWERTY keyboard: W A S D to move, F to find, E to open the card, Shift with A and D to move it.
 export const DEFAULT_KEYS: Record<KeyAction, { code: string; shift: boolean }> = {
   search: { code: 'KeyF', shift: false },
   up: { code: 'KeyW', shift: false },
   down: { code: 'KeyS', shift: false },
   left: { code: 'KeyA', shift: false },
   right: { code: 'KeyD', shift: false },
+  open: { code: 'KeyE', shift: false },
   moveLeft: { code: 'KeyA', shift: true },
   moveRight: { code: 'KeyD', shift: true },
 }

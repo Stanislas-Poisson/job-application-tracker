@@ -90,3 +90,19 @@ describe('what the keys read from the page', () => {
     expect(isTyping(null)).toBe(false)
   })
 })
+
+describe('what takes the keys of a person who types', () => {
+  it('is any field, any editable part (also in plain text), what plays the role of a field, and what is inside an editable part', () => {
+    document.body.innerHTML = `
+      <div id="plain" contenteditable="plaintext-only"></div>
+      <div id="rich" contenteditable="true"><b id="inside">x</b></div>
+      <div id="role" role="textbox"></div>
+      <div id="combo" role="combobox"></div>
+      <div id="off" contenteditable="false"><button id="button">ok</button></div>`
+    for (const id of ['plain', 'rich', 'inside', 'role', 'combo']) {
+      expect(isTyping(document.getElementById(id))).toBe(true)
+    }
+    expect(isTyping(document.getElementById('off'))).toBe(false)
+    expect(isTyping(document.getElementById('button'))).toBe(false)
+  })
+})

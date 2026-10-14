@@ -25,6 +25,7 @@ interface Deps {
 // The keys of the board, for the ones who work with the keyboard. The arrows always work; the others are set in the options (by
 // default F to find and W A S D to move, where the layout of the keyboard is known):
 //   search             the search;
+//   open               the card that has the focus opens;
 //   up down left right from a card to the next, the previous, and to the neighbour column;
 //   Shift and left or right   the card moves to the neighbour column (the same move as the field "status" of its drawer).
 // A key does nothing while the drawer or a question is open, while someone types, or with Control, Alt or Meta held: those are
@@ -32,6 +33,11 @@ interface Deps {
 export function useBoardShortcuts({ enabled, keys, layoutKnown, drop, moved }: Deps) {
   async function onKeydown(event: KeyboardEvent) {
     if (!enabled() || event.defaultPrevented || event.ctrlKey || event.altKey || event.metaKey) {
+      return
+    }
+    // A key typed with an input method (Japanese, Chinese, Korean…) is a part of a word being composed, not a key: it goes by with
+    // the code 229 or the key "Process", and the page leaves it alone.
+    if (event.isComposing || 229 === event.keyCode || 'Process' === event.key) {
       return
     }
     if (document.querySelector('dialog[open]') || isTyping(event.target)) {
@@ -50,6 +56,11 @@ export function useBoardShortcuts({ enabled, keys, layoutKnown, drop, moved }: D
       return
     }
     const card = cardOf(event.target)
+    if (card && 'open' === action) {
+      event.preventDefault()
+      card.click()
+      return
+    }
     const move = card ? moveOfAction(action, 'rtl' === document.documentElement.dir) : null
     if (!card || !move) {
       return

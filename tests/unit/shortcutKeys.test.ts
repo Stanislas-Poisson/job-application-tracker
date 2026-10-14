@@ -51,6 +51,7 @@ describe('the action of a key', () => {
     expect(actionOfKey(press('KeyA', 'q'), {}, true)).toBe('left')
     expect(actionOfKey(press('KeyA', 'q', { shiftKey: true }), {}, true)).toBe('moveLeft')
     expect(actionOfKey(press('KeyF', 'f'), {}, true)).toBe('search')
+    expect(actionOfKey(press('KeyE', 'e'), {}, true)).toBe('open')
   })
 
   it('does nothing for a default where the layout is not known, but the arrows always work', () => {

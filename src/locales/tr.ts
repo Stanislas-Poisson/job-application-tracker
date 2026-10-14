@@ -434,6 +434,7 @@ const tr: TranslationObject = {
     browser:
       'Tarayıcıda, varsayılan olarak: Alt+Shift+J sayfadaki ilanı kaydeder, Alt+Shift+L panoyu açar. Bunları tarayıcınızın kısayollarından değiştirin (Chrome ve Edge’de uzantılar sayfası, Firefox’ta eklenti kısayolları yöneticisi).',
     actions: {
+      open: 'Kartı aç',
       search: 'Aramaya git',
       up: 'Üstteki kart',
       down: 'Alttaki kart',

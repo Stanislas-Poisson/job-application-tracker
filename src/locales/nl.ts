@@ -437,6 +437,7 @@ const nl: TranslationObject = {
     browser:
       'In de browser, standaard: Alt+Shift+J bewaart het aanbod van de pagina, Alt+Shift+L opent het bord. Wijzig ze in de sneltoetsen van je browser (de extensiepagina van Chrome en Edge, het beheer van sneltoetsen bij de add-ons van Firefox).',
     actions: {
+      open: 'De kaart openen',
       search: 'Naar het zoeken gaan',
       up: 'Kaart erboven',
       down: 'Kaart eronder',

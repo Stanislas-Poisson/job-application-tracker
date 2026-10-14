@@ -431,6 +431,7 @@ const he: TranslationObject = {
     browser:
       'בדפדפן, כברירת מחדל: Alt+Shift+J שומר את המשרה של הדף, Alt+Shift+L פותח את הלוח. שנו אותם בקיצורי הדפדפן (דף ההרחבות של Chrome ו-Edge, מנהל הקיצורים של התוספים ב-Firefox).',
     actions: {
+      open: 'פתיחת הכרטיס',
       search: 'מעבר לחיפוש',
       up: 'הכרטיס שמעל',
       down: 'הכרטיס שמתחת',
