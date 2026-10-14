@@ -130,7 +130,11 @@
 </script>
 
 <template>
-  <main class="page page-wide">
+  <main
+    id="main"
+    class="page page-wide"
+    tabindex="-1"
+  >
     <AppHeader :title="t('board.title')">
       <a
         id="export-csv"

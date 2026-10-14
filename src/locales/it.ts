@@ -426,6 +426,7 @@ const it: TranslationObject = {
       "Questa non è la passphrase che hai impostato. Un backup fatto con un'altra non potrebbe essere aperto con essa.",
     needsPassphrase: 'Scrivi prima la passphrase.',
   },
+  a11y: { skip: 'Vai al contenuto' },
   notice: {
     region: 'Messaggi',
     close: 'Chiudi',

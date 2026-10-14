@@ -414,6 +414,7 @@ const ko: TranslationObject = {
     notThePassphrase: '설정한 암호문이 아닙니다. 다른 암호문으로 만든 백업은 이것으로 열 수 없습니다.',
     needsPassphrase: '먼저 암호문을 입력하세요.',
   },
+  a11y: { skip: '본문으로 건너뛰기' },
   notice: {
     region: '메시지',
     close: '닫기',

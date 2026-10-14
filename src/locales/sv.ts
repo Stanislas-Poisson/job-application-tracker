@@ -424,6 +424,7 @@ const sv: TranslationObject = {
       'Det här är inte lösenfrasen du angav. En säkerhetskopia gjord med en annan går inte att öppna med den.',
     needsPassphrase: 'Skriv lösenfrasen först.',
   },
+  a11y: { skip: 'Hoppa till innehållet' },
   notice: {
     region: 'Meddelanden',
     close: 'Stäng',
