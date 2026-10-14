@@ -423,6 +423,7 @@ const tr: TranslationObject = {
     notThePassphrase: 'Bu, ayarladığınız parola değil. Başka bir parolayla yapılmış bir yedek bununla açılamaz.',
     needsPassphrase: 'Önce parolayı yazın.',
   },
+  a11y: { skip: 'İçeriğe geç' },
   notice: {
     region: 'İletiler',
     close: 'Kapat',

@@ -420,6 +420,7 @@ const he: TranslationObject = {
     notThePassphrase: 'זו אינה הסיסמה שהגדרתם. לא ניתן היה לפתוח בה גיבוי שנעשה עם סיסמה אחרת.',
     needsPassphrase: 'הקלידו קודם את הסיסמה.',
   },
+  a11y: { skip: 'דלג לתוכן' },
   notice: {
     region: 'הודעות',
     close: 'סגירה',

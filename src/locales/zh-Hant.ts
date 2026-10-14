@@ -410,6 +410,7 @@ const zhHant: TranslationObject = {
     notThePassphrase: '這不是您設定的密碼短語。用另一個密碼短語製作的備份無法用它開啟。',
     needsPassphrase: '請先輸入密碼短語。',
   },
+  a11y: { skip: '跳到正文' },
   notice: {
     region: '訊息',
     close: '關閉',

@@ -141,7 +141,11 @@
 </script>
 
 <template>
-  <main class="page page-popup">
+  <main
+    id="main"
+    class="page page-popup"
+    tabindex="-1"
+  >
     <AppHeader :title="t('popup.title')">
       <a
         :href="boardUrl"

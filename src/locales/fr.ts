@@ -427,6 +427,7 @@ const fr: TranslationObject = {
       'Ce n’est pas la phrase secrète que vous avez définie. Une sauvegarde faite avec une autre ne pourrait pas être ouverte avec elle.',
     needsPassphrase: 'Saisissez d’abord la phrase secrète.',
   },
+  a11y: { skip: 'Aller au contenu' },
   notice: {
     region: 'Messages',
     close: 'Fermer',

@@ -429,6 +429,7 @@ const de: TranslationObject = {
       'Das ist nicht die Passphrase, die Sie festgelegt haben. Eine mit einer anderen erstellte Sicherung ließe sich damit nicht öffnen.',
     needsPassphrase: 'Geben Sie zuerst die Passphrase ein.',
   },
+  a11y: { skip: 'Zum Inhalt springen' },
   notice: {
     region: 'Meldungen',
     close: 'Schließen',

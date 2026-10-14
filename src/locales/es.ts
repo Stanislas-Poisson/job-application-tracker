@@ -431,6 +431,7 @@ const es: TranslationObject = {
       'Esta no es la frase de contraseña que estableciste. Una copia hecha con otra no se podría abrir con ella.',
     needsPassphrase: 'Escribe primero la frase de contraseña.',
   },
+  a11y: { skip: 'Saltar al contenido' },
   notice: {
     region: 'Mensajes',
     close: 'Cerrar',
