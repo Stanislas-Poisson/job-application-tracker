@@ -98,11 +98,11 @@ describe('translations', () => {
     }
   })
 
-  it('has a name and a description of the store listing in each language, with the same keys as the default', () => {
+  it('has a name, a description and the names of the keys of the browser in each language, with the same keys as the default', () => {
     const read = (lang: string) =>
       JSON.parse(readFileSync(`public/_locales/${lang}/messages.json`, 'utf8')) as Record<string, { message: string }>
     const keys = Object.keys(read('en')).sort()
-    expect(keys).toEqual(['extDescription', 'extName', 'extShortName'])
+    expect(keys).toEqual(['commandBoard', 'commandPopup', 'extDescription', 'extName', 'extShortName'])
     for (const lang of readdirSync('public/_locales')) {
       expect(Object.keys(read(lang)).sort()).toEqual(keys)
       expect(read(lang).extDescription?.message.length).toBeGreaterThan(20)

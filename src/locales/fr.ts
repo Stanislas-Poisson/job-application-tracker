@@ -54,6 +54,7 @@ const fr: TranslationObject = {
     },
   },
   board: {
+    movedTo: 'Déplacée dans {status}.',
     backupLate: 'Votre dernière sauvegarde date de {days} jours.',
     backupNever: "Vous n'avez pas encore sauvegardé vos données.",
     backupLater: 'Plus tard',
@@ -428,6 +429,16 @@ const fr: TranslationObject = {
     needsPassphrase: 'Saisissez d’abord la phrase secrète.',
   },
   a11y: { skip: 'Aller au contenu' },
+  keyboard: {
+    title: 'Clavier',
+    enable: 'Raccourcis clavier dans les pages',
+    hint: 'Désactivez-les s’ils gênent votre lecteur d’écran ou votre propre clavier. Les touches du navigateur, plus bas, se règlent dans le navigateur et non ici.',
+    search: 'Aller à la recherche du tableau',
+    cards: 'Passer d’une carte à une autre',
+    move: 'Déplacer la carte dans la colonne suivante ou précédente',
+    browser:
+      'Dans le navigateur, par défaut : Alt+Maj+J enregistre l’offre de la page, Alt+Maj+L ouvre le tableau. Changez-les dans les raccourcis de votre navigateur (page des extensions de Chrome et Edge, gestionnaire de raccourcis des modules de Firefox).',
+  },
   notice: {
     region: 'Messages',
     close: 'Fermer',

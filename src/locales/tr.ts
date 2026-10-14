@@ -54,6 +54,7 @@ const tr: TranslationObject = {
     },
   },
   board: {
+    movedTo: '{status} sütununa taşındı.',
     backupLate: 'Son yedeğiniz {days} günlük.',
     backupNever: 'Verilerinizi henüz yedeklemediniz.',
     backupLater: 'Sonra',
@@ -424,6 +425,16 @@ const tr: TranslationObject = {
     needsPassphrase: 'Önce parolayı yazın.',
   },
   a11y: { skip: 'İçeriğe geç' },
+  keyboard: {
+    title: 'Klavye',
+    enable: 'Sayfalardaki klavye kısayolları',
+    hint: 'Ekran okuyucunuza ya da kendi klavyenize engel oluyorlarsa kapatın. Aşağıdaki tarayıcı tuşları burada değil, tarayıcıda ayarlanır.',
+    search: 'Panonun aramasına git',
+    cards: 'Bir karttan diğerine geç',
+    move: 'Kartı sonraki veya önceki sütuna taşı',
+    browser:
+      'Tarayıcıda, varsayılan olarak: Alt+Shift+J sayfadaki ilanı kaydeder, Alt+Shift+L panoyu açar. Bunları tarayıcınızın kısayollarından değiştirin (Chrome ve Edge’de uzantılar sayfası, Firefox’ta eklenti kısayolları yöneticisi).',
+  },
   notice: {
     region: 'İletiler',
     close: 'Kapat',

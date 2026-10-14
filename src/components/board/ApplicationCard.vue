@@ -46,6 +46,7 @@
 <template>
   <article
     class="application-card"
+    :data-application="application.id"
     draggable="true"
     @dragstart="onDragStart"
     @click="emit('open')"

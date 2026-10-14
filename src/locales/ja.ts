@@ -54,6 +54,7 @@ const ja: TranslationObject = {
     },
   },
   board: {
+    movedTo: '{status} に移動しました。',
     backupLate: '最後のバックアップは {days} 日前です。',
     backupNever: 'まだデータをバックアップしていません。',
     backupLater: '後で',
@@ -421,6 +422,16 @@ const ja: TranslationObject = {
     needsPassphrase: '先にパスフレーズを入力してください。',
   },
   a11y: { skip: '本文へ移動' },
+  keyboard: {
+    title: 'キーボード',
+    enable: 'ページ内のキーボードショートカット',
+    hint: 'スクリーンリーダーやお使いのキーボードの妨げになる場合はオフにしてください。下のブラウザのキーはブラウザ側で設定し、ここでは変更できません。',
+    search: 'ボードの検索へ移動',
+    cards: 'カードからカードへ移動',
+    move: 'カードを次または前の列へ移動',
+    browser:
+      'ブラウザの既定：Alt+Shift+J でこのページの求人を保存、Alt+Shift+L でボードを開きます。ブラウザのショートカット設定（Chrome と Edge の拡張機能ページ、Firefox のアドオンのショートカット管理）で変更できます。',
+  },
   notice: {
     region: 'メッセージ',
     close: '閉じる',

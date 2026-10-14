@@ -54,6 +54,7 @@ const zhHant: TranslationObject = {
     },
   },
   board: {
+    movedTo: '已移到 {status}。',
     backupLate: '您上一次備份是 {days} 天前。',
     backupNever: '您還沒有備份過資料。',
     backupLater: '稍後',
@@ -411,6 +412,16 @@ const zhHant: TranslationObject = {
     needsPassphrase: '請先輸入密碼短語。',
   },
   a11y: { skip: '跳到正文' },
+  keyboard: {
+    title: '鍵盤',
+    enable: '頁面中的鍵盤快速鍵',
+    hint: '如果它們妨礙螢幕閱讀器或您自己的鍵盤，請關閉。下方的瀏覽器按鍵在瀏覽器中設定，而不是在這裡。',
+    search: '前往看板的搜尋',
+    cards: '在卡片之間移動',
+    move: '將卡片移到下一欄或上一欄',
+    browser:
+      '瀏覽器中的預設設定：Alt+Shift+J 儲存此頁面的職缺，Alt+Shift+L 開啟看板。可在瀏覽器的快速鍵設定中變更（Chrome 和 Edge 的擴充功能頁面，Firefox 的附加元件快速鍵管理）。',
+  },
   notice: {
     region: '訊息',
     close: '關閉',

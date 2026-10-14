@@ -206,6 +206,61 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
     assert.notEqual(tie.text, '', 'the field is described by the message')
   })
 
+  test('the board is worked with the keys: / for the search, Shift and the arrows to move a card, and the setting turns them off', async () => {
+    const columnOfCard = () =>
+      driver.executeScript(
+        `const card = document.querySelector('.application-card'); return card && card.closest('.column').dataset.status`
+      )
+    // The slash of the number pad: the browser driver types the one of the main keys as a Shift and a key of another sign.
+    const slash = () => driver.actions().sendKeys('\uE029').perform()
+    const focused = () => driver.executeScript(`return document.activeElement && document.activeElement.className`)
+    const setShortcuts = (on) =>
+      driver.executeAsyncScript(
+        `const done = arguments[arguments.length - 1];
+         chrome.storage.local.get('jat:settings', (stored) => chrome.storage.local.set({ 'jat:settings': { ...(stored['jat:settings'] || {}), shortcuts: arguments[0] } }, () => done(true)))`,
+        on
+      )
+    await open('board', '.application-card')
+    await setShortcuts(true)
+    await driver.sleep(400)
+
+    // The search takes the focus with a slash, and a slash typed in it stays a slash.
+    await driver.executeScript(`document.activeElement && document.activeElement.blur()`)
+    await slash()
+    assert.equal(await driver.executeScript(`return document.activeElement && document.activeElement.name`), 'search')
+    await driver.actions().sendKeys('a', '\uE029', 'b').perform()
+    assert.equal(await driver.executeScript(`return document.querySelector('input[name=search]').value`), 'a/b')
+    await driver.executeScript(
+      `const search = document.querySelector('input[name=search]'); search.value = ''; search.dispatchEvent(new Event('input', { bubbles: true }))`
+    )
+
+    // A card moves to the next column with Shift and an arrow, keeps the focus, and the move is said.
+    const first = await columnOfCard()
+    await driver.executeScript(`document.querySelector('.application-card .card-open').focus()`)
+    const arrow = (key) => driver.actions().keyDown('\uE008').sendKeys(key).keyUp('\uE008').perform()
+    await arrow('\uE014')
+    await waitFor(async () => (await columnOfCard()) !== first, { message: 'the card in the next column' })
+    assert.equal(await focused(), 'card-open', 'the focus stays on the card')
+    await waitFor(async () => (await all('.toast')).length > 0, { message: 'the move said' })
+    await arrow('\uE012')
+    await waitFor(async () => (await columnOfCard()) === first, { message: 'the card back in its column' })
+
+    // With the setting off, the same keys do nothing.
+    await setShortcuts(false)
+    await driver.sleep(400)
+    await driver.executeScript(`document.querySelector('.application-card .card-open').focus()`)
+    await arrow('\uE014')
+    await driver.sleep(500)
+    assert.equal(await columnOfCard(), first, 'no move with the keys off')
+    await driver.executeScript(`document.activeElement && document.activeElement.blur()`)
+    await slash()
+    assert.notEqual(
+      await driver.executeScript(`return document.activeElement && document.activeElement.name`),
+      'search'
+    )
+    await setShortcuts(true)
+  })
+
   test('the spacing of the letters is left out where the letters join or a syllable is one block', async () => {
     await open('board', '.column')
     const spacing = async (language) => {
