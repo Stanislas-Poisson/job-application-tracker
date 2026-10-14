@@ -1,0 +1,11 @@
+{
+  "extName": {
+    "message": "Job Application Tracker"
+  },
+  "extShortName": {
+    "message": "Job Tracker"
+  },
+  "extDescription": {
+    "message": "儲存您看過的職缺，並追蹤每一次應徵。所有資料都保留在您的瀏覽器中。"
+  }
+}

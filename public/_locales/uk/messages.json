@@ -1,0 +1,11 @@
+{
+  "extName": {
+    "message": "Job Application Tracker"
+  },
+  "extShortName": {
+    "message": "Job Tracker"
+  },
+  "extDescription": {
+    "message": "Зберігає переглянуті вакансії й відстежує кожен відгук. Усі дані залишаються у вашому браузері."
+  }
+}
