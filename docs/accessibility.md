@@ -45,6 +45,9 @@ A machine finds about a third of the problems: it does not replace a read with a
 - **Colour is never alone.** A column has a shape in every vision mode but the standard, and always when the system forces its
   colours (the dot of the column draws its shape); a message of error or success has a sign (⚠, ✓) in the same cases. The sign
   has an empty alternative text, since the role of the message already tells it to a screen reader.
+- **The spacing of letters** (WCAG 1.4.12) is left out in the scripts where it breaks the word: Arabic and the scripts written like
+  it, and the Indic and South-East Asian scripts. The spacing of the words and of the lines stays. The page chooses by the language
+  on its root element (`:lang()`).
 - **Motion and text.** Movement follows the system and can be reduced; the text can be made larger and more spaced (up to 200%
   and the spacing of WCAG 1.4.12) and the pages hold.
 
