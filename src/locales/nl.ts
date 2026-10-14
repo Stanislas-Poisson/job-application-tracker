@@ -54,6 +54,7 @@ const nl: TranslationObject = {
     },
   },
   board: {
+    movedTo: 'Verplaatst naar {status}.',
     backupLate: 'Je laatste back-up is {days} dagen oud.',
     backupNever: 'Je hebt nog geen back-up van je gegevens gemaakt.',
     backupLater: 'Later',
@@ -427,6 +428,16 @@ const nl: TranslationObject = {
     needsPassphrase: 'Typ eerst de wachtwoordzin.',
   },
   a11y: { skip: 'Naar de inhoud springen' },
+  keyboard: {
+    title: 'Toetsenbord',
+    enable: 'Sneltoetsen in de pagina’s',
+    hint: 'Zet ze uit als ze je schermlezer of je eigen toetsenbord hinderen. De toetsen van de browser, hieronder, stel je in de browser in en niet hier.',
+    search: 'Naar het zoeken op het bord gaan',
+    cards: 'Van de ene kaart naar de andere gaan',
+    move: 'De kaart naar de volgende of vorige kolom verplaatsen',
+    browser:
+      'In de browser, standaard: Alt+Shift+J bewaart het aanbod van de pagina, Alt+Shift+L opent het bord. Wijzig ze in de sneltoetsen van je browser (de extensiepagina van Chrome en Edge, het beheer van sneltoetsen bij de add-ons van Firefox).',
+  },
   notice: {
     region: 'Berichten',
     close: 'Sluiten',

@@ -98,6 +98,13 @@ export default defineBackground(() => {
     )
   })
 
+  // The key of the browser that opens the board (the other, that opens the popup, is the browser's own).
+  browser.commands?.onCommand.addListener((command) => {
+    if ('open-board' === command) {
+      void openApplication(null)
+    }
+  })
+
   browser.runtime.onInstalled.addListener(check)
   browser.runtime.onStartup.addListener(check)
   browser.alarms.onAlarm.addListener((alarm) => {

@@ -7,5 +7,11 @@
   },
   "extDescription": {
     "message": "Zapisuje oferty pracy, które widziałeś, i śledzi każdą aplikację. Wszystko zostaje w Twojej przeglądarce."
+  },
+  "commandPopup": {
+    "message": "Zapisz ofertę z tej strony"
+  },
+  "commandBoard": {
+    "message": "Otwórz tablicę"
   }
 }

@@ -55,6 +55,7 @@ const en: TranslationObject = {
     },
   },
   board: {
+    movedTo: 'Moved to {status}.',
     backupLate: 'Your last backup is {days} days old.',
     backupNever: 'You have not backed up your data yet.',
     backupLater: 'Later',
@@ -420,6 +421,16 @@ const en: TranslationObject = {
     needsPassphrase: 'Type the passphrase first.',
   },
   a11y: { skip: 'Skip to the content' },
+  keyboard: {
+    title: 'Keyboard',
+    enable: 'Keyboard shortcuts in the pages',
+    hint: 'Turn them off if they get in the way of your screen reader or your own keyboard. The keys of the browser, below, are set in the browser and not here.',
+    search: 'Go to the search of the board',
+    cards: 'Move from one card to another',
+    move: 'Move the card to the next or the previous column',
+    browser:
+      'In the browser, by default: Alt+Shift+J saves the offer of the page, Alt+Shift+L opens the board. Change them in the shortcuts of your browser (the extensions page of Chrome and Edge, the manager of shortcuts in the add-ons of Firefox).',
+  },
   notice: {
     region: 'Messages',
     close: 'Close',

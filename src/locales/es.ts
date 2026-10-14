@@ -54,6 +54,7 @@ const es: TranslationObject = {
     },
   },
   board: {
+    movedTo: 'Movida a {status}.',
     backupLate: 'Tu última copia de seguridad tiene {days} días.',
     backupNever: 'Todavía no has hecho una copia de seguridad de tus datos.',
     backupLater: 'Más tarde',
@@ -432,6 +433,16 @@ const es: TranslationObject = {
     needsPassphrase: 'Escribe primero la frase de contraseña.',
   },
   a11y: { skip: 'Saltar al contenido' },
+  keyboard: {
+    title: 'Teclado',
+    enable: 'Atajos de teclado en las páginas',
+    hint: 'Desactívelos si estorban a su lector de pantalla o a su propio teclado. Las teclas del navegador, más abajo, se configuran en el navegador y no aquí.',
+    search: 'Ir a la búsqueda del tablero',
+    cards: 'Pasar de una tarjeta a otra',
+    move: 'Mover la tarjeta a la columna siguiente o anterior',
+    browser:
+      'En el navegador, por defecto: Alt+Mayús+J guarda la oferta de la página, Alt+Mayús+L abre el tablero. Cámbielas en los atajos de su navegador (la página de extensiones de Chrome y Edge, el gestor de atajos de los complementos de Firefox).',
+  },
   notice: {
     region: 'Mensajes',
     close: 'Cerrar',

@@ -54,6 +54,7 @@ const sv: TranslationObject = {
     },
   },
   board: {
+    movedTo: 'Flyttad till {status}.',
     backupLate: 'Din senaste säkerhetskopia är {days} dagar gammal.',
     backupNever: 'Du har inte säkerhetskopierat dina data ännu.',
     backupLater: 'Senare',
@@ -425,6 +426,16 @@ const sv: TranslationObject = {
     needsPassphrase: 'Skriv lösenfrasen först.',
   },
   a11y: { skip: 'Hoppa till innehållet' },
+  keyboard: {
+    title: 'Tangentbord',
+    enable: 'Kortkommandon på sidorna',
+    hint: 'Stäng av dem om de stör din skärmläsare eller ditt eget tangentbord. Webbläsarens tangenter, längre ner, ställs in i webbläsaren och inte här.',
+    search: 'Gå till sökningen på tavlan',
+    cards: 'Gå från ett kort till ett annat',
+    move: 'Flytta kortet till nästa eller föregående kolumn',
+    browser:
+      'I webbläsaren, som standard: Alt+Skift+J sparar jobbet på sidan, Alt+Skift+L öppnar tavlan. Ändra dem i webbläsarens kortkommandon (tilläggssidan i Chrome och Edge, hanteraren för kortkommandon bland tilläggen i Firefox).',
+  },
   notice: {
     region: 'Meddelanden',
     close: 'Stäng',

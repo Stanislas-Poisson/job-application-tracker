@@ -54,6 +54,7 @@ const pt: TranslationObject = {
     },
   },
   board: {
+    movedTo: 'Movido para {status}.',
     backupLate: 'A sua última cópia de segurança tem {days} dias.',
     backupNever: 'Ainda não fez uma cópia de segurança dos seus dados.',
     backupLater: 'Mais tarde',
@@ -424,6 +425,16 @@ const pt: TranslationObject = {
     needsPassphrase: 'Escreva primeiro a frase-passe.',
   },
   a11y: { skip: 'Saltar para o conteúdo' },
+  keyboard: {
+    title: 'Teclado',
+    enable: 'Atalhos de teclado nas páginas',
+    hint: 'Desative-os se atrapalharem o seu leitor de ecrã ou o seu próprio teclado. As teclas do navegador, mais abaixo, definem-se no navegador e não aqui.',
+    search: 'Ir para a pesquisa do quadro',
+    cards: 'Passar de um cartão para outro',
+    move: 'Mover o cartão para a coluna seguinte ou anterior',
+    browser:
+      'No navegador, por predefinição: Alt+Maiús+J guarda a oferta da página, Alt+Maiús+L abre o quadro. Altere-as nos atalhos do navegador (a página de extensões do Chrome e do Edge, o gestor de atalhos dos suplementos do Firefox).',
+  },
   notice: {
     region: 'Mensagens',
     close: 'Fechar',

@@ -7,5 +7,11 @@
   },
   "extDescription": {
     "message": "Conserva gli annunci di lavoro che hai visto e segue ogni candidatura. Tutto resta nel tuo browser."
+  },
+  "commandPopup": {
+    "message": "Salva l’offerta di questa pagina"
+  },
+  "commandBoard": {
+    "message": "Apri la bacheca"
   }
 }

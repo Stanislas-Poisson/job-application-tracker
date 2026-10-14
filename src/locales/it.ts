@@ -54,6 +54,7 @@ const it: TranslationObject = {
     },
   },
   board: {
+    movedTo: 'Spostata in {status}.',
     backupLate: 'Il tuo ultimo backup risale a {days} giorni fa.',
     backupNever: 'Non hai ancora fatto il backup dei tuoi dati.',
     backupLater: 'Più tardi',
@@ -427,6 +428,16 @@ const it: TranslationObject = {
     needsPassphrase: 'Scrivi prima la passphrase.',
   },
   a11y: { skip: 'Vai al contenuto' },
+  keyboard: {
+    title: 'Tastiera',
+    enable: 'Scorciatoie da tastiera nelle pagine',
+    hint: 'Disattivale se intralciano il tuo lettore di schermo o la tua tastiera. I tasti del browser, qui sotto, si impostano nel browser e non qui.',
+    search: 'Vai alla ricerca della bacheca',
+    cards: 'Passa da una scheda all’altra',
+    move: 'Sposta la scheda nella colonna successiva o precedente',
+    browser:
+      'Nel browser, di default: Alt+Maiusc+J salva l’offerta della pagina, Alt+Maiusc+L apre la bacheca. Cambiali nelle scorciatoie del browser (la pagina delle estensioni di Chrome e Edge, il gestore delle scorciatoie dei componenti aggiuntivi di Firefox).',
+  },
   notice: {
     region: 'Messaggi',
     close: 'Chiudi',

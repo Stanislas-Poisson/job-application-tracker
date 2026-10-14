@@ -54,6 +54,7 @@ const zhHans: TranslationObject = {
     },
   },
   board: {
+    movedTo: '已移到 {status}。',
     backupLate: '您上一次备份是 {days} 天前。',
     backupNever: '您还没有备份过数据。',
     backupLater: '稍后',
@@ -411,6 +412,16 @@ const zhHans: TranslationObject = {
     needsPassphrase: '请先输入密码短语。',
   },
   a11y: { skip: '跳到正文' },
+  keyboard: {
+    title: '键盘',
+    enable: '页面中的键盘快捷键',
+    hint: '如果它们妨碍屏幕阅读器或您自己的键盘，请关闭。下面的浏览器按键在浏览器中设置，而不是在这里。',
+    search: '转到看板的搜索',
+    cards: '在卡片之间移动',
+    move: '将卡片移到下一列或上一列',
+    browser:
+      '浏览器中的默认设置：Alt+Shift+J 保存此页面的职位，Alt+Shift+L 打开看板。可在浏览器的快捷键设置中更改（Chrome 和 Edge 的扩展程序页面，Firefox 的附加组件快捷键管理）。',
+  },
   notice: {
     region: '消息',
     close: '关闭',

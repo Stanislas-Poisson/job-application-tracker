@@ -54,6 +54,7 @@ const ko: TranslationObject = {
     },
   },
   board: {
+    movedTo: '{status}(으)로 이동했습니다.',
     backupLate: '마지막 백업이 {days}일 전입니다.',
     backupNever: '아직 데이터를 백업하지 않았습니다.',
     backupLater: '나중에',
@@ -415,6 +416,16 @@ const ko: TranslationObject = {
     needsPassphrase: '먼저 암호문을 입력하세요.',
   },
   a11y: { skip: '본문으로 건너뛰기' },
+  keyboard: {
+    title: '키보드',
+    enable: '페이지의 키보드 단축키',
+    hint: '스크린 리더나 직접 쓰는 키보드에 방해가 되면 끄세요. 아래 브라우저 키는 여기가 아니라 브라우저에서 설정합니다.',
+    search: '보드의 검색으로 이동',
+    cards: '카드에서 카드로 이동',
+    move: '카드를 다음 또는 이전 열로 이동',
+    browser:
+      '브라우저 기본값: Alt+Shift+J는 이 페이지의 공고를 저장하고, Alt+Shift+L은 보드를 엽니다. 브라우저의 단축키 설정(Chrome과 Edge의 확장 프로그램 페이지, Firefox의 부가 기능 단축키 관리)에서 바꿀 수 있습니다.',
+  },
   notice: {
     region: '메시지',
     close: '닫기',
