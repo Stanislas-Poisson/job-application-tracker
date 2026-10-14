@@ -1,0 +1,11 @@
+{
+  "url": "https://fr.indeed.com/viewjob?jk=0000000000000000",
+  "title": "Example job title",
+  "jsonLd": [
+    "{\"@context\":\"http://schema.org\",\"@type\":\"JobPosting\",\"baseSalary\":{\"@type\":\"MonetaryAmount\",\"currency\":\"EUR\",\"value\":{\"@type\":\"QuantitativeValue\",\"maxValue\":91613.11,\"minValue\":41574.71,\"unitText\":\"YEAR\"}},\"datePosted\":\"2026-09-29T11:41:55.345Z\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\",\"directApply\":true,\"employmentType\":[\"INTERN\"],\"hiringOrganization\":{\"@type\":\"Organization\",\"name\":\"Example Corp\"},\"jobLocation\":{\"@type\":\"Place\",\"address\":{\"@type\":\"PostalAddress\",\"addressCountry\":\"FR\",\"addressLocality\":\"Paris\",\"addressRegion\":\"A8\",\"postalCode\":\"75008\"}},\"title\":\"Example job title\",\"validThrough\":\"2027-02-10T23:43:29.507Z\"}"
+  ],
+  "meta": {
+    "og:title": "Example text",
+    "og:description": "Example text"
+  }
+}

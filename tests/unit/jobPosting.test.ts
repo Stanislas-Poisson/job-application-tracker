@@ -382,3 +382,19 @@ describe.skipIf(!existsSync(`${PAGES}apec.html`))('the saved pages of real sites
     expect(offer.description).not.toMatch(/&#\d+;/)
   })
 })
+
+describe('a region that is a code of the site', () => {
+  it('is left out of the place and of the address', () => {
+    const posting = {
+      '@type': 'JobPosting',
+      title: 'Dev',
+      jobLocation: {
+        address: { addressLocality: 'Paris', addressRegion: 'A8', postalCode: '75008', addressCountry: 'FR' },
+      },
+    }
+    const offer = offerFromJobPosting(posting, 'Europe/Paris')
+    expect(offer.location).toBe('Paris')
+    expect(offer.address?.region).toBe('')
+    expect(offer.address?.postalCode).toBe('75008')
+  })
+})

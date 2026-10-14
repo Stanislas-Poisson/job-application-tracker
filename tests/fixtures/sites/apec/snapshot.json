@@ -1,0 +1,12 @@
+{
+  "url": "https://www.apec.fr/candidat/recherche-emploi.html/emploi/detail-offre/000000000W",
+  "title": "Example job title | Apec",
+  "jsonLd": [
+    "{\"@context\":\"https://schema.org\",\"@type\":\"JobPosting\",\"salaryCurrency\":\"EUR\",\"title\":\"Example job title\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\",\"qualifications\":\"Example qualification\",\"jobImmediateStart\":true,\"industry\":\"Example industry\",\"employmentType\":\"FULL_TIME\",\"datePosted\":\"2026-10-07 21:07:54 +0200\",\"validThrough\":\"2026-11-06 21:07:54 +0100\",\"hiringOrganization\":{\"@context\":\"https://schema.org\",\"@type\":\"Organization\",\"name\":\"Example Corp\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\"},\"baseSalary\":{\"@type\":\"MonetaryAmount\",\"currency\":\"EUR\",\"value\":{\"@type\":\"QuantitativeValue\",\"unitText\":\"YEAR\",\"minValue\":\"80000.00\",\"maxValue\":\"85000.00\",\"value\":\"80 - 85 k€ brut annuel\"}},\"experienceRequirements\":{\"@type\":\"OccupationalExperienceRequirements\",\"monthsOfExperience\":\"Example text\"},\"jobLocation\":{\"@type\":\"Place\",\"geo\":{\"@type\":\"GeoCoordinates\",\"latitude\":50.3083217,\"longitude\":2.8116473},\"address\":{\"@type\":\"PostalAddress\",\"postalCode\":\"62753\",\"streetAddress\":\"\",\"addressLocality\":\"ST LAURENT BLANGY\",\"addressRegion\":\"ST LAURENT BLANGY\",\"addressCountry\":\"FR\"}}}"
+  ],
+  "meta": {
+    "og:title": "Example text",
+    "og:description": "Example text",
+    "description": "Example text"
+  }
+}

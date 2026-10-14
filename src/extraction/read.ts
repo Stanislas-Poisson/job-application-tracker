@@ -1,6 +1,7 @@
 import { adapterFor } from './adapters'
 import { type ReadOffer, findJobPostings, htmlToText, offerFromJobPosting } from './jobPosting'
 import type { PageSnapshot } from './page'
+import { completeSalary } from './salaryGuess'
 
 const clean = (value: string | undefined): string | undefined => {
   const text = value?.replace(/\s+/g, ' ').trim()
@@ -38,5 +39,7 @@ export function readSnapshot(snapshot: PageSnapshot, zone: string, now: Date = n
   const fromSite = adapter
     ? adapter.read(new DOMParser().parseFromString(snapshot.body ?? '', 'text/html'), snapshot, zone, now)
     : {}
-  return { ...fallback, ...fromSite, ...fromPosting }
+  const offer = { ...fallback, ...fromSite, ...fromPosting }
+  // Gross or net and the period, from the words around the same amount in the text, then a year unless the figure says otherwise.
+  return offer.salary ? { ...offer, salary: completeSalary(offer.salary, offer.description) } : offer
 }
