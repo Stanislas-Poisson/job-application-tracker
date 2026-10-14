@@ -74,6 +74,9 @@ export interface Settings {
   timeZone: string
   // Lets a language file take the place of a language of the extension, to try a translation before sending it.
   developerMode: boolean
+  // The keys of the pages (search, moving between the cards and moving a card). Left on, since a person who needs them finds them;
+  // off for whom they clash with a screen reader or a keyboard of their own (WCAG 2.1.4).
+  shortcuts: boolean
   // How dates are written: "auto" follows the language. The pattern is the one of the "custom" format. Relative dates say how long ago.
   dateFormat: DateFormat
   timeFormat: TimeFormat
@@ -137,6 +140,7 @@ export const DEFAULT_SETTINGS: Settings = {
   motion: 'auto',
   timeZone: 'auto',
   developerMode: false,
+  shortcuts: true,
   dateFormat: 'auto',
   timeFormat: 'auto',
   dateCustom: DEFAULT_PATTERN,
@@ -191,6 +195,7 @@ const VALID: {
   motion: oneOf(MOTIONS),
   timeZone: (value) => 'auto' === value || isValidTimeZone(value),
   developerMode: (value) => 'boolean' === typeof value,
+  shortcuts: (value) => 'boolean' === typeof value,
   dateFormat: oneOf(DATE_FORMATS),
   timeFormat: oneOf(TIME_FORMATS),
   dateCustom: isPattern,

@@ -246,3 +246,11 @@ describe('the colours of the messages in the style sheet', () => {
     }
   })
 })
+
+describe('the shortcuts setting', () => {
+  it('is on by default, and a stored value that is not a boolean is not kept', () => {
+    expect(DEFAULT_SETTINGS.shortcuts).toBe(true)
+    expect(normalizeSettings({ shortcuts: false }).shortcuts).toBe(false)
+    expect(normalizeSettings({ shortcuts: 'no' }).shortcuts).toBe(true)
+  })
+})

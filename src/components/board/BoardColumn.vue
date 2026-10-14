@@ -32,6 +32,7 @@
   <section
     class="column"
     :class="{ over }"
+    :data-status="status.id"
     :aria-labelledby="`column-${status.id}`"
     @dragover.prevent="over = true"
     @dragleave="over = false"

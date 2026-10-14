@@ -7,5 +7,11 @@
   },
   "extDescription": {
     "message": "見た求人を保存し、応募の状況を管理します。データはすべてブラウザー内に保存されます。"
+  },
+  "commandPopup": {
+    "message": "このページの求人を保存"
+  },
+  "commandBoard": {
+    "message": "ボードを開く"
   }
 }

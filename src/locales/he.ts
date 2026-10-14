@@ -54,6 +54,7 @@ const he: TranslationObject = {
     },
   },
   board: {
+    movedTo: 'הועבר אל {status}.',
     backupLate: 'הגיבוי האחרון שלכם בן {days} ימים.',
     backupNever: 'עדיין לא גיבִּיתם את הנתונים שלכם.',
     backupLater: 'מאוחר יותר',
@@ -421,6 +422,16 @@ const he: TranslationObject = {
     needsPassphrase: 'הקלידו קודם את הסיסמה.',
   },
   a11y: { skip: 'דלג לתוכן' },
+  keyboard: {
+    title: 'מקלדת',
+    enable: 'קיצורי מקלדת בדפים',
+    hint: 'כבו אותם אם הם מפריעים לקורא המסך או למקלדת שלכם. מקשי הדפדפן, להלן, נקבעים בדפדפן ולא כאן.',
+    search: 'מעבר לחיפוש בלוח',
+    cards: 'מעבר מכרטיס לכרטיס',
+    move: 'העברת הכרטיס לעמודה הבאה או הקודמת',
+    browser:
+      'בדפדפן, כברירת מחדל: Alt+Shift+J שומר את המשרה של הדף, Alt+Shift+L פותח את הלוח. שנו אותם בקיצורי הדפדפן (דף ההרחבות של Chrome ו-Edge, מנהל הקיצורים של התוספים ב-Firefox).',
+  },
   notice: {
     region: 'הודעות',
     close: 'סגירה',

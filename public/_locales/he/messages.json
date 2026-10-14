@@ -7,5 +7,11 @@
   },
   "extDescription": {
     "message": "שומר את המשרות שראיתם ועוקב אחרי כל מועמדות. הכול נשאר בדפדפן שלכם."
+  },
+  "commandPopup": {
+    "message": "שמירת המשרה של דף זה"
+  },
+  "commandBoard": {
+    "message": "פתיחת הלוח"
   }
 }

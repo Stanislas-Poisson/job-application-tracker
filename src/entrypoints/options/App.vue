@@ -5,6 +5,7 @@
   import DataTools from '../../components/options/DataTools.vue'
   import ExchangeSetting from '../../components/options/ExchangeSetting.vue'
   import FreelanceRate from '../../components/options/FreelanceRate.vue'
+  import KeyboardSetting from '../../components/options/KeyboardSetting.vue'
   import LanguageSetting from '../../components/options/LanguageSetting.vue'
   import MapSetting from '../../components/options/MapSetting.vue'
   import MoneySetting from '../../components/options/MoneySetting.vue'
@@ -34,6 +35,7 @@
     <div class="options-grid">
       <section class="card"><LanguageSetting /></section>
       <section class="card"><AppearanceSetting /></section>
+      <section class="card"><KeyboardSetting /></section>
       <section class="card"><RegionalSetting /></section>
       <section class="card"><MoneySetting /></section>
       <section class="card"><ExchangeSetting /></section>
