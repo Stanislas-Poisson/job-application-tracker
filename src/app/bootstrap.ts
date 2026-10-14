@@ -12,6 +12,7 @@ import { browserAdapter } from '../persistence/adapter'
 import { refreshRates } from '../services/rates'
 import { type Settings, loadSettings, syncSettings } from '../settings'
 import { CONTEXT_KEY } from './context'
+import { installFieldAccessibility } from './fieldAccessibility'
 
 // Starts a page of the extension: the settings and the store loaded from the storage, then the page itself.
 export async function mountApp(root: Component, selector = '#app') {
@@ -53,6 +54,7 @@ export async function mountApp(root: Component, selector = '#app') {
 
   const app = createApp(root)
   app.use(pinia)
+  installFieldAccessibility(app)
   app.provide(CONTEXT_KEY, {
     translator: createTranslator(settings.locale),
     persistence,

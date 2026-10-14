@@ -77,8 +77,15 @@
 
 <style lang="scss">
   dialog.drawer {
-    width: min(32rem, 94vw);
+    width: min(36rem, 94vw);
     max-width: none;
+  }
+
+  // On a wide window the drawer is wider too: the fields that sit side by side (period, gross or net) keep their words.
+  @media (width >= 1200px) {
+    dialog.drawer {
+      width: min(46rem, 94vw);
+    }
   }
 
   .drawer-content {

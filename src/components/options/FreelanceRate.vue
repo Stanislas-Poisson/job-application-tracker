@@ -183,6 +183,7 @@
     v-else-if="'impossible' === outcome"
     id="freelance-impossible"
     class="error"
+    role="alert"
   >
     {{ t('freelance.impossible') }}
   </p>

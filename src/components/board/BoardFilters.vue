@@ -72,6 +72,7 @@
       <FormSelect
         :model-value="view.sort"
         name="sort"
+        :data-label="t('filters.sort')"
         :options="sortOptions"
         :label="t('filters.sort')"
         :field="false"

@@ -71,6 +71,7 @@
   <p
     v-if="message"
     class="success"
+    role="status"
   >
     {{ message }}
   </p>

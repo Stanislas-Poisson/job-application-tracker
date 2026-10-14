@@ -22,12 +22,12 @@
 </script>
 
 <template>
-  <main class="page page-narrow">
+  <main class="page page-options">
     <AppHeader :title="t('options.title')">
       <a :href="boardUrl">{{ t('nav.board') }}</a>
     </AppHeader>
 
-    <div class="stack">
+    <div class="options-grid">
       <section class="card"><LanguageSetting /></section>
       <section class="card"><AppearanceSetting /></section>
       <section class="card"><RegionalSetting /></section>
