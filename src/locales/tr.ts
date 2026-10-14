@@ -428,7 +428,7 @@ const tr: TranslationObject = {
   keyboard: {
     title: 'Klavye',
     enable: 'Sayfalardaki klavye kısayolları',
-    hint: 'Ekran okuyucunuza ya da kendi klavyenize engel oluyorlarsa kapatın. Aşağıdaki tarayıcı tuşları burada değil, tarayıcıda ayarlanır.',
+    hint: 'Varsayılan olarak kapalı, çünkü tek karakterlik bir tuş ekran okuyucu ya da kendi klavyenizle çakışabilir. İstiyorsanız açın. Aşağıdaki tarayıcı tuşları burada değil, tarayıcıda ayarlanır.',
     search: 'Panonun aramasına git',
     cards: 'Bir karttan diğerine geç',
     move: 'Kartı sonraki veya önceki sütuna taşı',

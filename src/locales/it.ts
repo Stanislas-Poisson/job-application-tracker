@@ -431,7 +431,7 @@ const it: TranslationObject = {
   keyboard: {
     title: 'Tastiera',
     enable: 'Scorciatoie da tastiera nelle pagine',
-    hint: 'Disattivale se intralciano il tuo lettore di schermo o la tua tastiera. I tasti del browser, qui sotto, si impostano nel browser e non qui.',
+    hint: 'Disattivate di default, perché un tasto singolo può entrare in conflitto con un lettore di schermo o con la tua tastiera. Attivale se le vuoi. I tasti del browser, qui sotto, si impostano nel browser e non qui.',
     search: 'Vai alla ricerca della bacheca',
     cards: 'Passa da una scheda all’altra',
     move: 'Sposta la scheda nella colonna successiva o precedente',
