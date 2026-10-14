@@ -223,6 +223,7 @@
     <p
       v-if="problem"
       class="error"
+      role="alert"
     >
       {{ problem }}
     </p>

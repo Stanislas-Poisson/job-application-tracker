@@ -56,8 +56,24 @@
     <p
       v-if="failed"
       class="error"
+      role="alert"
     >
       {{ t('board.backupFailed') }}
     </p>
   </section>
 </template>
+
+<style lang="scss">
+  // The reminder is a line of text and its actions, wrapping when the room is short (the card would stack them otherwise).
+  #backup-reminder {
+    flex-flow: row wrap;
+    margin-block-end: 1rem;
+    gap: 0.5rem 0.75rem;
+    align-items: center;
+
+    > p {
+      flex: 1 1 16rem;
+      margin: 0;
+    }
+  }
+</style>

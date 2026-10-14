@@ -161,6 +161,7 @@
     <p
       v-if="message"
       :class="failed ? 'error' : 'success'"
+      :role="failed ? 'alert' : 'status'"
     >
       {{ message }}
     </p>

@@ -111,6 +111,7 @@
       <p
         v-if="patternProblem"
         class="error"
+        role="alert"
       >
         {{ t('regional.dateCustomProblem', { max: MAX_PATTERN }) }}
       </p>

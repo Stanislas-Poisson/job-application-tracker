@@ -72,6 +72,7 @@
       <FormInput
         v-model="form.due"
         name="reminderDue"
+        :data-label="t('interactions.when')"
         type="datetime-local"
       />
       <p class="muted">{{ t('drawer.timeZoneHint', { zone: format.timeZone.value }) }}</p>

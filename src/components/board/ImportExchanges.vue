@@ -299,6 +299,7 @@
           <p
             v-if="issuesOf(row.draft).length"
             class="error"
+            role="alert"
           >
             {{
               issuesOf(row.draft)
