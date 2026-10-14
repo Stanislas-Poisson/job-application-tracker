@@ -5,6 +5,7 @@ import {
   POLL_MINUTES,
   applicationOfNotification,
   checkReminders,
+  sendTestNotification,
 } from '../background/reminders'
 import { keyOf } from '../persistence'
 import { browserAdapter } from '../persistence/adapter'
@@ -85,6 +86,17 @@ export default defineBackground(() => {
       void browser.notifications.clear(id)
     })
   }
+
+  // The options ask for a test notification (the developer mode, to see a translation as it shows).
+  browser.runtime.onMessage.addListener((message: unknown) => {
+    if ('jat:test-notification' !== (message as { type?: string } | null)?.type) {
+      return undefined
+    }
+    return sendTestNotification(env).then(
+      () => ({ ok: true }),
+      () => ({ ok: false })
+    )
+  })
 
   browser.runtime.onInstalled.addListener(check)
   browser.runtime.onStartup.addListener(check)

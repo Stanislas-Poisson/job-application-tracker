@@ -16,7 +16,7 @@ import {
   loadCustomLanguages,
   removeCustomLanguage,
 } from '../../src/customLanguages'
-import { createTranslator, ensureLocale, resolveLocale } from '../../src/i18n'
+import { createTranslator, ensureLocale, loadLocale, resolveLocale } from '../../src/i18n'
 import { applyLanguage } from '../../src/languages'
 import { memoryAdapter } from '../../src/persistence/adapter'
 
@@ -268,12 +268,18 @@ describe('a code of the user: private use, the shipped codes, and the developer 
     expect(normalizeStoredLanguages([old], { developer: true }).map((language) => language.code)).toEqual(['es'])
   })
 
-  it('shows the texts of a language of the user over the ones of the extension in the developer mode', () => {
+  it('shows the texts of a language of the user over the ones of the extension in the developer mode', async () => {
     const replacement = validateLanguage(file({ nav: { board: 'Mi tablero' } }, { code: 'es' }), { developer: true })
     if (!replacement.ok) throw new Error('refused')
     installed.value = [replacement.language]
     expect(createTranslator('es', 'en').__('nav.board')).toBe('Mi tablero')
+    // The replacement is there already: the language of the extension is not read over it.
+    const replaced = createTranslator('es', 'en')
+    await loadLocale(replaced, 'es')
+    expect(replaced.__('nav.board')).toBe('Mi tablero')
     installed.value = []
-    expect(createTranslator('es', 'en').__('nav.board')).toBe('Tablero')
+    const shipped = createTranslator('es', 'en')
+    await loadLocale(shipped, 'es')
+    expect(shipped.__('nav.board')).toBe('Tablero')
   })
 })

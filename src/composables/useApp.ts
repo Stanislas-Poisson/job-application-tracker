@@ -1,6 +1,6 @@
 import { inject } from 'vue'
 import { CONTEXT_KEY } from '../app/context'
-import { ensureLocale, pluralText, resolveLocale } from '../i18n'
+import { ensureLocale, pluralText, resolveLocale, speakable } from '../i18n'
 import { defaultNamePath } from '../services/defaultNames'
 
 export function useApp() {
@@ -13,7 +13,7 @@ export function useApp() {
   const t = (path: string, replacements?: Record<string, string | number>) => {
     const locale = resolveLocale(context.settings.locale, navigator.language)
     ensureLocale(context.translator, locale)
-    context.translator.setLocale(locale)
+    context.translator.setLocale(speakable(context.translator, locale))
     return context.translator.__(path, replacements)
   }
 
@@ -21,7 +21,7 @@ export function useApp() {
   const tn = (path: string, count: number, replacements?: Record<string, string | number>) => {
     const locale = resolveLocale(context.settings.locale, navigator.language)
     ensureLocale(context.translator, locale)
-    context.translator.setLocale(locale)
+    context.translator.setLocale(speakable(context.translator, locale))
     return pluralText(context.translator, locale, path, count, replacements)
   }
 

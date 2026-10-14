@@ -1,18 +1,35 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { SHIPPED } from '../../src/customLanguage'
-import { createTranslator, resolveLocale } from '../../src/i18n'
+import { createTranslator, loadLocale, resolveLocale } from '../../src/i18n'
 import { LANGUAGES } from '../../src/languages'
-import ar from '../../src/locales/ar'
-import de from '../../src/locales/de'
 import en from '../../src/locales/en'
-import es from '../../src/locales/es'
-import fr from '../../src/locales/fr'
-import it2 from '../../src/locales/it'
-import nl from '../../src/locales/nl'
-import pt from '../../src/locales/pt'
 
-const OTHERS = { fr, es, de, it: it2, nl, pt, ar } as Record<string, unknown>
+// Every language but English, read the way the extension reads them (one file each), so that a file added is tested without
+// being listed here.
+const files = import.meta.glob<{ default: Record<string, unknown> }>(
+  ['../../src/locales/*.ts', '!../../src/locales/en.ts'],
+  {
+    eager: true,
+  }
+)
+const notifyFiles = import.meta.glob<{ default: Record<string, unknown> }>('../../src/locales/notify/*.ts', {
+  eager: true,
+})
+const NOTIFY = Object.fromEntries(
+  Object.entries(notifyFiles).map(([path, module]) => [path.replace(/^.*\/(.+)\.ts$/, '$1'), module.default])
+) as Record<string, Record<string, unknown>>
+
+// The texts of the notifications are in a file of their own for each language; the other files do not have them, English
+// (which is the template of a language file) has them through its own.
+const withoutNotify = (messages: Record<string, unknown>): Record<string, unknown> => {
+  const { notify: _notify, ...rest } = messages
+  return rest
+}
+
+const OTHERS = Object.fromEntries(
+  Object.entries(files).map(([path, module]) => [path.replace(/^.*\/(.+)\.ts$/, '$1'), module.default])
+) as Record<string, unknown>
 
 const CATEGORIES = ['zero', 'one', 'two', 'few', 'many', 'other']
 
@@ -47,8 +64,21 @@ describe('translations', () => {
   it('has the same keys in every language as in English', () => {
     for (const [code, messages] of Object.entries(OTHERS)) {
       expect(paths(messages as Record<string, unknown>).sort(), code).toEqual(
-        paths(en as Record<string, unknown>).sort()
+        paths(withoutNotify(en as Record<string, unknown>)).sort()
       )
+    }
+  })
+
+  it('has the texts of the notifications in every language, with the same keys and placeholders as English', () => {
+    expect(Object.keys(NOTIFY).sort()).toEqual([...SHIPPED].sort())
+    expect(en.notify).toEqual(NOTIFY.en)
+    for (const [code, texts] of Object.entries(NOTIFY)) {
+      expect(paths(texts).sort(), code).toEqual(paths(NOTIFY.en ?? {}).sort())
+      for (const path of paths(NOTIFY.en ?? {})) {
+        expect(placeholders(valueAt(texts, path)), `${code} ${path}`).toEqual(
+          placeholders(valueAt(NOTIFY.en ?? {}, path))
+        )
+      }
     }
   })
 
@@ -58,7 +88,7 @@ describe('translations', () => {
   })
 
   it('has the same placeholders in every language as in English, and a plural text has an "other" form', () => {
-    for (const path of paths(en as Record<string, unknown>)) {
+    for (const path of paths(withoutNotify(en as Record<string, unknown>))) {
       const english = valueAt(en as Record<string, unknown>, path)
       for (const [code, messages] of Object.entries(OTHERS)) {
         const other = valueAt(messages as Record<string, unknown>, path)
@@ -82,7 +112,7 @@ describe('translations', () => {
 
   it('has no empty text', () => {
     const translator = createTranslator('en', 'en')
-    for (const path of paths(en as Record<string, unknown>)) {
+    for (const path of paths(withoutNotify(en as Record<string, unknown>))) {
       expect(translator.__(path)).not.toBe('')
     }
   })
@@ -111,10 +141,26 @@ describe('translations', () => {
     expect(resolveLocale('fr', 'en-US')).toBe('fr')
   })
 
-  it('translates', () => {
-    expect(createTranslator('es', 'en').__('nav.board')).toBe('Tablero')
-    expect(createTranslator('ar', 'en').__('nav.board')).toBe('اللوحة')
-    expect(createTranslator('fr', 'en').__('nav.board')).toBe('Tableau')
+  it('translates once the language is read, and speaks English until then', async () => {
+    const spanish = createTranslator('es', 'en')
+    expect(spanish.__('nav.board')).not.toBe('Tablero')
+    await loadLocale(spanish, 'es')
+    expect(spanish.__('nav.board')).toBe('Tablero')
+    for (const [code, text] of [
+      ['ar', 'اللوحة'],
+      ['fr', 'Tableau'],
+    ] as const) {
+      const translator = createTranslator(code, 'en')
+      await loadLocale(translator, code)
+      expect(translator.__('nav.board')).toBe(text)
+    }
     expect(createTranslator('en', 'fr').__('nav.board')).toBe('Board')
+  })
+
+  it('reads a language once and keeps English in the page without reading it', async () => {
+    const translator = createTranslator('fr', 'en')
+    expect(translator.getAvailableLocales()).toEqual(['en'])
+    await Promise.all([loadLocale(translator, 'fr'), loadLocale(translator, 'fr'), loadLocale(translator, 'en')])
+    expect(translator.getAvailableLocales().sort()).toEqual(['en', 'fr'])
   })
 })

@@ -4,6 +4,7 @@
   import { computed, reactive, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
+  import { notifyUndo } from '../../composables/useNotices'
   import { type Application, Journey } from '../../models'
   import { DIRECTIONS, LEG_MODES, type LegMode } from '../../models/Journey'
   import {
@@ -18,10 +19,11 @@
     totalMeters,
     totalMinutes,
   } from '../../services/journeys'
+  import { deleteWithUndo } from '../../services/undo'
 
   const props = defineProps<{ application: Application }>()
 
-  const { t } = useApp()
+  const { t, persistence } = useApp()
 
   const offerId = computed(() => props.application.jobOfferId ?? '')
   // Reading the journeys makes the list follow every change, in this page and in the others.
@@ -119,10 +121,11 @@
     }
   }
 
-  function remove(journey: Journey) {
-    if (window.confirm(t('journeys.confirmDelete'))) {
-      deleteJourney(journey.id)
-    }
+  async function remove(journey: Journey) {
+    const undo = await deleteWithUndo(persistence, () => deleteJourney(journey.id))
+    notifyUndo(t('journeys.removed'), t('notice.undo'), async () => {
+      await undo()
+    })
   }
 </script>
 

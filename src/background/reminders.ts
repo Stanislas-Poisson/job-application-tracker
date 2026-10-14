@@ -1,6 +1,6 @@
 import { normalizeStoredLanguages } from '../customLanguage'
-import { LANGUAGES_KEY, installed } from '../customLanguages'
-import { createTranslator, pluralText, resolveLocale } from '../i18n'
+import { LANGUAGES_KEY } from '../customLanguages'
+import { pluralText } from '../localeCore'
 import { SCHEMA_KEY, SCHEMA_VERSION, keyOf } from '../persistence'
 import type { StorageAdapter } from '../persistence/adapter'
 import {
@@ -15,6 +15,7 @@ import {
 import { SETTINGS_KEY, normalizeSettings } from '../settings'
 import { formatMoment } from '../utils/dateFormat'
 import { resolveTimeZone } from '../utils/time'
+import { notifyTranslator, sampleCounts } from './notifyTexts'
 
 export const NOTIFIED_KEY = 'jat:notified'
 export const ALARM_NEXT = 'jat-reminder-next'
@@ -87,10 +88,8 @@ export async function checkReminders(env: BackgroundEnv): Promise<CheckResult> {
   const notified: Notified = { ...(stored[NOTIFIED_KEY] as Notified | undefined) }
 
   // The language in use may be one the user added from a file.
-  installed.value = normalizeStoredLanguages(stored[LANGUAGES_KEY], { developer: settings.developerMode })
-  const translator = createTranslator(settings.locale, env.language)
-  translator.setLocale(resolveLocale(settings.locale, env.language))
-  const locale = resolveLocale(settings.locale, env.language)
+  const languages = normalizeStoredLanguages(stored[LANGUAGES_KEY], { developer: settings.developerMode })
+  const { translator, locale } = notifyTranslator(languages, settings.locale, env.language)
   const timeZone = resolveTimeZone(settings.timeZone)
 
   const style = {
@@ -156,4 +155,23 @@ export async function checkReminders(env: BackgroundEnv): Promise<CheckResult> {
 
   await env.scheduleNext(next)
   return { notified: told, next }
+}
+
+export const TEST_ID = 'reminders:test'
+
+/**
+ * A notification that shows every text of the notifications in the language in use: the title, a line for each plural form the
+ * language has, and the line "and more". It is for someone who writes a translation (in the developer mode, the file they
+ * added is the one used) and wants to see it as it will show. Rejects when the notification cannot be shown.
+ */
+export async function sendTestNotification(env: BackgroundEnv): Promise<void> {
+  const stored = await env.adapter.get([SETTINGS_KEY, LANGUAGES_KEY])
+  const settings = normalizeSettings(stored[SETTINGS_KEY])
+  const languages = normalizeStoredLanguages(stored[LANGUAGES_KEY], { developer: settings.developerMode })
+  const { translator, locale } = notifyTranslator(languages, settings.locale, env.language)
+  const lines = [
+    ...sampleCounts(locale).map((count) => pluralText(translator, locale, 'notify.many', count)),
+    translator.__('notify.more', { count: new Intl.NumberFormat(locale).format(3) }),
+  ]
+  await env.notify(TEST_ID, translator.__('notify.title'), lines.join('\n'), settings.notifyPersistent)
 }
