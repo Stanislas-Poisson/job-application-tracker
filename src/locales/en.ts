@@ -139,6 +139,7 @@ const en: TranslationObject = {
     theme: 'Theme',
     accent: 'Accent colour',
     vision: 'Vision',
+    contrast: 'Contrast',
     textTitle: 'Text',
     font: 'Font',
     fontCustom: 'Name of the font',
@@ -154,7 +155,9 @@ const en: TranslationObject = {
     densities: { comfortable: 'Comfortable', compact: 'Compact' },
     motions: { auto: 'Follow the system', reduce: 'Reduce movement' },
     visionHint:
-      'The colour-blind modes use colours that stay apart for red-green or blue-yellow colour blindness, and give each column a shape. High contrast makes the text and the lines stronger.',
+      'The colour-blind modes use colours that stay apart for red-green or blue-yellow colour blindness. The mode without colour keeps a single grey. Each one gives every column a shape and the messages a sign.',
+    contrastHint:
+      'High contrast makes the text and the lines stronger. Following the system turns it on when the system asks for more contrast or forces its colours, and it comes before a custom theme.',
     themes: {
       auto: 'Follow the system',
       light: 'Light',
@@ -169,11 +172,12 @@ const en: TranslationObject = {
       pink: 'Pink',
       orange: 'Orange',
     },
+    contrasts: { auto: 'Follow the system', standard: 'Standard', high: 'High contrast' },
     visions: {
       standard: 'Standard',
       'red-green': 'Red-green colour blindness',
       'blue-yellow': 'Blue-yellow colour blindness',
-      'high-contrast': 'High contrast',
+      monochrome: 'No colour (monochrome)',
     },
   },
   regional: {

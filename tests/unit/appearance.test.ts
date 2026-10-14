@@ -1,10 +1,13 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import {
   ACCENT_SWATCHES,
   COLOUR_BLIND_PALETTE,
+  MONOCHROME_COLOUR,
   SHAPES,
   SPACINGS,
   applyAppearance,
+  columnShape,
   fontStack,
   statusColor,
   statusShape,
@@ -19,6 +22,7 @@ import {
   normalizeSettings,
   saveSettings,
 } from '../../src/settings'
+import { TEXT_RATIO, contrastRatio } from '../../src/utils/contrast'
 
 describe('settings', () => {
   it('has the defaults when nothing is stored', async () => {
@@ -58,6 +62,7 @@ describe('settings', () => {
 })
 
 const LOOKS = {
+  contrast: 'auto',
   customThemes: [] as never[],
   customThemeId: '',
   fontFamily: 'system',
@@ -141,11 +146,12 @@ describe('text appearance', () => {
 describe('appearance', () => {
   it('writes the choices on the root element', () => {
     const root = document.createElement('html')
-    applyAppearance(root, { ...LOOKS, theme: 'dark', accent: 'teal', vision: 'high-contrast' })
+    applyAppearance(root, { ...LOOKS, theme: 'dark', accent: 'teal', vision: 'monochrome', contrast: 'high' })
 
     expect(root.getAttribute('data-theme')).toBe('dark')
     expect(root.getAttribute('data-accent')).toBe('teal')
-    expect(root.getAttribute('data-vision')).toBe('high-contrast')
+    expect(root.getAttribute('data-vision')).toBe('monochrome')
+    expect(root.getAttribute('data-contrast')).toBe('high')
   })
 
   it('leaves the theme to the system when it is "auto"', () => {
@@ -156,9 +162,25 @@ describe('appearance', () => {
     expect(root.hasAttribute('data-theme')).toBe(false)
   })
 
-  it('keeps the colour of the user in the standard and high-contrast modes', () => {
+  it('keeps the colour of the user in the standard mode', () => {
     expect(statusColor('#123456', 2, 'standard')).toBe('#123456')
-    expect(statusColor('#123456', 2, 'high-contrast')).toBe('#123456')
+  })
+
+  it('gives every column the same grey to people who see no colour, the shape telling them apart', () => {
+    expect(new Set(Array.from({ length: 6 }, (_, index) => statusColor('#123456', index, 'monochrome'))).size).toBe(1)
+    expect(statusColor('#123456', 0, 'monochrome')).toBe(MONOCHROME_COLOUR)
+  })
+
+  it('has a colour for the columns that stays at 3:1 against the light and the dark surface', () => {
+    for (const colour of [...COLOUR_BLIND_PALETTE, MONOCHROME_COLOUR]) {
+      expect(contrastRatio(colour, '#ffffff')).toBeGreaterThanOrEqual(3)
+      expect(contrastRatio(colour, '#1e1e1e')).toBeGreaterThanOrEqual(3)
+    }
+  })
+
+  it('has a shape for every column whatever the mode, for the system that forces its colours', () => {
+    expect(columnShape(0)).not.toBe('')
+    expect(columnShape(SHAPES.length)).toBe(columnShape(0))
   })
 
   it('takes the colours of the safe palette in the colour-blind modes, and wraps around', () => {
@@ -191,5 +213,36 @@ describe('statusColor with a custom theme', () => {
     expect(statusColor('#123456', 2, 'red-green', true)).toBe('var(--column-2)')
     expect(statusColor('#123456', 9, 'standard', true)).toBe('var(--column-1)')
     expect(statusColor('#123456', 2, 'standard')).toBe('#123456')
+  })
+})
+
+describe('the colours of the messages in the style sheet', () => {
+  const css = readFileSync('src/assets/main.scss', 'utf8')
+  // The surface the text is on: the page background of the light and of the dark look.
+  const SURFACE = { light: '#fafafa', dark: '#1e1e1e' } as const
+
+  function block(mode: 'light' | 'dark', vision: string): Record<string, string> {
+    const match = new RegExp(`@include for-${mode}\\("\\[data-vision='${vision}'\\]"\\) \\{([^}]*)\\}`).exec(css)
+    const found: Record<string, string> = {}
+    for (const [, name, value] of (match?.[1] ?? '').matchAll(/(--[a-z-]+): (#[0-9a-f]{3,6});/gi)) {
+      // A short colour (#d3f) is the long one with each digit twice.
+      found[name as string] =
+        4 === value?.length ? `#${[...value.slice(1)].map((digit) => digit + digit).join('')}` : (value as string)
+    }
+    return found
+  }
+
+  it.each([
+    ['light', 'standard'],
+    ['light', 'red-green'],
+    ['dark', 'red-green'],
+    ['light', 'blue-yellow'],
+    ['dark', 'blue-yellow'],
+  ] as const)('keeps 4.5:1 against the page in the %s look of the %s vision', (mode, vision) => {
+    const colours = block(mode, vision)
+    expect(Object.keys(colours).sort()).toEqual(['--error', '--zk-info', '--zk-success', '--zk-warning'])
+    for (const colour of Object.values(colours)) {
+      expect(contrastRatio(colour, SURFACE[mode])).toBeGreaterThanOrEqual(TEXT_RATIO)
+    }
   })
 })

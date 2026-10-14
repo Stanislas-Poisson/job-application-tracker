@@ -19,8 +19,10 @@ import { isInstant, isValidTimeZone } from './utils/time'
 
 export const THEMES = ['auto', 'light', 'dark'] as const
 export const ACCENTS = ['slate', 'blue', 'teal', 'green', 'purple', 'pink', 'orange'] as const
-// Colour-blind modes change the colours and give each column a shape; high contrast thickens the lines and the text.
-export const VISIONS = ['standard', 'red-green', 'blue-yellow', 'high-contrast'] as const
+// The vision modes change the colours and give each column a shape: two colour-blind modes, and one for people who see no colour.
+export const VISIONS = ['standard', 'red-green', 'blue-yellow', 'monochrome'] as const
+// The contrast is apart from the vision, so that both can be chosen. "auto" follows the system (more contrast, forced colours).
+export const CONTRASTS = ['auto', 'standard', 'high'] as const
 
 // "auto", a language of the extension, or the code of a language the user added from a file (checked when it is used).
 export type Locale = string
@@ -28,6 +30,7 @@ const LOCALE_CODE = CODE
 export type ThemeMode = (typeof THEMES)[number]
 export type Accent = (typeof ACCENTS)[number]
 export type Vision = (typeof VISIONS)[number]
+export type Contrast = (typeof CONTRASTS)[number]
 
 // Rates fetched for a home currency: one unit of a currency in that home currency.
 export interface FetchedRates {
@@ -54,6 +57,7 @@ export interface Settings {
   theme: ThemeMode
   accent: Accent
   vision: Vision
+  contrast: Contrast
   // The themes of the user's own, and the one in use ("" for none).
   customThemes: CustomTheme[]
   customThemeId: string
@@ -122,6 +126,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'auto',
   accent: 'slate',
   vision: 'standard',
+  contrast: 'auto',
   customThemes: [],
   customThemeId: '',
   fontFamily: 'system',
@@ -175,6 +180,7 @@ const VALID: {
   theme: oneOf(THEMES),
   accent: oneOf(ACCENTS),
   vision: oneOf(VISIONS),
+  contrast: oneOf(CONTRASTS),
   customThemeId: (value) => 'string' === typeof value && 64 >= value.length,
   fontFamily: oneOf(FONT_FAMILIES),
   // The name of a font goes into a style: letters, digits, spaces, dots, dashes and underscores only.

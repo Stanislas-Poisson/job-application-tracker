@@ -138,6 +138,7 @@ const tr: TranslationObject = {
     theme: 'Tema',
     accent: 'Vurgu rengi',
     vision: 'Görme',
+    contrast: 'Karşıtlık',
     textTitle: 'Metin',
     font: 'Yazı tipi',
     fontCustom: 'Yazı tipinin adı',
@@ -158,7 +159,9 @@ const tr: TranslationObject = {
     densities: { comfortable: 'Rahat', compact: 'Sıkı' },
     motions: { auto: 'Sistemi izle', reduce: 'Hareketi azalt' },
     visionHint:
-      'Renk körlüğü modları, kırmızı-yeşil veya mavi-sarı renk körlüğünde birbirinden ayrı kalan renkler kullanır ve her sütuna bir şekil verir. Yüksek karşıtlık metni ve çizgileri güçlendirir.',
+      'Renk körlüğü kipleri, kırmızı-yeşil veya mavi-sarı renk körlüğünde ayrı kalan renkler kullanır. Renksiz kip tek bir gri tutar. Her kip her sütuna bir şekil, iletilere bir işaret verir.',
+    contrastHint:
+      'Yüksek karşıtlık metni ve çizgileri güçlendirir. Sistemi izle seçildiğinde sistem daha fazla karşıtlık istediğinde ya da renklerini zorladığında açılır ve özel bir temadan önce gelir.',
     themes: {
       auto: 'Sistemi izle',
       light: 'Açık',
@@ -173,11 +176,12 @@ const tr: TranslationObject = {
       pink: 'Pembe',
       orange: 'Turuncu',
     },
+    contrasts: { auto: 'Sistemi izle', standard: 'Standart', high: 'Yüksek karşıtlık' },
     visions: {
       standard: 'Standart',
       'red-green': 'Kırmızı-yeşil renk körlüğü',
       'blue-yellow': 'Mavi-sarı renk körlüğü',
-      'high-contrast': 'Yüksek karşıtlık',
+      monochrome: 'Renksiz (tek renkli)',
     },
   },
   regional: {
