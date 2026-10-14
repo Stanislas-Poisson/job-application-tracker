@@ -138,6 +138,7 @@ const ko: TranslationObject = {
     theme: '테마',
     accent: '강조 색상',
     vision: '시각',
+    contrast: '대비',
     textTitle: '글자',
     font: '글꼴',
     fontCustom: '글꼴 이름',
@@ -153,7 +154,9 @@ const ko: TranslationObject = {
     densities: { comfortable: '여유롭게', compact: '촘촘하게' },
     motions: { auto: '시스템 설정 따르기', reduce: '움직임 줄이기' },
     visionHint:
-      '색각 이상 모드는 적록 색약이나 청황 색약에서도 구분되는 색을 쓰고, 각 열에 모양을 부여합니다. 고대비는 글자와 선을 더 뚜렷하게 합니다.',
+      '색맹 모드는 적록색맹이나 청황색맹에서도 구분되는 색을 사용합니다. 색 없음 모드는 회색 하나만 사용합니다. 모든 모드는 각 열에 모양을, 메시지에 기호를 붙입니다.',
+    contrastHint:
+      '고대비는 글자와 선을 더 강하게 만듭니다. 시스템 따르기를 선택하면 시스템이 더 높은 대비를 요청하거나 색을 강제할 때 켜지며, 사용자 지정 테마보다 우선합니다.',
     themes: {
       auto: '시스템 설정 따르기',
       light: '밝게',
@@ -168,11 +171,12 @@ const ko: TranslationObject = {
       pink: '분홍',
       orange: '주황',
     },
+    contrasts: { auto: '시스템 따르기', standard: '표준', high: '고대비' },
     visions: {
       standard: '표준',
       'red-green': '적록 색약',
       'blue-yellow': '청황 색약',
-      'high-contrast': '고대비',
+      monochrome: '색 없음(단색)',
     },
   },
   regional: {

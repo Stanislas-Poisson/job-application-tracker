@@ -138,6 +138,7 @@ const zhHans: TranslationObject = {
     theme: '主题',
     accent: '强调色',
     vision: '视觉',
+    contrast: '对比度',
     textTitle: '文字',
     font: '字体',
     fontCustom: '字体名称',
@@ -152,7 +153,10 @@ const zhHans: TranslationObject = {
     spacings: { default: '常规', wide: '宽', wcag: '宽 (WCAG 1.4.12)', widest: '最宽' },
     densities: { comfortable: '舒适', compact: '紧凑' },
     motions: { auto: '跟随系统', reduce: '减少动效' },
-    visionHint: '色盲模式使用在红绿色盲或蓝黄色盲下仍能区分的颜色，并为每一列加上形状。高对比度会让文字和线条更醒目。',
+    visionHint:
+      '色盲模式使用在红绿色盲或蓝黄色盲下仍能区分的颜色。无颜色模式只保留一种灰色。每种模式都会为每一列加上形状，并为消息加上符号。',
+    contrastHint:
+      '高对比度会让文字和线条更醒目。选择跟随系统后，系统要求更高对比度或强制使用其颜色时会自动开启，并且优先于自定义主题。',
     themes: {
       auto: '跟随系统',
       light: '浅色',
@@ -167,11 +171,12 @@ const zhHans: TranslationObject = {
       pink: '粉色',
       orange: '橙色',
     },
+    contrasts: { auto: '跟随系统', standard: '标准', high: '高对比度' },
     visions: {
       standard: '标准',
       'red-green': '红绿色盲',
       'blue-yellow': '蓝黄色盲',
-      'high-contrast': '高对比度',
+      monochrome: '无颜色（单色）',
     },
   },
   regional: {

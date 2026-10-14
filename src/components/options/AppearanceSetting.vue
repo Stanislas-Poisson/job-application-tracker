@@ -6,6 +6,8 @@
   import {
     ACCENTS,
     type Accent,
+    CONTRASTS,
+    type Contrast,
     DENSITIES,
     type Density,
     FONT_FAMILIES,
@@ -26,6 +28,9 @@
 
   const themeOptions = computed(() =>
     Object.fromEntries(THEMES.map((theme) => [theme, t(`appearance.themes.${theme}`)]))
+  )
+  const contrastOptions = computed(() =>
+    Object.fromEntries(CONTRASTS.map((contrast) => [contrast, t(`appearance.contrasts.${contrast}`)]))
   )
   const visionOptions = computed(() =>
     Object.fromEntries(VISIONS.map((vision) => [vision, t(`appearance.visions.${vision}`)]))
@@ -91,6 +96,14 @@
       @update:model-value="updateSettings({ vision: String($event) as Vision })"
     />
     <p class="muted">{{ t('appearance.visionHint') }}</p>
+    <FormSelect
+      :model-value="settings.contrast"
+      name="contrast"
+      :label="t('appearance.contrast')"
+      :options="contrastOptions"
+      @update:model-value="updateSettings({ contrast: String($event) as Contrast })"
+    />
+    <p class="muted">{{ t('appearance.contrastHint') }}</p>
 
     <ThemeEditor />
 
