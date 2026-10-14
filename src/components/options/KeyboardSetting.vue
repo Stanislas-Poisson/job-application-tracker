@@ -127,7 +127,7 @@
       {{ t('keyboard.unknownLayout') }}
     </p>
 
-    <ul class="status-list key-list">
+    <ul class="key-list">
       <li
         v-for="action in KEY_ACTIONS"
         :key="action"
@@ -208,8 +208,19 @@
 </template>
 
 <style lang="scss">
-  .key-list .key-action {
-    flex: 1 1 12rem;
+  .key-list {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+
+    li {
+      flex-wrap: wrap;
+      padding: 0.35rem 0;
+    }
+
+    .key-action {
+      flex: 1 1 12rem;
+    }
   }
 
   .shortcuts {

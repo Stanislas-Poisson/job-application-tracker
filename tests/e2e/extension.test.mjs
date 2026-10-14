@@ -943,7 +943,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         }
         for (const el of document.body.querySelectorAll('*')) {
           const style = getComputedStyle(el);
-          if (style.display === 'none' || !el.textContent.trim()) continue;
+          // Text made for a screen reader and clipped on purpose is not text that is cut.
+          if (style.display === 'none' || !el.textContent.trim() || el.closest('.visually-hidden')) continue;
           const hides = ['hidden', 'clip'].includes(style.overflowX) || style.textOverflow === 'ellipsis';
           if (hides && el.scrollWidth > el.clientWidth + 1 && !el.closest('select, option, input, textarea')) {
             problems.push((el.className || el.tagName) + ' cuts its text (' + el.scrollWidth + ' > ' + el.clientWidth + ')');
