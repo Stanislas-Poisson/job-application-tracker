@@ -32,11 +32,15 @@
   <section
     class="column"
     :class="{ over }"
+    :aria-labelledby="`column-${status.id}`"
     @dragover.prevent="over = true"
     @dragleave="over = false"
     @drop.prevent="onDrop"
   >
-    <h2 :style="{ '--status': color }">
+    <h2
+      :id="`column-${status.id}`"
+      :style="{ '--status': color }"
+    >
       <span
         v-if="shape"
         class="shape"

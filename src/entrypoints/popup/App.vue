@@ -160,7 +160,12 @@
       v-if="'saved' === state"
       class="card stack"
     >
-      <p class="success">{{ t('popup.saved') }}</p>
+      <p
+        class="success"
+        role="status"
+      >
+        {{ t('popup.saved') }}
+      </p>
       <div class="row">
         <a
           :href="boardUrl"
@@ -225,6 +230,7 @@
       <p
         v-if="problem"
         class="error"
+        role="alert"
       >
         {{ problem }}
       </p>

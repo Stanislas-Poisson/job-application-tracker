@@ -47,19 +47,26 @@
   <article
     class="application-card"
     draggable="true"
-    tabindex="0"
     @dragstart="onDragStart"
     @click="emit('open')"
-    @keydown.enter="emit('open')"
   >
     <h3>
       <span
         v-if="application.isFavorite"
         class="card-star"
+        role="img"
+        :aria-label="t('labels.favorite')"
         :title="t('labels.favorite')"
         >&#9733;</span
       >
-      {{ strLimit(offer?.title ?? '', 70) }}
+      <!-- The one control of the card for the keyboard and for a screen reader: the card as a whole opens with a click. -->
+      <button
+        type="button"
+        class="card-open"
+        @click.stop="emit('open')"
+      >
+        {{ strLimit(offer?.title ?? '', 70) }}
+      </button>
     </h3>
     <p class="muted">
       {{ offer?.company?.name }}<template v-if="0 < clients.length"> → {{ clients.join(', ') }}</template
@@ -132,8 +139,29 @@
     cursor: grab;
 
     &:hover,
-    &:focus-visible {
+    &:focus-within {
       border-color: var(--primary);
+    }
+
+    .card-open {
+      padding: 0;
+      font: inherit;
+      color: inherit;
+      text-align: start;
+      cursor: pointer;
+      background: none;
+      border: 0;
+      border-radius: 0;
+      transition: none;
+
+      &:hover:not(:disabled) {
+        color: inherit;
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--zk-focus);
+        outline-offset: 2px;
+      }
     }
 
     h3 {

@@ -117,6 +117,7 @@
         v-if="SHIPPED.includes(pending.language.code)"
         id="language-replaces"
         class="error"
+        role="alert"
       >
         {{ t('customLanguage.replaces', { name: pending.language.code }) }}
       </p>
@@ -136,7 +137,12 @@
         {{ tn('customLanguage.unknown', pending.report.unknown.length) }}
       </p>
       <div v-if="0 < pending.report.problems.length">
-        <p class="error">{{ tn('customLanguage.problems', pending.report.problems.length) }}</p>
+        <p
+          class="error"
+          role="alert"
+        >
+          {{ tn('customLanguage.problems', pending.report.problems.length) }}
+        </p>
         <ul id="language-problems">
           <li
             v-for="problem in pending.report.problems.slice(0, 20)"
@@ -165,6 +171,7 @@
     <p
       v-if="message"
       :class="failed ? 'error' : 'success'"
+      :role="failed ? 'alert' : 'status'"
     >
       {{ message }}
     </p>
