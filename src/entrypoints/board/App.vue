@@ -130,7 +130,7 @@
 </script>
 
 <template>
-  <main class="page">
+  <main class="page page-wide">
     <AppHeader :title="t('board.title')">
       <a
         id="export-csv"
@@ -189,7 +189,7 @@
   .board {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: minmax(15rem, 1fr);
+    grid-auto-columns: minmax(12rem, 1fr);
     gap: 0.75rem;
     overflow-x: auto;
     padding-block-end: 0.5rem;

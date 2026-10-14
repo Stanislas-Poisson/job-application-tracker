@@ -46,6 +46,7 @@
     <p
       v-if="templateProblem"
       class="error"
+      role="alert"
     >
       {{ t('map.customProblem') }}
     </p>

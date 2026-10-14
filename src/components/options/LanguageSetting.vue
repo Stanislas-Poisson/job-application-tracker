@@ -30,6 +30,7 @@
   <FormSelect
     :model-value="settings.locale"
     name="language"
+    :data-label="t('options.language')"
     :options="options"
     @update:model-value="updateSettings({ locale: String($event) as Locale })"
   />

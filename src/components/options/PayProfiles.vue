@@ -222,6 +222,7 @@
   <p
     v-if="message"
     class="success"
+    role="status"
   >
     {{ message }}
   </p>
@@ -319,6 +320,7 @@
     <p
       v-if="problem"
       class="error"
+      role="alert"
     >
       {{ problem }}
     </p>
