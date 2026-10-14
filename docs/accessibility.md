@@ -42,6 +42,8 @@ A machine finds about a third of the problems: it does not replace a read with a
   vision keep 4.5:1 against their surface, and the ones of the columns 3:1 against the light and the dark surface; the colours
   of a colour-blind mode were chosen to stay apart under the simulation of protanopia, deuteranopia and tritanopia (Machado et
   al., 2009). The unit tests read the style sheet and fail under those ratios.
+- **Forced colours.** The background of a badge is gone, so it gets a line; the cards and columns do too. The grey of what is
+  disabled and of the hint of a field is the one of the system.
 - **Colour is never alone.** A column has a shape in every vision mode but the standard, and always when the system forces its
   colours (the dot of the column draws its shape); a message of error or success has a sign (⚠, ✓) in the same cases. The sign
   has an empty alternative text, since the role of the message already tells it to a screen reader.
