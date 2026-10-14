@@ -97,7 +97,6 @@ const nl: TranslationObject = {
     archive: 'Archiveren',
     unarchive: 'Herstellen',
     delete: 'Verwijderen',
-    confirmDelete: 'Deze sollicitatie met haar notities, herinneringen en tijdlijn verwijderen?',
     notes: 'Notities',
     notePlaceholder: 'Schrijf een notitie',
     addNote: 'De notitie toevoegen',
@@ -349,10 +348,6 @@ const nl: TranslationObject = {
       one: '{count} keer gebruikt',
       other: '{count} keer gebruikt',
     },
-    confirmDelete: {
-      one: 'Dit label zit op {count} ding. Het eraf halen?',
-      other: 'Dit label zit op {count} dingen. Het overal afhalen?',
-    },
     errors: {
       name: 'Geef het label een naam die niet door een ander label wordt gebruikt.',
       color: 'De kleur moet geschreven worden als #0072b2.',
@@ -427,7 +422,18 @@ const nl: TranslationObject = {
       'Dit is niet de wachtwoordzin die je hebt ingesteld. Een met een andere gemaakte back-up kan er niet mee worden geopend.',
     needsPassphrase: 'Typ eerst de wachtwoordzin.',
   },
+  notice: {
+    region: 'Berichten',
+    close: 'Sluiten',
+    undo: 'Ongedaan maken',
+    removed: 'Verwijderd: {name}.',
+  },
+  confirm: {
+    title: 'Bevestig alstublieft',
+    ok: 'Bevestigen',
+  },
   dirty: {
+    discard: 'Weggooien en sluiten',
     unsaved: 'Niet-opgeslagen wijzigingen',
     confirmClose: 'Een tekst die je typte is niet opgeslagen. Toch sluiten?',
   },
@@ -443,14 +449,6 @@ const nl: TranslationObject = {
       'Het pictogram van de extensie toont hoeveel herinneringen verlopen en niet gedaan zijn, met of zonder meldingen.',
     followUpHint:
       'Zodra je hebt gesolliciteerd, stelt de sollicitatie een herinnering voor om om 9 uur ’s ochtends op te volgen, in je tijdzone. Er wordt niets toegevoegd tot je akkoord gaat.',
-  },
-  notify: {
-    many: {
-      one: '{count} herinnering is verlopen',
-      other: '{count} herinneringen zijn verlopen',
-    },
-    more: 'en {count} meer',
-    title: 'Herinnering',
   },
   export: {
     link: 'Exporteren (CSV)',
@@ -590,7 +588,6 @@ const nl: TranslationObject = {
     duplicate: 'Dupliceren',
     delete: 'Verwijderen',
     copyOf: 'Kopie van {name}',
-    confirmDelete: 'Het profiel “{name}” verwijderen?',
     name: 'Naam',
     status: 'Status (leidinggevend, zzp…)',
     lines: 'Wat wordt afgehaald',
@@ -720,6 +717,7 @@ const nl: TranslationObject = {
     preview: 'Zoals de kaartdienst het te zien krijgt',
   },
   journeys: {
+    removed: 'Reis verwijderd.',
     title: 'Reizen naar het werk',
     hint: 'De heenweg in etappes, met de tijd van elk en het totaal: bijvoorbeeld te voet, bus, trein, metro, stoptrein, te voet. Je zoekt op de kaart en bewaart het resultaat hier. Er wordt niets voor je berekend.',
     none: 'Nog geen reis bewaard.',
@@ -730,7 +728,6 @@ const nl: TranslationObject = {
     addReturn: 'De terugweg toevoegen',
     addOutbound: 'De heenweg toevoegen',
     delete: 'Verwijderen',
-    confirmDelete: 'Deze reis verwijderen?',
     direction: 'Richting',
     name: 'Naam (optioneel)',
     nameHint: 'Met de trein',
@@ -793,7 +790,6 @@ const nl: TranslationObject = {
     previewButton: 'Een knop',
     export: 'Dit thema exporteren',
     delete: 'Dit thema verwijderen',
-    confirmDelete: 'Het thema “{name}” verwijderen?',
     imported: 'Het thema “{name}” is toegevoegd.',
     notATheme: 'Dit bestand is geen thema van deze extensie.',
     tooMany: 'Er zijn al zoveel thema’s als er bewaard kunnen worden. Verwijder er eerst een.',
@@ -820,6 +816,10 @@ const nl: TranslationObject = {
   },
   customLanguage: {
     developer: 'Ontwikkelaarsmodus',
+    testNotification: 'Een testmelding sturen',
+    testNotificationSent: 'De testmelding is verzonden.',
+    testNotificationFailed:
+      'De melding kon niet worden getoond. Zet eerst de meldingen van de herinneringen aan (en sta ze toe).',
     developerHint:
       'Laat een taalbestand, alleen op deze computer, de plaats innemen van een taal van de extensie, om een vertaling te controleren voordat je haar instuurt. Het bestand wordt gecontroleerd zoals altijd en je ziet het resultaat voordat er iets wordt bewaard. Als je dit uitzet, blijft dat bestand een eigen taal, met een code die eindigt op -x-mine.',
     replaces: 'Dit bestand vervangt de taal “{name}” van de extensie, alleen op deze computer.',
@@ -841,7 +841,6 @@ const nl: TranslationObject = {
     keep: 'Deze taal toevoegen',
     added: 'De taal “{name}” is toegevoegd. Kies haar in de lijst hierboven.',
     tooMany: 'Er zijn al {max} talen toegevoegd. Verwijder er eerst een.',
-    confirmRemove: 'De taal “{name}” verwijderen?',
     errors: {
       'too-big': 'Dit bestand is te groot om een taalbestand te zijn.',
       json: 'Dit bestand is geen geldige JSON.',

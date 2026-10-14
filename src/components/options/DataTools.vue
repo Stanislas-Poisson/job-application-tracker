@@ -3,7 +3,9 @@
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { useBackup } from '../../composables/useBackup'
+  import { confirmAction } from '../../composables/useConfirm'
   import { useFormat } from '../../composables/useFormat'
+  import { say } from '../../composables/useNotices'
   import { type RestorePlan, importData, planRestore, settingsFromExport, wipeData } from '../../services/data'
   import { type EncryptedFile, WrongPassphraseError, decryptText, isEncryptedFile } from '../../services/encryption'
   import { type MergePlan, mergeData, planMerge } from '../../services/mergeData'
@@ -16,15 +18,8 @@
   const format = useFormat()
   const { needs, protect, backup: backupToChosenFile } = useBackup()
 
-  const message = ref('')
-  const failed = ref(false)
   // Choosing a file is only offered by the browsers that can write to a file again later.
   const canChoose = 'function' === typeof (window as { showSaveFilePicker?: unknown }).showSaveFilePicker
-
-  function say(text: string, error = false) {
-    message.value = text
-    failed.value = error
-  }
 
   async function backup(forceChoice = false) {
     try {
@@ -66,7 +61,6 @@
       if (isEncryptedFile(content)) {
         // A protected backup: the passphrase is asked before anything can be read.
         locked.value = content
-        message.value = ''
         return
       }
       await prepare(content)
@@ -83,7 +77,6 @@
     } else {
       pending.value = { content, plan: planRestore(content), checksum }
     }
-    message.value = ''
   }
 
   // A protected backup waits for its passphrase. A wrong one, or a file that was changed, fails and changes nothing.
@@ -169,7 +162,7 @@
   }
 
   async function wipe() {
-    if (window.confirm(t('options.confirmWipe'))) {
+    if (await confirmAction({ message: t('options.confirmWipe'), danger: true })) {
       // Deleting everything leaves nothing behind: not even in the trash.
       await persistence.forget(() => {
         wipeData()
@@ -452,11 +445,4 @@
       >
     </div>
   </section>
-  <p
-    v-if="message"
-    :class="failed ? 'error' : 'success'"
-    :role="failed ? 'alert' : 'status'"
-  >
-    {{ message }}
-  </p>
 </template>

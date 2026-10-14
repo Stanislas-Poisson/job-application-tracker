@@ -5,6 +5,7 @@
   import { useApp } from '../../composables/useApp'
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
   import { useFormat } from '../../composables/useFormat'
+  import { say } from '../../composables/useNotices'
   import { type Application, Contact } from '../../models'
   import { CHANNELS, DIRECTIONS, type Direction } from '../../models/Interaction'
   import {
@@ -40,8 +41,6 @@
   })
   const rows = ref<Row[]>([])
   useDirtyGuard(() => hasText(pasted.text))
-  const message = ref('')
-  const failed = ref(false)
 
   const context = () => ({ timeZone: format.timeZone.value, ownAddresses: settings.ownEmails })
 
@@ -71,7 +70,6 @@
       selected: 0 === issuesOf(draft).length,
       when: '',
     }))
-    message.value = ''
   }
 
   function preview() {
@@ -92,7 +90,6 @@
   async function readFiles(event: Event) {
     const input = event.target as HTMLInputElement
     const drafts: ExchangeDraft[] = []
-    failed.value = false
     for (const file of Array.from(input.files ?? [])) {
       const text = await file.text()
       const name = file.name.toLowerCase()
@@ -101,8 +98,7 @@
       } else if (name.endsWith('.json') || name.endsWith('.csv')) {
         const parsed = name.endsWith('.json') ? draftsFromJson(text, context()) : draftsFromCsv(text, context())
         if (null !== parsed.error) {
-          failed.value = true
-          message.value = t(`import.errors.${parsed.error}`, { file: file.name })
+          say(t(`import.errors.${parsed.error}`, { file: file.name }), true)
           input.value = ''
           return
         }
@@ -112,8 +108,7 @@
     input.value = ''
     show(drafts)
     if (0 === drafts.length) {
-      failed.value = true
-      message.value = t('import.nothing')
+      say(t('import.nothing'), true)
     }
   }
 
@@ -141,8 +136,7 @@
       importable.value.map((row) => row.draft),
       props.application.id
     )
-    failed.value = false
-    message.value = t('import.done', { added: result.added, duplicates: result.duplicates, skipped: result.skipped })
+    say(t('import.done', { added: result.added, duplicates: result.duplicates, skipped: result.skipped }))
     rows.value = []
     pasted.text = ''
   }
@@ -230,14 +224,6 @@
           @change="readFiles"
         />
       </label>
-
-      <p
-        v-if="message"
-        :class="failed ? 'error' : 'success'"
-        role="status"
-      >
-        {{ message }}
-      </p>
 
       <ul
         v-if="rows.length"

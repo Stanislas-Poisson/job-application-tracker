@@ -5,7 +5,7 @@ import { applyAppearance } from '../appearance'
 import '../assets/main.scss'
 import { warnBeforeLeaving } from '../composables/useDirty'
 import { LANGUAGES_KEY, loadCustomLanguages } from '../customLanguages'
-import { createTranslator, resolveLocale } from '../i18n'
+import { createTranslator, loadLocale, resolveLocale } from '../i18n'
 import { applyLanguage } from '../languages'
 import { createPersistence } from '../persistence'
 import { browserAdapter } from '../persistence/adapter'
@@ -13,6 +13,7 @@ import { refreshRates } from '../services/rates'
 import { type Settings, loadSettings, syncSettings } from '../settings'
 import { CONTEXT_KEY } from './context'
 import { installFieldAccessibility } from './fieldAccessibility'
+import { shell } from './shell'
 
 // Starts a page of the extension: the settings and the store loaded from the storage, then the page itself.
 export async function mountApp(root: Component, selector = '#app') {
@@ -38,6 +39,7 @@ export async function mountApp(root: Component, selector = '#app') {
   // written, and the page says why.
   if (persistence.newer) {
     const translator = createTranslator(settings.locale)
+    await loadLocale(translator, resolveLocale(settings.locale, navigator.language))
     translator.setLocale(resolveLocale(settings.locale, navigator.language))
     createApp({
       render: () =>
@@ -52,11 +54,15 @@ export async function mountApp(root: Component, selector = '#app') {
   // A setting changed in another page changes this one too, and a setting changed here is written one by one.
   const { update: updateSettings } = syncSettings(browserAdapter, settings)
 
-  const app = createApp(root)
+  // The language in use is read before the page is drawn, so that it never shows in English first.
+  const translator = createTranslator(settings.locale)
+  await loadLocale(translator, resolveLocale(settings.locale, navigator.language))
+
+  const app = createApp(shell(root))
   app.use(pinia)
   installFieldAccessibility(app)
   app.provide(CONTEXT_KEY, {
-    translator: createTranslator(settings.locale),
+    translator,
     persistence,
     settings,
     updateSettings,

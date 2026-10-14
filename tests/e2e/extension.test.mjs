@@ -464,7 +464,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.executeScript(
         `[...document.querySelectorAll('details.import button')].find((b) => /Import 1/.test(b.textContent)).click()`
       )
-      await waitFor(async () => /1 added/.test(await text('details.import [role=status]')), { message: 'the result' })
+      await waitFor(async () => /1 added/.test(await text('#notices')), { message: 'the result' })
 
       const saved = await waitFor(async () => (await stored()).length > before && (await stored()), {
         message: 'the exchange to be stored',
@@ -478,7 +478,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.executeScript(
         `[...document.querySelectorAll('details.import button')].find((b) => /Import 1/.test(b.textContent)).click()`
       )
-      await waitFor(async () => /1 already there/.test(await text('details.import [role=status]')), {
+      await waitFor(async () => /1 already there/.test(await text('#notices')), {
         message: 'the duplicate to be seen',
       })
 
@@ -502,7 +502,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.executeScript(
         `[...document.querySelectorAll('details.import button')].find((b) => /Import 1/.test(b.textContent)).click()`
       )
-      await waitFor(async () => /1 added/.test(await text('details.import [role=status]')), {
+      await waitFor(async () => /1 added/.test(await text('#notices')), {
         message: 'the result of the file',
       })
       fs.rmSync(file)
@@ -734,8 +734,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       fs.writeFileSync(file, JSON.stringify({ hello: 'world' }))
       await open('options', '#restore-file')
       await css('#restore-file').then((input) => input.sendKeys(file))
-      await waitFor(async () => (await all('.error')).length > 0, { message: 'the error' })
-      assert.match(await text('.error'), /not an export/)
+      await waitFor(async () => (await all('#notices [data-variant=error]')).length > 0, { message: 'the error' })
+      assert.match(await text('#notices [data-variant=error]'), /not an export/)
       assert.equal((await all('#restore-preview')).length, 0)
       fs.unlinkSync(file)
     })
@@ -765,7 +765,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         await waitFor(async () => (await all('#merge-preview')).length === 0, { message: 'the merge to be applied' })
       } catch (error) {
         throw new Error(
-          `${error.message} / page says: ${(await all('.error')).length ? await text('.error') : 'nothing'}`
+          `${error.message} / page says: ${(await all('#notices [data-variant=error]')).length ? await text('#notices [data-variant=error]') : 'nothing'}`
         )
       }
 
@@ -975,7 +975,6 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
     test('a custom theme changes the colours at once, warns about a contrast that is too low, and corrects it', async () => {
       await open('options', 'select[name=theme]')
-      await driver.executeScript('window.confirm = () => true')
       await choose('select[name=theme]', 'light')
       await type('input[name=newTheme]', 'Warm')
       await driver.executeScript(`document.querySelector('input[name=newTheme]').form.requestSubmit()`)
@@ -1019,7 +1018,6 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       // Delete it and leave things as they were.
       await open('options', '#theme-editor')
-      await driver.executeScript('window.confirm = () => true')
       await driver.executeScript(
         `[...document.querySelectorAll('#theme-editor button')].find((b) => b.textContent.trim() === 'Delete this theme').click()`
       )
@@ -1073,8 +1071,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       )
       await open('options', '#language-file')
       await css('#language-file').then((input) => input.sendKeys(file))
-      await waitFor(async () => (await all('.error')).length > 0, { message: 'the refusal' })
-      assert.match(await text('.error'), /already in the extension/)
+      await waitFor(async () => (await all('#notices [data-variant=error]')).length > 0, { message: 'the refusal' })
+      assert.match(await text('#notices [data-variant=error]'), /already in the extension/)
 
       await driver.executeScript(`document.querySelector('input[name=developerMode]').click()`)
       await css('#language-file').then((input) => input.sendKeys(file))
@@ -1142,13 +1140,12 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         })
       )
       await open('options', '#language-file')
-      await driver.executeScript('window.confirm = () => true')
       // A file that is not a language file is refused with its reason.
       const wrong = path.join(os.tmpdir(), `jat-wrong-${Date.now()}.json`)
       fs.writeFileSync(wrong, JSON.stringify({ hello: 'world' }))
       await css('#language-file').then((input) => input.sendKeys(wrong))
-      await waitFor(async () => (await all('.error')).length > 0, { message: 'the error' })
-      assert.match(await text('.error'), /not a language file/)
+      await waitFor(async () => (await all('#notices [data-variant=error]')).length > 0, { message: 'the error' })
+      assert.match(await text('#notices [data-variant=error]'), /not a language file/)
       fs.unlinkSync(wrong)
 
       await css('#language-file').then((input) => input.sendKeys(file))
@@ -1175,7 +1172,6 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       // Removing it: the page is back to English.
       await open('options', '#language-installed')
-      await driver.executeScript('window.confirm = () => true')
       await driver.executeScript(`document.querySelector('#language-installed button').click()`)
       await waitFor(async () => (await all('#language-installed')).length === 0, {
         message: 'the language to be removed',
@@ -1284,8 +1280,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       await type('#restore-passphrase', 'a wrong passphrase')
       await driver.executeScript(`document.querySelector('#restore-locked').requestSubmit()`)
-      await waitFor(async () => (await all('.error')).length > 0, { message: 'the error' })
-      assert.match(await text('.error'), /wrong/)
+      await waitFor(async () => (await all('#notices [data-variant=error]')).length > 0, { message: 'the error' })
+      assert.match(await text('#notices [data-variant=error]'), /wrong/)
       assert.equal((await all('#restore-preview')).length, 0)
 
       await type('#restore-passphrase', PASSPHRASE)
@@ -1317,35 +1313,36 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await waitFor(async () => (await all('#offer-unsaved')).length > 0, { message: 'the unsaved mark' })
       assert.equal(await save.isEnabled(), true)
 
-      // Closing asks first. Declining cancels the closing: the drawer stays, with what was typed.
+      // Closing asks first, in a dialog of the extension. Declining cancels the closing: the drawer stays, with what was typed.
       const cancelled = await driver.executeScript(`
-        window.__asked = 0;
-        window.confirm = () => { window.__asked++; return false };
         const event = new Event('cancel', { cancelable: true });
-        document.querySelector('dialog[open]').dispatchEvent(event);
-        return [window.__asked, event.defaultPrevented];
+        document.querySelector('dialog[open]:not(#confirm-dialog)').dispatchEvent(event);
+        return event.defaultPrevented;
       `)
-      assert.deepEqual(cancelled, [1, true])
+      assert.equal(cancelled, true)
+      await waitFor(async () => (await all('#confirm-dialog[open]')).length === 1, { message: 'the question' })
+      await driver.executeScript(`document.querySelector('#confirm-dialog button[value=cancel]').click()`)
+      await waitFor(async () => (await all('#confirm-dialog')).length === 0, { message: 'the question to go' })
       assert.equal((await all('dialog[open]')).length, 1)
       assert.equal(
         await css('.drawer-content input[name=location]').then((input) => input.getAttribute('value')),
         'Somewhere else'
       )
 
-      // Accepting lets it close.
-      const accepted = await driver.executeScript(`
-        window.confirm = () => true;
-        const event = new Event('cancel', { cancelable: true });
-        document.querySelector('dialog[open]').dispatchEvent(event);
-        return event.defaultPrevented;
-      `)
-      assert.equal(accepted, false)
-
       // Saving makes the form clean again.
       await save.click()
       await waitFor(async () => (await all('#offer-unsaved')).length === 0, { message: 'the mark to go' })
       assert.equal(await save.isEnabled(), false)
-      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      // Typing again and closing: accepting lets it close.
+      await type('.drawer-content input[name=location]', 'Elsewhere again')
+      await waitFor(async () => (await all('#offer-unsaved')).length > 0, { message: 'the unsaved mark again' })
+      await driver.executeScript(
+        `document.querySelector('dialog[open]:not(#confirm-dialog)').dispatchEvent(new Event('cancel', { cancelable: true }))`
+      )
+      await waitFor(async () => (await all('#confirm-dialog[open]')).length === 1, { message: 'the question again' })
+      await driver.executeScript(`document.querySelector('#confirm-dialog button[value=confirm]').click()`)
+      await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the drawer to close' })
     })
 
     test('the popup gives back what was typed and not saved, and forgets it once the offer is saved', async () => {
@@ -1827,7 +1824,6 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const lines = await Promise.all(cards.map((card) => card.getText()))
       await cards[lines.findIndex((line) => /Follow me/.test(line))].click()
       await waitFor(async () => (await all('#new-journey')).length > 0, { message: 'the journeys section' })
-      await driver.executeScript('window.confirm = () => true')
 
       // Tours to Bussy-Saint-Georges: on foot, bus, train, metro, suburban train, on foot.
       const legs = [
@@ -1933,7 +1929,6 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await waitFor(async () => (await all('.journey[data-direction=outbound]')).length === 2, {
         message: 'the journeys again',
       })
-      await driver.executeScript('window.confirm = () => true')
       await driver.executeScript(`
         [...[...document.querySelectorAll('.journey[data-direction=outbound]')].find((j) => j.textContent.includes('By car')).querySelectorAll('.row button')].find((b) => b.textContent.trim() === 'Delete').click()
       `)
@@ -1944,13 +1939,34 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
     })
 
+    test('a deleted application can be undone from the message that tells it was deleted', async () => {
+      await open('board', '.application-card')
+      const before = (await all('.application-card')).length
+
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
+      const buttons = await all('.drawer-content button')
+      const labels = await Promise.all(buttons.map((button) => button.getText()))
+      await buttons[labels.indexOf('Delete')].click()
+      await waitFor(async () => (await all('.application-card')).length === before - 1, { message: 'the card to go' })
+
+      // No question is asked: the message says what was removed and offers to undo it.
+      assert.equal((await all('#confirm-dialog')).length, 0)
+      await waitFor(async () => (await all('#notices .notice-action')).length > 0, { message: 'the undo button' })
+      assert.match(await text('#notices'), /Removed/)
+      await css('#notices .notice-action').then((button) => button.click())
+      await waitFor(async () => (await all('.application-card')).length === before, {
+        message: 'the card to come back',
+      })
+      assert.equal((await all('#notices .notice-action')).length, 0)
+    })
+
     test('a deleted application goes to the trash, and comes back from it', async () => {
       await open('board', '.application-card')
       const before = (await all('.application-card')).length
 
       await css('.application-card').then((card) => card.click())
       await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
-      await driver.executeScript('window.confirm = () => true')
       const buttons = await all('.drawer-content button')
       const labels = await Promise.all(buttons.map((button) => button.getText()))
       await buttons[labels.indexOf('Delete')].click()

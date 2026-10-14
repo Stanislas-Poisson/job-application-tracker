@@ -517,3 +517,43 @@ footer {
 input[type="file"] {
   max-width: 100%;
 }
+
+// The messages over the page: the list of what was done, with a button when it can be undone. The container is a popover
+// (the top layer), so it stays above the drawer and the question dialog.
+.toast-container {
+  inset-block-end: 1rem;
+  inset-inline-end: 1rem;
+  max-inline-size: min(28rem, calc(100vw - 2rem));
+}
+
+.notice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.notice {
+  align-items: center;
+
+  &-action {
+    flex: none;
+    font-weight: 600;
+    text-decoration: underline;
+    background: transparent;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    min-block-size: 24px;
+    padding: 0 0.25rem;
+  }
+}
+
+// The question that cannot be undone says so by the colour of its confirm button.
+.confirm-danger button[value="confirm"] {
+  background: var(--error);
+  color: var(--on-error);
+}

@@ -1,4 +1,5 @@
 import type { TranslationObject } from '@zairakai/js-i18n'
+import notify from './notify/en'
 
 const en: TranslationObject = {
   app: { name: 'Job Application Tracker' },
@@ -97,7 +98,6 @@ const en: TranslationObject = {
     archive: 'Archive',
     unarchive: 'Restore',
     delete: 'Delete',
-    confirmDelete: 'Delete this application and its notes, reminders and timeline?',
     notes: 'Notes',
     notePlaceholder: 'Write a note',
     addNote: 'Add the note',
@@ -343,10 +343,6 @@ const en: TranslationObject = {
       one: 'used {count} time',
       other: 'used {count} times',
     },
-    confirmDelete: {
-      one: 'This tag is on {count} thing. Remove it from it?',
-      other: 'This tag is on {count} things. Remove it from all of them?',
-    },
     errors: {
       name: 'Give the tag a name that is not used by another tag.',
       color: 'The colour must be written like #0072b2.',
@@ -419,7 +415,18 @@ const en: TranslationObject = {
     notThePassphrase: 'This is not the passphrase you set. A backup made with another one could not be opened with it.',
     needsPassphrase: 'Type the passphrase first.',
   },
+  notice: {
+    region: 'Messages',
+    close: 'Close',
+    undo: 'Undo',
+    removed: 'Removed: {name}.',
+  },
+  confirm: {
+    title: 'Please confirm',
+    ok: 'Confirm',
+  },
   dirty: {
+    discard: 'Discard and close',
     unsaved: 'Unsaved changes',
     confirmClose: 'Some text you typed is not saved. Close anyway?',
   },
@@ -436,14 +443,7 @@ const en: TranslationObject = {
     followUpHint:
       'Once you have applied, the application offers a reminder to follow up at 9 in the morning, in your time zone. Nothing is added until you accept.',
   },
-  notify: {
-    many: {
-      one: '{count} reminder is due',
-      other: '{count} reminders are due',
-    },
-    more: 'and {count} more',
-    title: 'Reminder',
-  },
+  notify,
   export: {
     link: 'Export (CSV)',
     hint: {
@@ -581,7 +581,6 @@ const en: TranslationObject = {
     duplicate: 'Duplicate',
     delete: 'Delete',
     copyOf: 'Copy of {name}',
-    confirmDelete: 'Delete the profile "{name}"?',
     name: 'Name',
     status: 'Status (executive, freelance…)',
     lines: 'What is taken',
@@ -710,6 +709,7 @@ const en: TranslationObject = {
     preview: 'As the map service will be asked',
   },
   journeys: {
+    removed: 'Journey removed.',
     title: 'Journeys to work',
     hint: 'The way there in legs, with the time of each and the total: for instance on foot, bus, train, metro, suburban train, on foot. You search on the map and keep the result here. Nothing is computed for you.',
     none: 'No journey kept yet.',
@@ -720,7 +720,6 @@ const en: TranslationObject = {
     addReturn: 'Add the way back',
     addOutbound: 'Add the way there',
     delete: 'Delete',
-    confirmDelete: 'Delete this journey?',
     direction: 'Direction',
     name: 'Name (optional)',
     nameHint: 'By train',
@@ -783,7 +782,6 @@ const en: TranslationObject = {
     previewButton: 'A button',
     export: 'Export this theme',
     delete: 'Delete this theme',
-    confirmDelete: 'Delete the theme “{name}”?',
     imported: 'The theme “{name}” was added.',
     notATheme: 'This file is not a theme of this extension.',
     tooMany: 'There are already as many themes as can be kept. Delete one first.',
@@ -810,6 +808,10 @@ const en: TranslationObject = {
   },
   customLanguage: {
     developer: 'Developer mode',
+    testNotification: 'Send a test notification',
+    testNotificationSent: 'The test notification was sent.',
+    testNotificationFailed:
+      'The notification could not be shown. Turn the notifications of the reminders on first (and allow them).',
     developerHint:
       'Lets a language file take the place of a language of the extension, on this computer only, to check a translation before sending it. The file is checked as always and you see the result before anything is kept. When you turn this off, that file stays as a language of its own, with a code ending in -x-mine.',
     replaces: 'This file replaces the language “{name}” of the extension, on this computer only.',
@@ -831,7 +833,6 @@ const en: TranslationObject = {
     keep: 'Add this language',
     added: 'The language “{name}” was added. Choose it in the list above.',
     tooMany: 'There are already {max} languages added. Remove one first.',
-    confirmRemove: 'Remove the language “{name}”?',
     errors: {
       'too-big': 'This file is too big to be a language file.',
       json: 'This file is not valid JSON.',
