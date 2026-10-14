@@ -306,10 +306,11 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
     await choose('down', '\uE004')
     await waitFor(async () => (await all('[role=alert]')).length > 0, { message: 'the refusal said' })
     await press('\uE00C')
-    await css('button[name=key-down]').then(() =>
-      driver.executeScript(
-        `[...document.querySelectorAll('li.row')].find((row) => row.querySelector('[data-key=down]')).querySelectorAll('button')[1].click()`
-      )
+    // A key is set, then removed: it is a null, and not an absence.
+    await choose('down', 'j')
+    await waitFor(async () => (await saved()).down?.code === 'KeyJ', { message: 'the key of down saved' })
+    await driver.executeScript(
+      `[...document.querySelectorAll('li.row')].find((row) => row.querySelector('[data-key=down]')).querySelectorAll('button')[1].click()`
     )
     await waitFor(async () => (await saved()).down === null, { message: 'the key removed' })
 
