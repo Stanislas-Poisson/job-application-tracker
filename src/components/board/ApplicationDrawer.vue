@@ -82,7 +82,7 @@
   }
 
   // On a wide window the drawer is wider too: the fields that sit side by side (period, gross or net) keep their words.
-  @media (width >= 1280px) {
+  @media (width >= 1200px) {
     dialog.drawer {
       width: min(46rem, 94vw);
     }
