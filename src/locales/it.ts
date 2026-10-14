@@ -97,7 +97,6 @@ const it: TranslationObject = {
     archive: 'Archivia',
     unarchive: 'Ripristina',
     delete: 'Elimina',
-    confirmDelete: 'Eliminare questa candidatura con le sue note, i promemoria e la cronologia?',
     notes: 'Note',
     notePlaceholder: 'Scrivi una nota',
     addNote: 'Aggiungi la nota',
@@ -349,10 +348,6 @@ const it: TranslationObject = {
       one: 'usato {count} volta',
       other: 'usato {count} volte',
     },
-    confirmDelete: {
-      one: 'Questo tag è su {count} elemento. Rimuoverlo?',
-      other: 'Questo tag è su {count} elementi. Rimuoverlo da tutti?',
-    },
     errors: {
       name: 'Dai al tag un nome che non sia usato da un altro tag.',
       color: 'Il colore deve essere scritto come #0072b2.',
@@ -427,7 +422,18 @@ const it: TranslationObject = {
       "Questa non è la passphrase che hai impostato. Un backup fatto con un'altra non potrebbe essere aperto con essa.",
     needsPassphrase: 'Scrivi prima la passphrase.',
   },
+  notice: {
+    region: 'Messaggi',
+    close: 'Chiudi',
+    undo: 'Annulla',
+    removed: 'Rimosso: {name}.',
+  },
+  confirm: {
+    title: 'Conferma, per favore',
+    ok: 'Conferma',
+  },
   dirty: {
+    discard: 'Scarta e chiudi',
     unsaved: 'Modifiche non salvate',
     confirmClose: 'Un testo che hai scritto non è salvato. Chiudere comunque?',
   },
@@ -442,14 +448,6 @@ const it: TranslationObject = {
     badgeHint: "L'icona dell'estensione mostra quanti promemoria sono scaduti e non fatti, con o senza notifiche.",
     followUpHint:
       'Una volta inviata la candidatura, viene proposto un promemoria per sollecitare alle 9 del mattino, nel tuo fuso orario. Non viene aggiunto nulla finché non accetti.',
-  },
-  notify: {
-    many: {
-      one: '{count} promemoria è scaduto',
-      other: '{count} promemoria sono scaduti',
-    },
-    more: 'e altri {count}',
-    title: 'Promemoria',
   },
   export: {
     link: 'Esporta (CSV)',
@@ -589,7 +587,6 @@ const it: TranslationObject = {
     duplicate: 'Duplica',
     delete: 'Elimina',
     copyOf: 'Copia di {name}',
-    confirmDelete: 'Eliminare il profilo «{name}»?',
     name: 'Nome',
     status: 'Inquadramento (dirigente, freelance…)',
     lines: 'Cosa viene tolto',
@@ -720,6 +717,7 @@ const it: TranslationObject = {
     preview: 'Come verrà chiesto al servizio di mappe',
   },
   journeys: {
+    removed: 'Percorso rimosso.',
     title: 'Percorsi verso il lavoro',
     hint: "L'andata a tratte, con il tempo di ciascuna e il totale: per esempio a piedi, autobus, treno, metro, treno suburbano, a piedi. Cerchi sulla mappa e conservi qui il risultato. Non viene calcolato nulla al posto tuo.",
     none: 'Ancora nessun percorso conservato.',
@@ -730,7 +728,6 @@ const it: TranslationObject = {
     addReturn: 'Aggiungi il ritorno',
     addOutbound: "Aggiungi l'andata",
     delete: 'Elimina',
-    confirmDelete: 'Eliminare questo percorso?',
     direction: 'Direzione',
     name: 'Nome (facoltativo)',
     nameHint: 'In treno',
@@ -793,7 +790,6 @@ const it: TranslationObject = {
     previewButton: 'Un pulsante',
     export: 'Esporta questo tema',
     delete: 'Elimina questo tema',
-    confirmDelete: 'Eliminare il tema «{name}»?',
     imported: 'Il tema «{name}» è stato aggiunto.',
     notATheme: 'Questo file non è un tema di questa estensione.',
     tooMany: 'Ci sono già tanti temi quanti se ne possono conservare. Eliminane prima uno.',
@@ -820,6 +816,10 @@ const it: TranslationObject = {
   },
   customLanguage: {
     developer: 'Modalità sviluppatore',
+    testNotification: 'Invia una notifica di prova',
+    testNotificationSent: 'La notifica di prova è stata inviata.',
+    testNotificationFailed:
+      'Impossibile mostrare la notifica. Attiva prima le notifiche dei promemoria (e consentile).',
     developerHint:
       "Permette a un file di lingua di prendere il posto di una lingua dell'estensione, solo su questo computer, per controllare una traduzione prima di inviarla. Il file viene controllato come sempre e vedi il risultato prima che venga conservato qualcosa. Quando la disattivi, quel file resta come lingua a sé, con un codice che finisce con -x-mine.",
     replaces: "Questo file sostituisce la lingua «{name}» dell'estensione, solo su questo computer.",
@@ -841,7 +841,6 @@ const it: TranslationObject = {
     keep: 'Aggiungi questa lingua',
     added: "La lingua «{name}» è stata aggiunta. Sceglila nell'elenco qui sopra.",
     tooMany: 'Ci sono già {max} lingue aggiunte. Rimuovine prima una.',
-    confirmRemove: 'Rimuovere la lingua «{name}»?',
     errors: {
       'too-big': 'Questo file è troppo grande per essere un file di lingua.',
       json: 'Questo file non è un JSON valido.',

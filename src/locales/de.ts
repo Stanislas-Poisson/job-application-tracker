@@ -98,7 +98,6 @@ const de: TranslationObject = {
     archive: 'Archivieren',
     unarchive: 'Wiederherstellen',
     delete: 'Löschen',
-    confirmDelete: 'Diese Bewerbung mit ihren Notizen, Erinnerungen und ihrem Verlauf löschen?',
     notes: 'Notizen',
     notePlaceholder: 'Eine Notiz schreiben',
     addNote: 'Die Notiz hinzufügen',
@@ -352,10 +351,6 @@ const de: TranslationObject = {
       one: '{count}-mal verwendet',
       other: '{count}-mal verwendet',
     },
-    confirmDelete: {
-      one: 'Dieses Etikett ist an {count} Element gesetzt. Davon entfernen?',
-      other: 'Dieses Etikett ist an {count} Elementen gesetzt. Von allen entfernen?',
-    },
     errors: {
       name: 'Geben Sie dem Etikett einen Namen, den kein anderes Etikett verwendet.',
       color: 'Die Farbe muss wie #0072b2 geschrieben werden.',
@@ -430,7 +425,18 @@ const de: TranslationObject = {
       'Das ist nicht die Passphrase, die Sie festgelegt haben. Eine mit einer anderen erstellte Sicherung ließe sich damit nicht öffnen.',
     needsPassphrase: 'Geben Sie zuerst die Passphrase ein.',
   },
+  notice: {
+    region: 'Meldungen',
+    close: 'Schließen',
+    undo: 'Rückgängig',
+    removed: 'Entfernt: {name}.',
+  },
+  confirm: {
+    title: 'Bitte bestätigen',
+    ok: 'Bestätigen',
+  },
   dirty: {
+    discard: 'Verwerfen und schließen',
     unsaved: 'Nicht gespeicherte Änderungen',
     confirmClose: 'Ein eingegebener Text ist nicht gespeichert. Trotzdem schließen?',
   },
@@ -446,14 +452,6 @@ const de: TranslationObject = {
       'Das Symbol der Erweiterung zeigt, wie viele Erinnerungen fällig und nicht erledigt sind, mit oder ohne Benachrichtigungen.',
     followUpHint:
       'Sobald Sie sich beworben haben, schlägt die Bewerbung eine Erinnerung zum Nachfassen um 9 Uhr morgens in Ihrer Zeitzone vor. Es wird nichts hinzugefügt, bis Sie zustimmen.',
-  },
-  notify: {
-    many: {
-      one: '{count} Erinnerung ist fällig',
-      other: '{count} Erinnerungen sind fällig',
-    },
-    more: 'und {count} weitere',
-    title: 'Erinnerung',
   },
   export: {
     link: 'Exportieren (CSV)',
@@ -594,7 +592,6 @@ const de: TranslationObject = {
     duplicate: 'Duplizieren',
     delete: 'Löschen',
     copyOf: 'Kopie von {name}',
-    confirmDelete: 'Das Profil „{name}“ löschen?',
     name: 'Name',
     status: 'Status (leitend, freiberuflich…)',
     lines: 'Was abgezogen wird',
@@ -727,6 +724,7 @@ const de: TranslationObject = {
     preview: 'So wird der Kartendienst gefragt',
   },
   journeys: {
+    removed: 'Weg entfernt.',
     title: 'Wege zur Arbeit',
     hint: 'Der Hinweg in Abschnitten, mit der Zeit jedes Abschnitts und der Gesamtzeit: zum Beispiel zu Fuß, Bus, Zug, U-Bahn, S-Bahn, zu Fuß. Sie suchen auf der Karte und behalten das Ergebnis hier. Es wird nichts für Sie berechnet.',
     none: 'Noch kein Weg gespeichert.',
@@ -737,7 +735,6 @@ const de: TranslationObject = {
     addReturn: 'Den Rückweg hinzufügen',
     addOutbound: 'Den Hinweg hinzufügen',
     delete: 'Löschen',
-    confirmDelete: 'Diesen Weg löschen?',
     direction: 'Richtung',
     name: 'Name (optional)',
     nameHint: 'Mit dem Zug',
@@ -800,7 +797,6 @@ const de: TranslationObject = {
     previewButton: 'Eine Schaltfläche',
     export: 'Dieses Design exportieren',
     delete: 'Dieses Design löschen',
-    confirmDelete: 'Das Design „{name}“ löschen?',
     imported: 'Das Design „{name}“ wurde hinzugefügt.',
     notATheme: 'Diese Datei ist kein Design dieser Erweiterung.',
     tooMany: 'Es gibt bereits so viele Designs, wie gespeichert werden können. Löschen Sie zuerst eines.',
@@ -827,6 +823,10 @@ const de: TranslationObject = {
   },
   customLanguage: {
     developer: 'Entwicklermodus',
+    testNotification: 'Testbenachrichtigung senden',
+    testNotificationSent: 'Die Testbenachrichtigung wurde gesendet.',
+    testNotificationFailed:
+      'Die Benachrichtigung konnte nicht angezeigt werden. Schalte zuerst die Benachrichtigungen für Erinnerungen ein (und erlaube sie).',
     developerHint:
       'Erlaubt einer Sprachdatei, nur auf diesem Computer den Platz einer Sprache der Erweiterung einzunehmen, um eine Übersetzung vor dem Einsenden zu prüfen. Die Datei wird wie immer geprüft, und Sie sehen das Ergebnis, bevor etwas behalten wird. Wenn Sie das ausschalten, bleibt die Datei als eigene Sprache mit einem Code erhalten, der auf -x-mine endet.',
     replaces: 'Diese Datei ersetzt die Sprache „{name}“ der Erweiterung, nur auf diesem Computer.',
@@ -848,7 +848,6 @@ const de: TranslationObject = {
     keep: 'Diese Sprache hinzufügen',
     added: 'Die Sprache „{name}“ wurde hinzugefügt. Wählen Sie sie in der Liste oben.',
     tooMany: 'Es sind bereits {max} Sprachen hinzugefügt. Entfernen Sie zuerst eine.',
-    confirmRemove: 'Die Sprache „{name}“ entfernen?',
     errors: {
       'too-big': 'Diese Datei ist zu groß für eine Sprachdatei.',
       json: 'Diese Datei ist kein gültiges JSON.',

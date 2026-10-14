@@ -97,7 +97,6 @@ const pt: TranslationObject = {
     archive: 'Arquivar',
     unarchive: 'Restaurar',
     delete: 'Eliminar',
-    confirmDelete: 'Eliminar esta candidatura com as suas notas, lembretes e cronologia?',
     notes: 'Notas',
     notePlaceholder: 'Escreva uma nota',
     addNote: 'Adicionar a nota',
@@ -348,10 +347,6 @@ const pt: TranslationObject = {
       one: 'usada {count} vez',
       other: 'usada {count} vezes',
     },
-    confirmDelete: {
-      one: 'Esta etiqueta está em {count} elemento. Removê-la dele?',
-      other: 'Esta etiqueta está em {count} elementos. Removê-la de todos?',
-    },
     errors: {
       name: 'Dê à etiqueta um nome que não seja usado por outra etiqueta.',
       color: 'A cor deve ser escrita como #0072b2.',
@@ -424,7 +419,18 @@ const pt: TranslationObject = {
     notThePassphrase: 'Esta não é a frase-passe que definiu. Uma cópia feita com outra não poderia ser aberta com ela.',
     needsPassphrase: 'Escreva primeiro a frase-passe.',
   },
+  notice: {
+    region: 'Mensagens',
+    close: 'Fechar',
+    undo: 'Anular',
+    removed: 'Removido: {name}.',
+  },
+  confirm: {
+    title: 'Confirme, por favor',
+    ok: 'Confirmar',
+  },
   dirty: {
+    discard: 'Descartar e fechar',
     unsaved: 'Alterações por guardar',
     confirmClose: 'Algum texto que escreveu não está guardado. Fechar mesmo assim?',
   },
@@ -439,14 +445,6 @@ const pt: TranslationObject = {
     badgeHint: 'O ícone da extensão mostra quantos lembretes venceram e não estão feitos, com ou sem notificações.',
     followUpHint:
       'Depois de se candidatar, a candidatura propõe um lembrete para dar seguimento às 9 da manhã, no seu fuso horário. Nada é adicionado até aceitar.',
-  },
-  notify: {
-    many: {
-      one: '{count} lembrete venceu',
-      other: '{count} lembretes venceram',
-    },
-    more: 'e mais {count}',
-    title: 'Lembrete',
   },
   export: {
     link: 'Exportar (CSV)',
@@ -586,7 +584,6 @@ const pt: TranslationObject = {
     duplicate: 'Duplicar',
     delete: 'Eliminar',
     copyOf: 'Cópia de {name}',
-    confirmDelete: 'Eliminar o perfil «{name}»?',
     name: 'Nome',
     status: 'Situação (quadro superior, independente…)',
     lines: 'O que é retirado',
@@ -716,6 +713,7 @@ const pt: TranslationObject = {
     preview: 'Como será pedido ao serviço de mapas',
   },
   journeys: {
+    removed: 'Trajeto removido.',
     title: 'Trajetos para o trabalho',
     hint: 'O caminho de ida em troços, com o tempo de cada um e o total: por exemplo a pé, autocarro, comboio, metro, comboio suburbano, a pé. Pesquisa no mapa e guarda aqui o resultado. Nada é calculado por si.',
     none: 'Ainda não há nenhum trajeto guardado.',
@@ -726,7 +724,6 @@ const pt: TranslationObject = {
     addReturn: 'Adicionar a volta',
     addOutbound: 'Adicionar a ida',
     delete: 'Eliminar',
-    confirmDelete: 'Eliminar este trajeto?',
     direction: 'Sentido',
     name: 'Nome (opcional)',
     nameHint: 'De comboio',
@@ -789,7 +786,6 @@ const pt: TranslationObject = {
     previewButton: 'Um botão',
     export: 'Exportar este tema',
     delete: 'Eliminar este tema',
-    confirmDelete: 'Eliminar o tema «{name}»?',
     imported: 'O tema «{name}» foi adicionado.',
     notATheme: 'Este ficheiro não é um tema desta extensão.',
     tooMany: 'Já existem tantos temas quantos podem ser guardados. Elimine primeiro um.',
@@ -816,6 +812,10 @@ const pt: TranslationObject = {
   },
   customLanguage: {
     developer: 'Modo de programador',
+    testNotification: 'Enviar uma notificação de teste',
+    testNotificationSent: 'A notificação de teste foi enviada.',
+    testNotificationFailed:
+      'Não foi possível mostrar a notificação. Ative primeiro as notificações dos lembretes (e permita-as).',
     developerHint:
       'Permite que um ficheiro de idioma ocupe o lugar de um idioma da extensão, apenas neste computador, para verificar uma tradução antes de a enviar. O ficheiro é verificado como sempre e vê o resultado antes de se guardar o que quer que seja. Ao desativar, esse ficheiro fica como um idioma à parte, com um código que termina em -x-mine.',
     replaces: 'Este ficheiro substitui o idioma «{name}» da extensão, apenas neste computador.',
@@ -837,7 +837,6 @@ const pt: TranslationObject = {
     keep: 'Adicionar este idioma',
     added: 'O idioma «{name}» foi adicionado. Escolha-o na lista acima.',
     tooMany: 'Já há {max} idiomas adicionados. Remova primeiro um.',
-    confirmRemove: 'Remover o idioma «{name}»?',
     errors: {
       'too-big': 'Este ficheiro é demasiado grande para ser um ficheiro de idioma.',
       json: 'Este ficheiro não é um JSON válido.',

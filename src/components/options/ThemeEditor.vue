@@ -2,6 +2,7 @@
   import { FormButton, FormInput, FormSelect } from '@zairakai/vue-components/Form'
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { notifyUndo, say } from '../../composables/useNotices'
   import {
     type ContrastIssue,
     type CustomTheme,
@@ -25,14 +26,6 @@
   }))
 
   const name = ref('')
-  const message = ref('')
-  const failed = ref(false)
-
-  function say(text: string, error = false) {
-    message.value = text
-    failed.value = error
-  }
-
   // Changes the theme in use; the page follows at once, and so do the other pages.
   function change(updated: CustomTheme) {
     void updateSettings({ customThemes: themes.value.map((theme) => (theme.id === updated.id ? updated : theme)) })
@@ -46,7 +39,6 @@
     const theme = newTheme(name.value || t('customTheme.defaultName'))
     void updateSettings({ customThemes: [...themes.value, theme], customThemeId: theme.id })
     name.value = ''
-    say('')
   }
 
   function setColor(set: 'light' | 'dark', color: ThemeColor, value: string) {
@@ -72,9 +64,12 @@
   }
 
   function remove() {
-    if (current.value && window.confirm(t('customTheme.confirmDelete', { name: current.value.name }))) {
-      const id = current.value.id
+    if (current.value) {
+      const { id, name: removed } = current.value
+      const before = { customThemes: themes.value, customThemeId: settings.customThemeId }
       void updateSettings({ customThemes: themes.value.filter((theme) => theme.id !== id), customThemeId: '' })
+      // The themes are settings, not records: the message puts the list back as it was.
+      notifyUndo(t('notice.removed', { name: removed }), t('notice.undo'), () => void updateSettings(before))
     }
   }
 
@@ -158,14 +153,6 @@
         />
       </label>
     </form>
-    <p
-      v-if="message"
-      :class="failed ? 'error' : 'success'"
-      :role="failed ? 'alert' : 'status'"
-    >
-      {{ message }}
-    </p>
-
     <section
       v-if="current"
       id="theme-editor"

@@ -1,4 +1,5 @@
 import en from './locales/en'
+import { SHIPPED } from './shipped'
 
 // A language of the user's own: a file with the texts, checked against English before it is kept. The texts are shown by the
 // page as text (never as markup), but the file still comes from outside, so everything in it is checked: its size, its
@@ -125,8 +126,7 @@ function textProblem(text: unknown, allowed: string[], exact: boolean): Problem[
   return (exact ? sameSet : found.every((name) => allowed.includes(name))) ? null : 'placeholders'
 }
 
-// The languages the extension has: a file cannot take their place.
-export const SHIPPED = ['en', 'fr', 'es', 'de', 'it', 'pt', 'nl', 'ar']
+export { SHIPPED }
 
 function setPath(tree: Messages, path: string, value: unknown) {
   const keys = path.split('.')

@@ -5,9 +5,11 @@
   import { useApp } from '../../composables/useApp'
   import { useDirtyGuard } from '../../composables/useDirty'
   import { useFormat } from '../../composables/useFormat'
+  import { notifyUndo } from '../../composables/useNotices'
   import { type Application, JobOffer, Status } from '../../models'
   import { deleteApplication, findOrCreateCompany, moveApplication, setArchived } from '../../services/applications'
   import { SalaryError, salaryFromForm } from '../../services/salary'
+  import { deleteWithUndo } from '../../services/undo'
   import { countryName, listCountries } from '../../utils/contact'
   import { SALARY_KINDS, SALARY_PERIODS, currencyName, listCurrencies, minorToInput } from '../../utils/money'
 
@@ -144,13 +146,16 @@
     await persistence.flush()
   }
 
-  // A deletion is written at once: closing the tab right after must not bring the application back.
+  // A deletion is written at once: closing the tab right after must not bring the application back. It goes to the trash, and
+  // the message offers to put it back, with what went with it.
   async function remove() {
-    if (window.confirm(t('drawer.confirmDelete'))) {
-      deleteApplication(props.application.id)
-      emit('deleted')
-      await persistence.flush()
-    }
+    const title = props.application.jobOffer?.title ?? ''
+    const id = props.application.id
+    emit('deleted')
+    const undo = await deleteWithUndo(persistence, () => deleteApplication(id))
+    notifyUndo(t('notice.removed', { name: title }), t('notice.undo'), async () => {
+      await undo()
+    })
   }
 </script>
 

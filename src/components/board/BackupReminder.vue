@@ -3,6 +3,7 @@
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { useBackup } from '../../composables/useBackup'
+  import { say } from '../../composables/useNotices'
   import { backupDelay, hasData } from '../../services/backup'
   import PassphraseForm from '../PassphraseForm.vue'
 
@@ -11,15 +12,16 @@
 
   // "Later" hides the reminder for as long as the page is open: it comes back on the next visit, until a backup is made.
   const later = ref(false)
-  const failed = ref(false)
   const delay = computed(() => (later.value ? null : backupDelay(settings, hasData())))
 
   async function backup() {
-    failed.value = false
     try {
-      await backupToFile()
+      const name = await backupToFile()
+      if (null !== name) {
+        say(t('options.backedUp', { name }))
+      }
     } catch {
-      failed.value = true
+      say(t('board.backupFailed'), true)
     }
   }
 </script>
@@ -53,13 +55,6 @@
       v-if="needs"
       :mode="needs"
     />
-    <p
-      v-if="failed"
-      class="error"
-      role="alert"
-    >
-      {{ t('board.backupFailed') }}
-    </p>
   </section>
 </template>
 

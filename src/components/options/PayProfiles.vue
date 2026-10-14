@@ -5,6 +5,7 @@
   import { useApp } from '../../composables/useApp'
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
   import { useFormat } from '../../composables/useFormat'
+  import { notifyUndo, say } from '../../composables/useNotices'
   import { PayProfile } from '../../models'
   import {
     PayProfileError,
@@ -15,9 +16,10 @@
     savePayProfile,
   } from '../../services/netPay'
   import { PAY_EXAMPLES } from '../../services/payExamples'
+  import { deleteWithUndo } from '../../services/undo'
   import { countryName, listCountries } from '../../utils/contact'
 
-  const { t, settings, updateSettings } = useApp()
+  const { t, settings, updateSettings, persistence } = useApp()
   const format = useFormat()
 
   const profiles = computed(() => useRepo(PayProfile).orderBy('name').get())
@@ -33,7 +35,6 @@
   const editing = ref<string | null | undefined>(undefined)
   const form = reactive({ name: '', country: '', status: '', currency: 'EUR', notes: '', lines: [] as LineForm[] })
   const problem = ref('')
-  const message = ref('')
   const example = ref('')
   useDirtyGuard(() => undefined !== editing.value && hasText(form.name))
 
@@ -104,13 +105,19 @@
     editing.value = undefined
   }
 
-  function remove(profile: PayProfile) {
-    if (window.confirm(t('payProfiles.confirmDelete', { name: profile.name }))) {
-      deletePayProfile(profile.id)
-      if (settings.payProfileId === profile.id) {
-        void updateSettings({ payProfileId: '' })
-      }
+  // The profile goes to the trash; the message offers to put it back, and to select it again if it was the one in use.
+  async function remove(profile: PayProfile) {
+    const wasSelected = settings.payProfileId === profile.id
+    const undo = await deleteWithUndo(persistence, () => deletePayProfile(profile.id))
+    if (wasSelected) {
+      void updateSettings({ payProfileId: '' })
     }
+    notifyUndo(t('notice.removed', { name: profile.name }), t('notice.undo'), async () => {
+      await undo()
+      if (wasSelected) {
+        void updateSettings({ payProfileId: profile.id })
+      }
+    })
   }
 
   function copy(profile: PayProfile) {
@@ -121,7 +128,7 @@
     const found = PAY_EXAMPLES.find((candidate) => candidate.key === example.value)
     if (found) {
       savePayProfile(found)
-      message.value = t('payProfiles.added', { name: found.name })
+      say(t('payProfiles.added', { name: found.name }))
       example.value = ''
     }
   }
@@ -219,14 +226,6 @@
       >{{ t('payProfiles.new') }}</FormButton
     >
   </div>
-  <p
-    v-if="message"
-    class="success"
-    role="status"
-  >
-    {{ message }}
-  </p>
-
   <form
     v-if="undefined !== editing"
     id="pay-profile-form"

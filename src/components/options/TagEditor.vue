@@ -3,11 +3,13 @@
   import { useRepo } from 'pinia-orm'
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { notifyUndo } from '../../composables/useNotices'
   import { Tag } from '../../models'
   import { normalizeSymbol } from '../../services/symbol'
   import { TagError, createTag, deleteTag, recolorTag, renameTag, tagUsage } from '../../services/tags'
+  import { deleteWithUndo } from '../../services/undo'
 
-  const { t, tn } = useApp()
+  const { t, tn, persistence } = useApp()
 
   const name = ref('')
   const problem = ref('')
@@ -42,10 +44,13 @@
     useRepo(Tag).where('id', tag.id).update({ symbol })
   }
 
-  function remove(tag: Tag) {
-    if (0 === tagUsage(tag.id) || window.confirm(tn('labels.confirmDelete', tagUsage(tag.id)))) {
-      deleteTag(tag.id)
-    }
+  // The tag goes to the trash with its links; the message offers to put it back.
+  async function remove(tag: Tag) {
+    const name = tag.name
+    const undo = await deleteWithUndo(persistence, () => deleteTag(tag.id))
+    notifyUndo(t('notice.removed', { name }), t('notice.undo'), async () => {
+      await undo()
+    })
   }
 </script>
 
