@@ -1,0 +1,14 @@
+{
+  "url": "https://www.free-work.com/fr/tech-it/developpeur/job-mission/example",
+  "title": "Example job title | Free-work",
+  "jsonLd": [
+    "{\"@context\":\"http://schema.org/\",\"@type\":\"WebPage\",\"@id\":\"https://example.org/\",\"name\":\"Example Corp\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\",\"isPartOf\":{\"@type\":\"WebSite\",\"@id\":\"https://example.org/\",\"name\":\"Example Corp\",\"publisher\":{\"@type\":\"Organization\",\"@id\":\"https://example.org/\",\"name\":\"Example Corp\",\"address\":{\"@type\":\"PostalAddress\",\"@id\":\"https://example.org/\",\"addressLocality\":\"Boulogne-Billancourt\",\"addressCountry\":\"FR\",\"postalCode\":\"92100\",\"streetAddress\":\"1 rue de l’Exemple\"},\"foundingDate\":\"2003-12-01\"}}}",
+    "{\"@context\":\"http://schema.org/\",\"@type\":\"JobPosting\",\"@id\":\"https://example.org/\",\"title\":\"Example job title\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\",\"datePosted\":\"2026-10-13T11:03:08+02:00\",\"employmentType\":[\"CONTRACTOR\"],\"hiringOrganization\":{\"@type\":\"Organization\",\"@id\":\"https://example.org/\",\"name\":\"Example Corp\"},\"validThrough\":\"2026-12-12T11:03:08+01:00\",\"baseSalary\":{\"@type\":\"MonetaryAmount\",\"currency\":\"EUR\",\"value\":{\"@type\":\"QuantitativeValue\",\"value\":700,\"unitText\":\"DAY\"}},\"jobLocation\":{\"@type\":\"Place\",\"address\":{\"@type\":\"PostalAddress\",\"addressLocality\":\"Paris\",\"addressCountry\":\"FR\",\"addressRegion\":\"Île-de-France\"}}}"
+  ],
+  "meta": {
+    "og:title": "Example text",
+    "og:site_name": "Free-Work",
+    "og:description": "Example text",
+    "description": "Example text"
+  }
+}

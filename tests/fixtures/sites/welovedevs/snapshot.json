@@ -1,0 +1,13 @@
+{
+  "url": "https://welovedevs.com/fr/app/job/example",
+  "title": "Example job title",
+  "jsonLd": [
+    "{\"@context\":\"http://schema.org\",\"@type\":\"JobPosting\",\"baseSalary\":{\"@type\":\"MonetaryAmount\",\"currency\":\"EUR\",\"value\":{\"@type\":\"QuantitativeValue\",\"maxValue\":60000,\"minValue\":55000,\"unitText\":\"YEAR\"}},\"datePosted\":\"2026-10-13\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\",\"employmentType\":[\"FULL_TIME\"],\"hiringOrganization\":{\"@context\":\"http://schema.org\",\"@type\":\"Organization\",\"brand\":{\"@type\":\"Brand\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\",\"name\":\"Example Corp\"},\"location\":{\"@type\":\"Place\",\"address\":{\"@type\":\"PostalAddress\",\"addressCountry\":\"FR\",\"addressLocality\":\"Lille\",\"addressRegion\":\"Hauts-de-France\"},\"geo\":{\"@type\":\"GeoCoordinates\",\"latitude\":50.62925,\"longitude\":3.057256}},\"name\":\"Example Corp\"},\"industry\":\"Example industry\",\"jobLocation\":{\"@type\":\"Place\",\"address\":{\"@type\":\"PostalAddress\",\"addressCountry\":\"FR\",\"addressLocality\":\"Rennes\",\"addressRegion\":\"Bretagne\"},\"geo\":{\"@type\":\"GeoCoordinates\",\"latitude\":48.117266,\"longitude\":-1.6777926}},\"title\":\"Example job title\",\"validThrough\":\"2026-11-12\"}",
+    "{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Example Corp\",\"item\":\"https://example.org/\"},{\"@type\":\"ListItem\",\"position\":2,\"name\":\"Example Corp\"}]}"
+  ],
+  "meta": {
+    "og:title": "Example text",
+    "og:description": "Example text",
+    "description": "Example text"
+  }
+}

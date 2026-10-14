@@ -1,0 +1,13 @@
+{
+  "url": "https://www.welcometothejungle.com/fr/companies/example/jobs/example",
+  "title": "Example job title",
+  "jsonLd": [
+    "{\"@context\":\"http://schema.org\",\"@type\":\"JobPosting\",\"baseSalary\":{\"@type\":\"MonetaryAmount\",\"currency\":\"EUR\",\"value\":{\"@type\":\"QuantitativeValue\",\"minValue\":55000,\"maxValue\":null,\"unitText\":\"YEARLY\"}},\"datePosted\":\"2026-10-08T13:13:16Z\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\",\"employmentType\":\"FULL_TIME\",\"educationRequirements\":{\"@type\":\"EducationalOccupationalCredential\",\"credentialCategory\":\"Example text\"},\"experienceRequirements\":{\"@type\":\"OccupationalExperienceRequirements\",\"monthsOfExperience\":60},\"hiringOrganization\":{\"@type\":\"Organization\",\"name\":\"Example Corp\",\"address\":{\"@type\":\"PostalAddress\",\"addressLocality\":\"Paris\",\"postalCode\":\"75008\",\"streetAddress\":\"1 rue de l’Exemple\",\"addressRegion\":\"Paris\",\"addressCountry\":\"FR\"}},\"industry\":\"Example industry\",\"jobLocation\":[{\"@type\":\"Place\",\"address\":{\"@type\":\"PostalAddress\",\"addressLocality\":\"Courbevoie\",\"postalCode\":\"92400\",\"streetAddress\":\"1 rue de l’Exemple\",\"addressRegion\":\"Hauts-de-Seine\",\"addressCountry\":\"FR\"}}],\"qualifications\":\"Example qualification\",\"title\":\"Example job title\",\"validThrough\":\"2027-01-06T14:13:16.000Z\"}",
+    "{\"@context\":\"https://schema.org\",\"@type\":\"FAQPage\",\"mainEntity\":[{\"@type\":\"Question\",\"name\":\"Example Corp\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"Example text\"}},{\"@type\":\"Question\",\"name\":\"Example Corp\",\"acceptedAnswer\":{\"@type\":\"Answer\",\"text\":\"Example text\"}}]}"
+  ],
+  "meta": {
+    "og:title": "Example text",
+    "og:description": "Example text",
+    "description": "Example text"
+  }
+}

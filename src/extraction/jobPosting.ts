@@ -109,14 +109,18 @@ function countryCode(value: unknown): string | undefined {
   return raw && /^[A-Za-z]{2}$/.test(raw) ? raw.toUpperCase() : undefined
 }
 
+const CODE_REGION = /^[A-Z]{1,2}\d{1,2}$/
+
 // "Paris, Île-de-France, FR" from the address of the first place of the offer, and the address in fields when the page gives it
 // split (with the position of the place, if it gives one).
 function place(posting: Json): { location?: string; country?: string; address?: AddressParts } {
   const [first] = asList(posting.jobLocation as Json | Json[])
-  const address = isObject(first) ? first.address : undefined
-  if (!isObject(address)) {
-    return { location: text(address) }
+  const given = isObject(first) ? first.address : undefined
+  if (!isObject(given)) {
+    return { location: text(given) }
   }
+  // A region that is a code of the site and not a name ("A8") says nothing to the user: it is left out.
+  const address = CODE_REGION.test(text(given.addressRegion) ?? '') ? { ...given, addressRegion: undefined } : given
   const country = countryCode(address.addressCountry)
   // A country given as a code (FR) is kept apart: the board shows its name. A country given as a name stays in the text.
   const named =
