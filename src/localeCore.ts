@@ -9,12 +9,21 @@ export function resolveIn(available: readonly string[], setting: string, browser
     return available.includes(setting) ? setting : 'en'
   }
   const tag = browserLanguage.toLowerCase()
-  const exact = available.find((code) => code.toLowerCase() === tag)
-  if (exact) {
-    return exact
+  const find = (wanted: string) => available.find((code) => code.toLowerCase() === wanted)
+  // The tag as it is, then without its last part (zh-Hant-TW, zh-Hant, zh), down to the language.
+  const parts = tag.split('-')
+  for (let length = parts.length; 1 <= length; length--) {
+    const found = find(parts.slice(0, length).join('-'))
+    if (found) {
+      return found
+    }
   }
-  const language = tag.split('-')[0] ?? ''
-  return available.find((code) => code.toLowerCase() === language) ?? 'en'
+  // Chinese is written in two scripts: the browser says which by the script or by the region (zh-TW, zh-HK, zh-MO).
+  if ('zh' === parts[0]) {
+    const traditional = parts.includes('hant') || parts.some((part) => ['tw', 'hk', 'mo'].includes(part))
+    return find(traditional ? 'zh-hant' : 'zh-hans') ?? 'en'
+  }
+  return 'en'
 }
 
 // The texts of a language the user added: English with their texts over it, so that a text they left out is English.

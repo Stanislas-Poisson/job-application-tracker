@@ -1,0 +1,11 @@
+{
+  "extName": {
+    "message": "Job Application Tracker"
+  },
+  "extShortName": {
+    "message": "Job Tracker"
+  },
+  "extDescription": {
+    "message": "देखे हुए नौकरी विज्ञापन सहेजता है और हर आवेदन का हाल रखता है। सारा डेटा आपके ब्राउज़र में ही रहता है।"
+  }
+}
