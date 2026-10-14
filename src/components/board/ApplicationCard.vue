@@ -131,8 +131,11 @@
     margin-block-end: 0.4rem;
   }
 
+  // A long word (a name, a title in German) breaks where it must, and does not go out of the card.
   .application-card {
+    min-inline-size: 0;
     padding: 0.7rem 0.8rem;
+    overflow-wrap: anywhere;
     background: var(--surface);
     border: 1px solid var(--zk-border);
     border-radius: var(--zk-radius);
@@ -167,6 +170,11 @@
     h3 {
       margin: 0 0 0.2rem;
       font-size: 0.88rem;
+    }
+
+    // The badges go to the next line rather than squeeze one another.
+    .row {
+      flex-wrap: wrap;
     }
 
     p {
