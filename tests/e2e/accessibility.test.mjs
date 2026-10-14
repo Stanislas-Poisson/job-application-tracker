@@ -159,6 +159,15 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
         await driver.executeScript(`document.documentElement.setAttribute('data-contrast', 'auto')`)
         await emulate([{ name: 'prefers-contrast', value: 'no-preference' }])
         await waitFor(async () => (await colours()).body !== 'rgb(0, 0, 0)', { message: 'the system asks for nothing' })
+        // The system forces its colours: the colour of a column is gone, so its shape is drawn, and a badge gets a line.
+        const badge = () =>
+          driver.executeScript(`return getComputedStyle(document.querySelector('.badge')).borderTopWidth`)
+        const shape = /[●■▲◆★▼]/u
+        assert.doesNotMatch(String((await colours()).dot), shape, 'no shape on the dot while the colours are free')
+        assert.equal(await badge(), '0px', 'no line on a badge while the colours are free')
+        await emulate([{ name: 'forced-colors', value: 'active' }])
+        await waitFor(async () => shape.test(String((await colours()).dot)), { message: 'the shape of a column' })
+        await waitFor(async () => (await badge()) === '1px', { message: 'a line around a badge' })
       } finally {
         await emulate([
           { name: 'prefers-contrast', value: '' },
