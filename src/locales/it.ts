@@ -479,6 +479,7 @@ const it: TranslationObject = {
     applications: 'Candidature',
     companies: 'Aziende',
     contacts: 'Contatti',
+    addresses: 'Indirizzi',
   },
   table: {
     search: 'Cerca nella tabella',
@@ -537,6 +538,7 @@ const it: TranslationObject = {
     reach: 'Modi per contattare',
     add: 'Aggiungi un contatto',
   },
+  addressPage: { address: 'Indirizzo', map: 'Mappa' },
   picker: {
     existing: 'Già nella tua lista: {name}',
     new: 'Non ancora nella tua lista: viene aggiunto al salvataggio.',

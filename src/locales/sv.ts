@@ -477,6 +477,7 @@ const sv: TranslationObject = {
     applications: 'Ansökningar',
     companies: 'Företag',
     contacts: 'Kontakter',
+    addresses: 'Adresser',
   },
   table: {
     search: 'Sök i tabellen',
@@ -535,6 +536,7 @@ const sv: TranslationObject = {
     reach: 'Sätt att nå',
     add: 'Lägg till en kontakt',
   },
+  addressPage: { address: 'Adress', map: 'Karta' },
   picker: { existing: 'Finns redan i din lista: {name}', new: 'Finns inte i din lista än: läggs till när du sparar.' },
   confirm: {
     title: 'Bekräfta',

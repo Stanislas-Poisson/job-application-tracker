@@ -479,6 +479,7 @@ const nl: TranslationObject = {
     applications: 'Sollicitaties',
     companies: 'Bedrijven',
     contacts: 'Contacten',
+    addresses: 'Adressen',
   },
   table: {
     search: 'Zoeken in de tabel',
@@ -537,6 +538,7 @@ const nl: TranslationObject = {
     reach: 'Manieren om te bereiken',
     add: 'Contact toevoegen',
   },
+  addressPage: { address: 'Adres', map: 'Kaart' },
   picker: { existing: 'Al in je lijst: {name}', new: 'Nog niet in je lijst: wordt toegevoegd bij het opslaan.' },
   confirm: {
     title: 'Bevestig alstublieft',

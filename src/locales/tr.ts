@@ -476,6 +476,7 @@ const tr: TranslationObject = {
     applications: 'Başvurular',
     companies: 'Şirketler',
     contacts: 'Kişiler',
+    addresses: 'Adresler',
   },
   table: {
     search: 'Tabloda ara',
@@ -533,6 +534,7 @@ const tr: TranslationObject = {
     reach: 'İletişim yolları',
     add: 'Kişi ekle',
   },
+  addressPage: { address: 'Adres', map: 'Harita' },
   picker: { existing: 'Zaten listenizde: {name}', new: 'Henüz listenizde değil: kaydedince eklenir.' },
   confirm: {
     title: 'Lütfen onaylayın',

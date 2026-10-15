@@ -482,6 +482,7 @@ const de: TranslationObject = {
     applications: 'Bewerbungen',
     companies: 'Unternehmen',
     contacts: 'Kontakte',
+    addresses: 'Adressen',
   },
   table: {
     search: 'In der Tabelle suchen',
@@ -540,6 +541,7 @@ const de: TranslationObject = {
     reach: 'Kontaktwege',
     add: 'Kontakt hinzufügen',
   },
+  addressPage: { address: 'Adresse', map: 'Karte' },
   picker: {
     existing: 'Bereits in Ihrer Liste: {name}',
     new: 'Noch nicht in Ihrer Liste: wird beim Speichern hinzugefügt.',

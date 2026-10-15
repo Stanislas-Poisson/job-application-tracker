@@ -466,7 +466,14 @@ const ja: TranslationObject = {
     undo: '元に戻す',
     removed: '削除しました: {name}。',
   },
-  tables: { title: 'テーブル', tablist: 'テーブル', applications: '応募', companies: '企業', contacts: '連絡先' },
+  tables: {
+    title: 'テーブル',
+    tablist: 'テーブル',
+    applications: '応募',
+    companies: '企業',
+    contacts: '連絡先',
+    addresses: '住所',
+  },
   table: {
     search: 'テーブル内を検索',
     shown: '{total} 件中 {shown} 件を表示',
@@ -523,6 +530,7 @@ const ja: TranslationObject = {
     reach: '連絡手段',
     add: '連絡先を追加',
   },
+  addressPage: { address: '住所', map: '地図' },
   picker: { existing: 'すでにリストにあります: {name}', new: 'まだリストにありません。保存すると追加されます。' },
   confirm: {
     title: '確認してください',

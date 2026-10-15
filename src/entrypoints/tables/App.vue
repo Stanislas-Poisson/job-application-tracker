@@ -4,6 +4,7 @@
   import AppFooter from '../../components/AppFooter.vue'
   import AppHeader from '../../components/AppHeader.vue'
   import ApplicationDrawer from '../../components/board/ApplicationDrawer.vue'
+  import AddressesTable from '../../components/tables/AddressesTable.vue'
   import ApplicationsTable from '../../components/tables/ApplicationsTable.vue'
   import CompaniesTable from '../../components/tables/CompaniesTable.vue'
   import CompanyDrawer from '../../components/tables/CompanyDrawer.vue'
@@ -16,11 +17,12 @@
   const { t } = useApp()
 
   // One tab for each table. The tab in use is in the address of the page.
-  const TAB_IDS = ['applications', 'companies', 'contacts'] as const
+  const TAB_IDS = ['applications', 'companies', 'contacts', 'addresses'] as const
   const tabs = computed(() => [
     { id: 'applications', label: t('tables.applications') },
     { id: 'companies', label: t('tables.companies') },
     { id: 'contacts', label: t('tables.contacts') },
+    { id: 'addresses', label: t('tables.addresses') },
   ])
   const { tab, choose } = useHashTab(TAB_IDS)
 
@@ -73,6 +75,9 @@
           >
         </div>
         <ContactsTable @open="contactId = $event" />
+      </template>
+      <template #addresses>
+        <AddressesTable @open="openId = $event" />
       </template>
     </TabNav>
 

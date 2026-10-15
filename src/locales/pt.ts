@@ -476,6 +476,7 @@ const pt: TranslationObject = {
     applications: 'Candidaturas',
     companies: 'Empresas',
     contacts: 'Contactos',
+    addresses: 'Moradas',
   },
   table: {
     search: 'Pesquisar na tabela',
@@ -534,6 +535,7 @@ const pt: TranslationObject = {
     reach: 'Formas de contacto',
     add: 'Adicionar um contacto',
   },
+  addressPage: { address: 'Morada', map: 'Mapa' },
   picker: { existing: 'Já está na sua lista: {name}', new: 'Ainda não está na sua lista: é adicionado ao guardar.' },
   confirm: {
     title: 'Confirme, por favor',
