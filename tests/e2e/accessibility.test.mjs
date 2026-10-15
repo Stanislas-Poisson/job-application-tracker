@@ -8,11 +8,12 @@
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
-import { after, before, describe, test } from 'node:test'
+import { after, afterEach, before, describe, test } from 'node:test'
 import { fileURLToPath } from 'node:url'
 
 import { By } from 'selenium-webdriver'
 
+import { afterTest } from './diagnostics.mjs'
 import { launch, openPage, unpack, waitFor, zipFor } from './lib.mjs'
 
 const browser = process.env.BROWSER || 'chrome'
@@ -34,6 +35,7 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
     const zip = zipFor(browser)
     ;({ driver, base } = await launch(browser, { dir: unpack(zip), zip }))
   })
+  afterEach(afterTest)
   after(async () => driver?.quit())
 
   const css = (selector) => driver.findElement(By.css(selector))
