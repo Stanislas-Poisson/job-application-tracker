@@ -91,11 +91,13 @@ compact density.
 
 ### 6. Messages (`6-messages`)
 
-The message with its Undo button (after the removal of a tag) and the confirmation over the drawer (a note typed and not saved),
-in English light and dark, in Arabic, in Hebrew and at 200 percent.
+The message with its Undo button (after the removal of a tag), the confirmation over the drawer (a note typed and not saved) and the
+three answers over the drawer (a change of the card not saved), in English light and dark, in Arabic, in Hebrew and at 200 percent.
 
 - The message is in a corner, readable, with a button that can be pressed; at 200 percent it still fits.
 - The confirmation is above the drawer, the dangerous button is told by more than its colour, the focus is on a button inside it.
+- The three answers (keep editing, close without saving, save and close) are told apart by their words, the focus is on keep editing,
+  and the buttons still fit side by side at 200 percent or wrap without hiding one.
 - In right to left, the message and the confirmation are mirrored.
 
 ### 7. Sizes (`7-sizes`)
