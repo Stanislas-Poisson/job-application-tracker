@@ -16,7 +16,7 @@ import os from 'node:os'
 import path from 'node:path'
 
 import { afterTest } from './diagnostics.mjs'
-import { launch, openPage, saveCard, startEditing, unpack, version, waitFor, zipFor } from './lib.mjs'
+import { launch, openPage, quitBrowser, saveCard, startEditing, unpack, version, waitFor, zipFor } from './lib.mjs'
 
 const browser = process.env.BROWSER || 'chrome'
 
@@ -32,7 +32,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
     ;({ driver, base } = await launch(browser, { dir, zip }))
   })
   afterEach(afterTest)
-  after(async () => driver?.quit())
+  after(async () => quitBrowser(driver))
 
   const css = (selector) => driver.findElement(By.css(selector))
   const all = (selector) => driver.findElements(By.css(selector))
