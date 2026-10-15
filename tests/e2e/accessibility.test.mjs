@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url'
 import { By } from 'selenium-webdriver'
 
 import { afterTest } from './diagnostics.mjs'
-import { launch, openPage, startEditing, unpack, waitFor, zipFor } from './lib.mjs'
+import { launch, openPage, quitBrowser, startEditing, unpack, waitFor, zipFor } from './lib.mjs'
 
 const browser = process.env.BROWSER || 'chrome'
 const AXE = fs.readFileSync(
@@ -44,7 +44,7 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
     ;({ driver, base } = await launch(browser, { dir: unpack(zip), zip }))
   })
   afterEach(afterTest)
-  after(async () => driver?.quit())
+  after(async () => quitBrowser(driver))
 
   const css = (selector) => driver.findElement(By.css(selector))
   const all = (selector) => driver.findElements(By.css(selector))
@@ -112,6 +112,14 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
       await scan(`drawer/read/${theme}`)
       await startEditing(driver)
       await scan(`drawer/edit/${theme}`)
+      // A change puts Cancel and Save in the bar, with the mark that something is not kept.
+      await type('input[name=location]', 'Elsewhere')
+      await waitFor(async () => (await all('dialog[open] button[name=save]')).length > 0, { message: 'Save' })
+      await scan(`drawer/changed/${theme}`)
+      await css('dialog[open] button[name=cancel]').then((button) => button.click())
+      await waitFor(async () => (await all('dialog[open] button[name=toggleEdit]')).length > 0, {
+        message: 'back to reading',
+      })
     })
   }
 

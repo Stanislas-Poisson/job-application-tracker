@@ -1,14 +1,12 @@
 <script setup lang="ts">
-  import { FormButton, FormSelect } from '@zairakai/vue-components/Form'
-  import { useRepo } from 'pinia-orm'
-  import { computed, nextTick, reactive, watch } from 'vue'
+  import { FormSelect } from '@zairakai/vue-components/Form'
+  import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
-  import { useDirtyGuard } from '../../composables/useDirty'
+  import { useCardDraft } from '../../composables/useCardDraft'
   import { useDrawerMode } from '../../composables/useDrawerMode'
   import { useFormat } from '../../composables/useFormat'
-  import { type Application, JobOffer, type JobOffer as Offer } from '../../models'
-  import { type AddressParts, emptyAddress, formatAddress, normalizeAddress } from '../../services/address'
-  import { offerAddressFields } from '../../services/applications'
+  import type { Application } from '../../models'
+  import { formatAddress, hasCoordinates, normalizeAddress } from '../../services/address'
   import { TRAVEL_MODES, type TravelMode, placeFrom, placeLink, routeIssue, routeLink } from '../../services/maps'
   import AddressFields from '../AddressFields.vue'
 
@@ -20,28 +18,12 @@
 
   const offer = computed(() => props.application.jobOffer)
 
-  // The address of an offer as fields.
-  const addressOf = (source: Offer | null | undefined): AddressParts =>
-    normalizeAddress({
-      line1: source?.addressLine1,
-      line2: source?.addressLine2,
-      line3: source?.addressLine3,
-      postalCode: source?.postalCode,
-      city: source?.city,
-      region: source?.region,
-      country: source?.country,
-      latitude: source?.latitude,
-      longitude: source?.longitude,
-    })
-
-  const stored = computed(() => ({ address: addressOf(offer.value) }))
+  // The address is part of the draft of the card: the form edits it, and nothing is written until the card is saved.
+  const { draft, stored } = useCardDraft()
+  // While editing, what is typed, saved or not, so that an address can be tried before it is kept; otherwise what is stored.
+  const address = computed(() => (isEditing.value ? draft.address : stored.value.address))
   // How the route is asked for: the setting, unless the user chooses another way for this offer. It is not kept.
-  const form = reactive({ address: emptyAddress(), mode: '' })
-  const load = () => Object.assign(form, { address: { ...stored.value.address } })
-  watch(() => props.application.id, load, { immediate: true })
-
-  const dirty = computed(() => JSON.stringify(normalizeAddress(form.address)) !== JSON.stringify(stored.value.address))
-  useDirtyGuard(() => dirty.value)
+  const mode = ref('')
 
   const modeOptions = computed(() => ({
     '': t('place.modeNone'),
@@ -53,49 +35,41 @@
   const choice = computed(() => ({
     provider: settings.mapProvider,
     customTemplate: settings.mapCustomTemplate,
-    mode: ('' === form.mode ? settings.travelMode : form.mode) as TravelMode,
+    mode: ('' === mode.value ? settings.travelMode : mode.value) as TravelMode,
   }))
   const destination = computed(() =>
-    placeFrom(normalizeAddress(form.address), format.locale.value, offer.value?.location ?? '')
+    placeFrom(normalizeAddress(address.value), format.locale.value, offer.value?.location ?? '')
   )
   const origin = computed(() => placeFrom(normalizeAddress(settings.home), format.locale.value))
   const place = computed(() => placeLink(destination.value, choice.value))
+  // A real address is more than the country, which the details already say.
+  const hasAddress = computed(() => {
+    const parts = normalizeAddress(address.value)
+    return (
+      '' !== [parts.line1, parts.line2, parts.line3, parts.postalCode, parts.city, parts.region].join('') ||
+      hasCoordinates(parts)
+    )
+  })
   const route = computed(() => routeLink(origin.value, destination.value, choice.value))
   const issue = computed(() => routeIssue(origin.value, destination.value, choice.value))
   // What is said about the route: nothing when there is one, nothing when there is no destination yet.
   const routeNote = computed(() => (null === issue.value || 'destination' === issue.value ? '' : issue.value))
-  const oneLine = computed(() => formatAddress(normalizeAddress(form.address), format.locale.value))
-
-  async function save() {
-    if (!offer.value) {
-      return
-    }
-    const address = normalizeAddress(form.address)
-    useRepo(JobOffer)
-      .where('id', offer.value.id)
-      .update({
-        ...offerAddressFields(address),
-        country: '' === address.country ? null : address.country,
-      })
-    // The form shows what was kept, once the drawer has the new values.
-    await nextTick()
-    load()
-  }
+  const oneLine = computed(() => formatAddress(normalizeAddress(address.value), format.locale.value))
 </script>
 
 <template>
   <section
-    v-if="isEditing || '' !== oneLine"
+    v-if="isEditing || hasAddress || place"
     id="place"
   >
     <h3>{{ t('place.title') }}</h3>
     <form
       v-if="isEditing"
       class="stack"
-      @submit.prevent="save"
+      @submit.prevent
     >
       <AddressFields
-        v-model="form.address"
+        v-model="draft.address"
         prefix="address"
       />
       <p
@@ -136,34 +110,22 @@
         {{ t('place.privacy') }}
       </p>
       <FormSelect
-        v-model="form.mode"
+        v-model="mode"
         name="routeMode"
         :label="t('place.routeMode')"
         :options="modeOptions"
       />
-      <div class="row">
-        <FormButton
-          type="submit"
-          :disabled="!dirty"
-          >{{ t('place.save') }}</FormButton
-        >
-        <span
-          v-if="dirty"
-          class="muted"
-          role="status"
-          >{{ t('dirty.unsaved') }}</span
-        >
-      </div>
     </form>
     <div
       v-else
       class="stack"
     >
       <p
+        v-if="hasAddress"
         id="address-line"
-        dir="auto"
+        class="reading-line"
       >
-        {{ oneLine }}
+        <bdi>{{ oneLine }}</bdi>
       </p>
       <div class="row">
         <a
