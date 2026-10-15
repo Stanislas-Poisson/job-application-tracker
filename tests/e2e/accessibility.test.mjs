@@ -112,6 +112,14 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
       await scan(`drawer/read/${theme}`)
       await startEditing(driver)
       await scan(`drawer/edit/${theme}`)
+      // A change puts Cancel and Save in the bar, with the mark that something is not kept.
+      await type('input[name=location]', 'Elsewhere')
+      await waitFor(async () => (await all('dialog[open] button[name=save]')).length > 0, { message: 'Save' })
+      await scan(`drawer/changed/${theme}`)
+      await css('dialog[open] button[name=cancel]').then((button) => button.click())
+      await waitFor(async () => (await all('dialog[open] button[name=toggleEdit]')).length > 0, {
+        message: 'back to reading',
+      })
     })
   }
 
