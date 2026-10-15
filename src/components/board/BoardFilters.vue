@@ -13,7 +13,7 @@
   defineProps<{ shown: number; total: number }>()
   const emit = defineEmits<{ clear: [] }>()
 
-  const { t, sourceName } = useApp()
+  const { t, sourceName, settings } = useApp()
   const format = useFormat()
   const view = useProvidedView()
 
@@ -118,7 +118,10 @@
                 :aria-pressed="view.tagIds.includes(tag.id)"
                 @click="toggleTag(tag.id)"
               >
-                <ItemSymbol :symbol="tag.symbol" />
+                <ItemSymbol
+                  v-if="settings.showTagSymbols"
+                  :symbol="tag.symbol"
+                />
                 {{ tag.name }}
               </button>
             </li>

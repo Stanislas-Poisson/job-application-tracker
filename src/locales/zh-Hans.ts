@@ -340,6 +340,7 @@ const zhHans: TranslationObject = {
     addButton: '添加',
     remove: '移除标签 {name}',
     manage: '标签',
+    showSymbols: '显示标签的符号',
     manageHint: '您添加在投递上的标签。可以重命名、更改颜色或移除。',
     none: '还没有标签。请在某个投递或此处添加。',
     usage: {

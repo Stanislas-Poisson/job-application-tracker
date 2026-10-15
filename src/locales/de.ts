@@ -351,6 +351,7 @@ const de: TranslationObject = {
     addButton: 'Hinzufügen',
     remove: 'Das Etikett {name} entfernen',
     manage: 'Etiketten',
+    showSymbols: 'Symbole der Etiketten anzeigen',
     manageHint:
       'Die Etiketten, die Sie auf Bewerbungen setzen. Benennen Sie sie um, ändern Sie ihre Farbe oder entfernen Sie sie.',
     none: 'Noch kein Etikett. Fügen Sie eines zu einer Bewerbung oder hier hinzu.',

@@ -13,7 +13,7 @@
 
   const props = defineProps<{ application: Application }>()
 
-  const { t } = useApp()
+  const { t, settings } = useApp()
   const { isEditing } = useDrawerMode()
   const format = useFormat()
 
@@ -75,7 +75,10 @@
           class="tag-chip"
           :style="{ '--tag': tag.color }"
         >
-          <ItemSymbol :symbol="tag.symbol" />
+          <ItemSymbol
+            v-if="settings.showTagSymbols"
+            :symbol="tag.symbol"
+          />
           <span dir="auto">{{ tag.name }}</span>
           <button
             v-if="isEditing"

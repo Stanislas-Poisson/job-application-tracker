@@ -350,6 +350,7 @@ const pl: TranslationObject = {
     addButton: 'Dodaj',
     remove: 'Usuń tag {name}',
     manage: 'Tagi',
+    showSymbols: 'Pokaż symbole tagów',
     manageHint: 'Tagi, które nadajesz aplikacjom. Zmień ich nazwę, kolor lub usuń je.',
     none: 'Nie ma jeszcze tagu. Dodaj go do aplikacji lub tutaj.',
     usage: {

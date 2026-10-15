@@ -347,6 +347,7 @@ const ja: TranslationObject = {
     addButton: '追加',
     remove: 'タグ {name} を外す',
     manage: 'タグ',
+    showSymbols: 'タグのシンボルを表示する',
     manageHint: '応募に付けるタグです。名前や色を変えたり、削除したりできます。',
     none: 'まだタグがありません。応募またはここから追加してください。',
     usage: {

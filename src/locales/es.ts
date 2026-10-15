@@ -354,6 +354,7 @@ const es: TranslationObject = {
     addButton: 'Añadir',
     remove: 'Quitar la etiqueta {name}',
     manage: 'Etiquetas',
+    showSymbols: 'Mostrar los símbolos de las etiquetas',
     manageHint: 'Las etiquetas que pones a las candidaturas. Renómbralas, cambia su color o quítalas.',
     none: 'Todavía no hay etiquetas. Añade una a una candidatura o aquí.',
     usage: {

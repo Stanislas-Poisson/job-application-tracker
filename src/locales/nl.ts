@@ -349,6 +349,7 @@ const nl: TranslationObject = {
     addButton: 'Toevoegen',
     remove: 'Het label {name} verwijderen',
     manage: 'Labels',
+    showSymbols: 'De symbolen van de labels tonen',
     manageHint: 'De labels die je op sollicitaties zet. Hernoem ze, verander hun kleur of verwijder ze.',
     none: 'Nog geen label. Voeg er een toe aan een sollicitatie of hier.',
     usage: {
