@@ -2,7 +2,7 @@ import type { TranslationObject } from '@zairakai/js-i18n'
 
 const ko: TranslationObject = {
   app: { name: 'Job Application Tracker' },
-  nav: { board: '보드', options: '옵션' },
+  nav: { board: '보드', options: '옵션', tables: '표' },
   footer: {
     source: '소스 코드',
     issues: '문제 신고',
@@ -459,6 +459,16 @@ const ko: TranslationObject = {
     close: '닫기',
     undo: '실행 취소',
     removed: '제거함: {name}.',
+  },
+  tables: { title: '표', tablist: '표', applications: '지원' },
+  table: {
+    search: '표에서 검색',
+    shown: '{total}개 중 {shown}개 표시',
+    empty: '표시할 항목이 없습니다.',
+    columns: '열',
+    yes: '예',
+    applied: '지원일',
+    updated: '수정일',
   },
   picker: { existing: '이미 목록에 있음: {name}', new: '아직 목록에 없음: 저장하면 추가됩니다.' },
   confirm: {

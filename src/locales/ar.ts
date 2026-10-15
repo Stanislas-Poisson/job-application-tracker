@@ -2,7 +2,7 @@ import type { TranslationObject } from '@zairakai/js-i18n'
 
 const ar: TranslationObject = {
   app: { name: 'Job Application Tracker' },
-  nav: { board: 'اللوحة', options: 'الخيارات' },
+  nav: { board: 'اللوحة', options: 'الخيارات', tables: 'الجداول' },
   footer: {
     source: 'الشيفرة المصدرية',
     issues: 'الإبلاغ عن مشكلة',
@@ -479,6 +479,16 @@ const ar: TranslationObject = {
     close: 'إغلاق',
     undo: 'تراجع',
     removed: 'تمت الإزالة: {name}.',
+  },
+  tables: { title: 'الجداول', tablist: 'الجداول', applications: 'الطلبات' },
+  table: {
+    search: 'البحث في الجدول',
+    shown: '{shown} من {total} معروضة',
+    empty: 'لا شيء للعرض.',
+    columns: 'الأعمدة',
+    yes: 'نعم',
+    applied: 'قُدِّم في',
+    updated: 'عُدِّل',
   },
   picker: { existing: 'موجود في قائمتك: {name}', new: 'غير موجود في قائمتك بعد: سيُضاف عند الحفظ.' },
   confirm: {

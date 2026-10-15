@@ -3,7 +3,7 @@ import notify from './notify/en'
 
 const en: TranslationObject = {
   app: { name: 'Job Application Tracker' },
-  nav: { board: 'Board', options: 'Options' },
+  nav: { board: 'Board', options: 'Options', tables: 'Tables' },
   footer: {
     source: 'Source',
     issues: 'Report an issue',
@@ -465,6 +465,16 @@ const en: TranslationObject = {
     close: 'Close',
     undo: 'Undo',
     removed: 'Removed: {name}.',
+  },
+  tables: { title: 'Tables', tablist: 'The tables', applications: 'Applications' },
+  table: {
+    search: 'Search the table',
+    shown: '{shown} of {total} shown',
+    empty: 'Nothing to show.',
+    columns: 'Columns',
+    yes: 'Yes',
+    applied: 'Applied on',
+    updated: 'Updated',
   },
   picker: { existing: 'Already in your list: {name}', new: 'Not in your list yet: it is added when you save.' },
   confirm: {

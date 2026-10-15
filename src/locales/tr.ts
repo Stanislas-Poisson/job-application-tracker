@@ -2,7 +2,7 @@ import type { TranslationObject } from '@zairakai/js-i18n'
 
 const tr: TranslationObject = {
   app: { name: 'Job Application Tracker' },
-  nav: { board: 'Pano', options: 'Seçenekler' },
+  nav: { board: 'Pano', options: 'Seçenekler', tables: 'Tablolar' },
   footer: {
     source: 'Kaynak kodu',
     issues: 'Sorun bildir',
@@ -469,6 +469,16 @@ const tr: TranslationObject = {
     close: 'Kapat',
     undo: 'Geri al',
     removed: 'Kaldırıldı: {name}.',
+  },
+  tables: { title: 'Tablolar', tablist: 'Tablolar', applications: 'Başvurular' },
+  table: {
+    search: 'Tabloda ara',
+    shown: '{total} içinden {shown} gösteriliyor',
+    empty: 'Gösterilecek bir şey yok.',
+    columns: 'Sütunlar',
+    yes: 'Evet',
+    applied: 'Başvuru tarihi',
+    updated: 'Güncellendi',
   },
   picker: { existing: 'Zaten listenizde: {name}', new: 'Henüz listenizde değil: kaydedince eklenir.' },
   confirm: {

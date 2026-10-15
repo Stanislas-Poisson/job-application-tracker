@@ -30,6 +30,7 @@
   >
     <AppHeader :title="t('options.title')">
       <a :href="boardUrl">{{ t('nav.board') }}</a>
+      <a href="tables.html">{{ t('nav.tables') }}</a>
     </AppHeader>
 
     <div class="options-grid">

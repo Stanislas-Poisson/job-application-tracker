@@ -164,6 +164,7 @@
     tabindex="-1"
   >
     <AppHeader :title="t('board.title')">
+      <a href="tables.html">{{ t('nav.tables') }}</a>
       <a
         id="export-csv"
         href="#"
