@@ -272,7 +272,13 @@ async function pages(label, { drawer = true, popup = true } = {}) {
     await shot(`${tag}-popup`, `${label}: the popup`)
   }
   await use('options')
-  await shot(`${tag}-options`, `${label}: the options`)
+  // The options are in tabs: each one has its picture.
+  for (const id of ['appearance', 'board', 'money', 'places', 'data']) {
+    await css(`.tab[data-tab=${id}]`).then((tab) => tab.click())
+    await pause(200)
+    await shot(`${tag}-options-${id}`, `${label}: the options, ${id}`)
+  }
+  await css('.tab[data-tab=appearance]').then((tab) => tab.click())
   await use('tables')
   await shot(`${tag}-tables`, `${label}: the table of the applications`)
   if (drawer) {

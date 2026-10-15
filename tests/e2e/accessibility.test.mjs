@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url'
 import { By } from 'selenium-webdriver'
 
 import { afterTest } from './diagnostics.mjs'
-import { launch, openPage, quitBrowser, startEditing, unpack, waitFor, zipFor } from './lib.mjs'
+import { launch, openPage, quitBrowser, showTabOf, startEditing, unpack, waitFor, zipFor } from './lib.mjs'
 
 const browser = process.env.BROWSER || 'chrome'
 const AXE = fs.readFileSync(
@@ -56,7 +56,19 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
   const open = async (page, ready) => {
     await openPage(driver, browser, `${base}${page}.html`)
     await waitFor(async () => (await all(ready)).length > 0, { message: `${page} to load` })
+    await showTabOf(driver, ready)
     await waitFor(async () => (await driver.executeScript(`return document.readyState`)) === 'complete')
+  }
+  // The options are in tabs: each one is shown in turn, and scanned.
+  const OPTION_TABS = ['appearance', 'board', 'money', 'places', 'data']
+  async function scanEachTab(label) {
+    for (const id of OPTION_TABS) {
+      await css(`.tab[data-tab=${id}]`).then((tab) => tab.click())
+      await waitFor(async () => (await all(`[role=tabpanel]:not([hidden]) .options-grid`)).length > 0, {
+        message: `the tab ${id}`,
+      })
+      await scan(`${label}/${id}`)
+    }
   }
   const resize = (width, height) => driver.manage().window().setRect({ width, height })
 
@@ -97,7 +109,7 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
       test(`${page} has nothing axe can fault, in the ${theme} look`, async () => {
         await open(page, 'footer')
         await look(theme)
-        await scan(`${page}/${theme}`)
+        await ('options' === page ? scanEachTab(`options/${theme}`) : scan(`${page}/${theme}`))
       })
     }
 
@@ -559,7 +571,7 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
       // The options come in two columns from 1200 pixels of page, in one below.
       await open('options', 'footer')
       const sections = await driver.executeScript(
-        `return new Set([...document.querySelectorAll('.options-grid > .card')].map((card) => Math.round(card.getBoundingClientRect().left))).size`
+        `return new Set([...document.querySelectorAll('.options-grid > .card')].filter((card) => card.offsetParent !== null).map((card) => Math.round(card.getBoundingClientRect().left))).size`
       )
       assert.equal(
         sections,
