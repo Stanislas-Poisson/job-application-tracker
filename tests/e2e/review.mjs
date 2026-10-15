@@ -273,6 +273,8 @@ async function pages(label, { drawer = true, popup = true } = {}) {
   }
   await use('options')
   await shot(`${tag}-options`, `${label}: the options`)
+  await use('tables')
+  await shot(`${tag}-tables`, `${label}: the table of the applications`)
   if (drawer) {
     await openDrawer()
     await shot(`${tag}-drawer`, `${label}: the drawer of an application, read`, { whole: false })
@@ -500,6 +502,7 @@ try {
   })
   tabs.board = await openTab('board', '.application-card')
   tabs.popup = await openTab('popup', 'form')
+  tabs.tables = await openTab('tables', 'footer')
   await use('options')
   await driver.navigate().refresh()
   await waitFor(async () => (await all('footer')).length > 0, { message: 'options' })

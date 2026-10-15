@@ -17,6 +17,7 @@ BROWSER=chrome OUT=/path/to/folder npm run review
 - `ONLY=languages` (a pattern on the name of a group) takes one group only: `looks`, `system`, `customTheme`, `languages`, `text`,
   `messages`, `sizes`.
 - Open `index.html` in the folder: pictures by group, a click shows one whole.
+- The page of the tables (`tables.html`, the link "Tables" of the header) is taken with the three others: the table of the applications, with its columns, its search and its sort.
 - The script fills the board with ten applications made to hurt: a very long title, a long German word, Arabic and Japanese
   texts, salaries in six currencies, tags, favourites and priorities. It writes the settings in the storage as the options page
   does, so every page follows at once. It asserts nothing: the verdict is yours.

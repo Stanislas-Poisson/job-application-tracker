@@ -1333,9 +1333,12 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const file = JSON.parse(written)
       assert.equal(file.format, 'encrypted')
       assert.equal(file.kdf.name, 'PBKDF2')
-      assert.ok(file.kdf.iterations >= 600000)
-      assert.ok(!written.includes('Backend developer'))
-      assert.ok(!written.includes('Acme'))
+      assert.ok(file.kdf.iterations >= 600000, `the key is made with ${file.kdf.iterations} iterations`)
+      assert.ok(!written.includes('Backend developer'), 'the title of an offer is readable in the protected backup')
+      assert.ok(
+        !written.includes('Acme'),
+        `the name of a company is readable in the protected backup (${written.length} characters)`
+      )
 
       // Restoring: the passphrase is asked, a wrong one changes nothing, the right one shows the preview.
       const protectedFile = path.join(os.tmpdir(), `jat-protected-${Date.now()}.json`)
@@ -2322,6 +2325,77 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await waitFor(async () => (await all('#confirm-dialog')).length === 0, { message: 'the question to go' })
       assert.equal((await all(`${dialog}[open]`)).length, 1, 'the dialog is kept')
       await driver.executeScript(`document.querySelector('#new-offer-dialog')?.close()`)
+    })
+
+    test('the applications are read in a table that sorts, searches, opens a row and remembers how it was left', async () => {
+      await open('board', '.application-card')
+      const total = (await all('.application-card')).length
+      await open('tables', 'footer')
+      const rows = () => all('tbody tr.table-row')
+      await waitFor(async () => (await rows()).length === total, { message: 'a row for each application' })
+      const titles = () => texts('tbody tr.table-row td[data-column=title]')
+      const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
+      const sortOf = (column) =>
+        driver.executeScript(
+          `return document.querySelector('th:has(button[data-column=' + arguments[0] + '])').getAttribute('aria-sort')`,
+          column
+        )
+
+      // It opens sorted by the title, from A to Z, and says so to a screen reader.
+      assert.equal(await sortOf('title'), 'ascending')
+      const ascending = await titles()
+      assert.deepEqual(ascending, [...ascending].sort(collator.compare))
+
+      // The header sorts: again for the other way, and another column for the order of that one.
+      await css('th button[data-column=title]').then((button) => button.click())
+      await waitFor(async () => 'descending' === (await sortOf('title')), { message: 'the title sorted the other way' })
+      assert.deepEqual(await titles(), [...ascending].reverse())
+      await css('th button[data-column=company]').then((button) => button.click())
+      await waitFor(async () => 'ascending' === (await sortOf('company')), { message: 'the company sorted' })
+      assert.equal(await sortOf('title'), 'none')
+
+      // The search ignores the case and the accents, and the count says what is shown.
+      await type('input[name=tableSearch]', 'ADDED BY')
+      await waitFor(async () => (await rows()).length === 1, { message: 'the search to narrow the table' })
+      assert.match(await text('.table-count'), new RegExp(`1 of ${total} shown`))
+      await type('input[name=tableSearch]', 'nothing like this')
+      await waitFor(async () => (await all('tbody tr.table-row')).length === 0, { message: 'no row' })
+      assert.match(await text('tbody'), /Nothing to show/)
+      await driver.executeScript(
+        `const field = document.querySelector('input[name=tableSearch]'); field.value = ''; field.dispatchEvent(new Event('input', { bubbles: true }))`
+      )
+      await waitFor(async () => (await rows()).length === total, { message: 'the table to be whole again' })
+
+      // A column can be hidden, and the first one cannot.
+      await driver.executeScript(`document.querySelector('details.table-columns').open = true`)
+      assert.equal(await css('input[name=column-title]').then((box) => box.isEnabled()), false)
+      await css('input[name=column-place]').then((box) => box.click())
+      await waitFor(async () => (await all('th button[data-column=place]')).length === 0, {
+        message: 'the column to go',
+      })
+
+      // A row opens the drawer of the application, by its first cell.
+      await css('tbody tr.table-row .row-open').then((button) => button.click())
+      await waitFor(async () => (await all('dialog[open] button[name=toggleEdit]')).length > 0, {
+        message: 'the drawer',
+      })
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      // What was chosen is kept: the sort and the column, when the page is opened again.
+      await waitFor(
+        async () =>
+          driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:tables', (items) => {
+              const state = (items['jat:tables'] || {}).applications;
+              done(Boolean(state && state.sort === 'company' && state.hidden.includes('place')));
+            });
+          `),
+        { message: 'the choice to be kept' }
+      )
+      await open('tables', 'footer')
+      await waitFor(async () => 'ascending' === (await sortOf('company')), { message: 'the sort to come back' })
+      assert.equal((await all('th button[data-column=place]')).length, 0, 'the column is still hidden')
     })
   })
 })
