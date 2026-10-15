@@ -224,8 +224,9 @@
 
 <style lang="scss">
   .page-popup {
-    width: 26rem;
-    min-width: 26rem;
+    // The most a browser gives a popup is 800 pixels wide: the form uses nearly all of it.
+    width: 46rem;
+    min-width: 46rem;
     padding: 1rem;
   }
 </style>

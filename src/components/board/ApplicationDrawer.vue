@@ -206,15 +206,16 @@
 </template>
 
 <style lang="scss">
+  // The drawer takes its width from this variable (the component writes it inline, so a width rule would not be heard). It is
+  // large, and larger on a wide window, up to more than half of a 1920 pixel screen: the fields that sit side by side (period,
+  // gross or net) keep their words.
   dialog.drawer {
-    width: min(36rem, 94vw);
-    max-width: none;
+    --zk-drawer-size: min(48rem, 96vw);
   }
 
-  // On a wide window the drawer is wider too: the fields that sit side by side (period, gross or net) keep their words.
   @media (width >= 1200px) {
     dialog.drawer {
-      width: min(46rem, 94vw);
+      --zk-drawer-size: min(66rem, 80vw);
     }
   }
 
