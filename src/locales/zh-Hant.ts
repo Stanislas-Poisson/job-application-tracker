@@ -340,6 +340,7 @@ const zhHant: TranslationObject = {
     addButton: '新增',
     remove: '移除標籤 {name}',
     manage: '標籤',
+    showSymbols: '顯示標籤的符號',
     manageHint: '您新增在投遞上的標籤。可以重新命名、更改顏色或移除。',
     none: '還沒有標籤。請在某個投遞或此處新增。',
     usage: {

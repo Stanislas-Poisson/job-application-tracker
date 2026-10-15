@@ -349,6 +349,7 @@ const it: TranslationObject = {
     addButton: 'Aggiungi',
     remove: 'Rimuovi il tag {name}',
     manage: 'Tag',
+    showSymbols: 'Mostra i simboli dei tag',
     manageHint: 'I tag che metti sulle candidature. Rinominali, cambia il loro colore o rimuovili.',
     none: 'Ancora nessun tag. Aggiungine uno a una candidatura o qui.',
     usage: {

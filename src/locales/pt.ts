@@ -348,6 +348,7 @@ const pt: TranslationObject = {
     addButton: 'Adicionar',
     remove: 'Remover a etiqueta {name}',
     manage: 'Etiquetas',
+    showSymbols: 'Mostrar os símbolos das etiquetas',
     manageHint: 'As etiquetas que coloca nas candidaturas. Mude-lhes o nome, a cor ou remova-as.',
     none: 'Ainda não há etiquetas. Adicione uma a uma candidatura ou aqui.',
     usage: {

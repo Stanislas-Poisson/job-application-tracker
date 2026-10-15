@@ -343,6 +343,7 @@ const he: TranslationObject = {
     addButton: 'הוספה',
     remove: 'הסרת התג {name}',
     manage: 'תגים',
+    showSymbols: 'הצגת הסמלים של התגים',
     manageHint: 'התגים שאתם מציבים על מועמדויות. שנו את שמם, את צבעם, או הסירו אותם.',
     none: 'עדיין אין תג. הוסיפו אחד למועמדות, או כאן.',
     usage: {
