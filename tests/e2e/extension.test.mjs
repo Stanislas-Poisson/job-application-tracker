@@ -6,7 +6,7 @@
 // 2. options: the language, and the columns of the board.
 // 3. flow: an offer is saved in the popup, seen on the board, noted and moved, and it is still there after a reload.
 import assert from 'node:assert/strict'
-import { after, before, describe, test } from 'node:test'
+import { after, afterEach, before, describe, test } from 'node:test'
 
 import { By } from 'selenium-webdriver'
 
@@ -15,6 +15,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
+import { afterTest } from './diagnostics.mjs'
 import { launch, openPage, unpack, version, waitFor, zipFor } from './lib.mjs'
 
 const browser = process.env.BROWSER || 'chrome'
@@ -30,6 +31,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
     const dir = unpack(zip)
     ;({ driver, base } = await launch(browser, { dir, zip }))
   })
+  afterEach(afterTest)
   after(async () => driver?.quit())
 
   const css = (selector) => driver.findElement(By.css(selector))
