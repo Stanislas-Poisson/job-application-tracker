@@ -462,6 +462,7 @@ const he: TranslationObject = {
     undo: 'ביטול',
     removed: 'הוסר: {name}.',
   },
+  picker: { existing: 'כבר ברשימה שלכם: {name}', new: 'עדיין לא ברשימה שלכם: יתווסף בעת השמירה.' },
   confirm: {
     title: 'נא לאשר',
     ok: 'אישור',

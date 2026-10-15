@@ -475,6 +475,7 @@ const uk: TranslationObject = {
     undo: 'Скасувати',
     removed: 'Видалено: {name}.',
   },
+  picker: { existing: 'Уже у вашому списку: {name}', new: 'Ще немає у вашому списку: буде додано під час збереження.' },
   confirm: {
     title: 'Підтвердьте, будь ласка',
     ok: 'Підтвердити',

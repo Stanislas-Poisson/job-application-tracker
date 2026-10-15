@@ -462,6 +462,7 @@ const hi: TranslationObject = {
     undo: 'पूर्ववत करें',
     removed: 'हटाया गया: {name}।',
   },
+  picker: { existing: 'पहले से आपकी सूची में है: {name}', new: 'अभी आपकी सूची में नहीं है: सहेजने पर जुड़ जाएगा।' },
   confirm: {
     title: 'कृपया पुष्टि करें',
     ok: 'पुष्टि करें',

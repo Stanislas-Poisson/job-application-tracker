@@ -477,6 +477,7 @@ const pl: TranslationObject = {
     undo: 'Cofnij',
     removed: 'Usunięto: {name}.',
   },
+  picker: { existing: 'Już na Twojej liście: {name}', new: 'Jeszcze nie ma na liście: zostanie dodane przy zapisie.' },
   confirm: {
     title: 'Potwierdź',
     ok: 'Potwierdź',

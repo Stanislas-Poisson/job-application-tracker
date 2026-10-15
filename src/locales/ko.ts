@@ -456,6 +456,7 @@ const ko: TranslationObject = {
     undo: '실행 취소',
     removed: '제거함: {name}.',
   },
+  picker: { existing: '이미 목록에 있음: {name}', new: '아직 목록에 없음: 저장하면 추가됩니다.' },
   confirm: {
     title: '확인해 주세요',
     ok: '확인',

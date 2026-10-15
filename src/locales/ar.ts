@@ -476,6 +476,7 @@ const ar: TranslationObject = {
     undo: 'تراجع',
     removed: 'تمت الإزالة: {name}.',
   },
+  picker: { existing: 'موجود في قائمتك: {name}', new: 'غير موجود في قائمتك بعد: سيُضاف عند الحفظ.' },
   confirm: {
     title: 'يُرجى التأكيد',
     ok: 'تأكيد',
