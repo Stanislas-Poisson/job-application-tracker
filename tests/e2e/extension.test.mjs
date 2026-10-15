@@ -2256,5 +2256,72 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await open('board', '.application-card')
       assert.equal((await all('.application-card')).length, before)
     })
+
+    test('an offer is added from the board: by the general button, and by the plus of a column', async () => {
+      await open('board', '.application-card')
+      const count = async () => (await all('.application-card')).length
+      const start = await count()
+      const dialog = '#new-offer-dialog'
+
+      // The general button: a company that exists is picked, and the offer lands in the first column.
+      await css('button[name=addOffer]').then((button) => button.click())
+      await waitFor(async () => (await all(`${dialog}[open]`)).length === 1, { message: 'the dialog' })
+      await type(`${dialog} input[name=title]`, 'Added by hand')
+      await type(`${dialog} input[name=company]`, 'acme')
+      await waitFor(async () => (await all(`${dialog} .picker-hint[data-state=existing]`)).length === 1, {
+        message: 'the company to be told as existing',
+      })
+      await css(`${dialog} form button[type=submit]`).then((button) => button.click())
+      await waitFor(async () => (await count()) === start + 1, { message: 'the new card' })
+      assert.match(await text('.column:first-child'), /Added by hand/)
+
+      // The message offers to open it, and the drawer opens on it.
+      await waitFor(async () => (await all('.toast .notice-action')).length > 0, { message: 'the message' })
+      await css('.toast .notice-action').then((button) => button.click())
+      await waitFor(async () => /Added by hand/.test(await text('dialog[open]')), {
+        message: 'the drawer of the new offer',
+      })
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      // The plus of a column starts the offer in that column, and a company that does not exist is made.
+      await css('.column:nth-child(2) .column-add').then((button) => button.click())
+      await waitFor(async () => (await all(`${dialog}[open]`)).length === 1, { message: 'the dialog again' })
+      assert.equal(
+        await driver.executeScript(
+          `const select = document.querySelector('#new-offer-dialog select[name=status]'); return select.options[select.selectedIndex].text`
+        ),
+        'Applied'
+      )
+      await type(`${dialog} input[name=title]`, 'Added to Applied')
+      await type(`${dialog} input[name=company]`, 'Brand New Company')
+      await waitFor(async () => (await all(`${dialog} .picker-hint[data-state=new]`)).length === 1, {
+        message: 'the company to be told as new',
+      })
+      await css(`${dialog} form button[type=submit]`).then((button) => button.click())
+      await waitFor(async () => /Added to Applied/.test(await text('.column:nth-child(2)')), {
+        message: 'the card in the column of the plus',
+      })
+      const companies = await driver.executeAsyncScript(`
+        const done = arguments[arguments.length - 1];
+        chrome.storage.local.get('jat:companies', (items) => done((items['jat:companies'] || []).map((c) => c.name)));
+      `)
+      assert.ok(companies.includes('Brand New Company'), 'the new company was made')
+      assert.equal(
+        companies.filter((name) => /^acme$/i.test(name)).length,
+        1,
+        'the company that exists was not made again'
+      )
+
+      // What was typed is not lost by a stray Escape: the question comes first.
+      await css('button[name=addOffer]').then((button) => button.click())
+      await waitFor(async () => (await all(`${dialog}[open]`)).length === 1, { message: 'the dialog a third time' })
+      await type(`${dialog} input[name=title]`, 'Not finished')
+      await driver.actions().sendKeys('\uE00C').perform()
+      await waitFor(async () => (await all('#confirm-dialog[open]')).length === 1, { message: 'the question' })
+      await driver.executeScript(`document.querySelector('#confirm-dialog button[value=cancel]').click()`)
+      await waitFor(async () => (await all('#confirm-dialog')).length === 0, { message: 'the question to go' })
+      assert.equal((await all(`${dialog}[open]`)).length, 1, 'the dialog is kept')
+      await driver.executeScript(`document.querySelector('#new-offer-dialog')?.close()`)
+    })
   })
 })
