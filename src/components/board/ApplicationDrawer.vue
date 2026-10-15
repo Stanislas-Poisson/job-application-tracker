@@ -5,7 +5,7 @@
   import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { provideCardDraft } from '../../composables/useCardDraft'
-  import { confirmAction } from '../../composables/useConfirm'
+  import { chooseAction, confirmAction } from '../../composables/useConfirm'
   import { anyDirty, useDirtyGuard } from '../../composables/useDirty'
   import { provideDrawerMode } from '../../composables/useDrawerMode'
   import { Application } from '../../models'
@@ -68,6 +68,29 @@
     )
   }
 
+  // Leaving with changes to the card that were not saved: save and close, close without saving, or keep editing. A card that
+  // cannot be saved (a salary that makes no sense) stays open, and says why. With only text typed in a list and not added, there
+  // is nothing to save and the question has two answers.
+  function askLeaving(then: () => void) {
+    if (!card.isDirty.value) {
+      askToDiscard(then)
+      return
+    }
+    void chooseAction({
+      title: t('dirty.unsaved'),
+      message: t('dirty.leaveMessage'),
+      choices: [
+        { value: 'keep', label: t('dirty.keepEditing'), initial: true },
+        { value: 'discard', label: t('dirty.closeWithoutSaving'), danger: true },
+        { value: 'save', label: t('dirty.saveAndClose') },
+      ],
+    }).then((answer) => {
+      if ('discard' === answer || ('save' === answer && card.save())) {
+        then()
+      }
+    })
+  }
+
   // The button of the drawer: from reading to editing, and back. Back with text typed in a list and not added asks first.
   function toggle() {
     if (!editing.value) {
@@ -112,7 +135,7 @@
       read()
     } else if (anyDirty()) {
       event.preventDefault()
-      askToDiscard(() => emit('close'))
+      askLeaving(() => emit('close'))
     }
   }
 </script>

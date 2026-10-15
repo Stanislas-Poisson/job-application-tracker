@@ -476,6 +476,10 @@ const nl: TranslationObject = {
     discard: 'Weggooien en sluiten',
     unsaved: 'Niet-opgeslagen wijzigingen',
     confirmClose: 'Een tekst die je typte is niet opgeslagen. Toch sluiten?',
+    leaveMessage: 'Deze sollicitatie heeft niet-opgeslagen wijzigingen.',
+    saveAndClose: 'Opslaan en sluiten',
+    closeWithoutSaving: 'Sluiten zonder op te slaan',
+    keepEditing: 'Verder bewerken',
   },
   reminders: {
     title: 'Herinneringen',

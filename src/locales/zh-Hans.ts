@@ -458,6 +458,10 @@ const zhHans: TranslationObject = {
     discard: '放弃并关闭',
     unsaved: '有未保存的更改',
     confirmClose: '您输入的部分文字尚未保存。仍要关闭吗？',
+    leaveMessage: '此申请有未保存的更改。',
+    saveAndClose: '保存并关闭',
+    closeWithoutSaving: '不保存并关闭',
+    keepEditing: '继续编辑',
   },
   reminders: {
     title: '提醒',

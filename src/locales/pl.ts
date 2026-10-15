@@ -484,6 +484,10 @@ const pl: TranslationObject = {
     discard: 'Odrzuć i zamknij',
     unsaved: 'Niezapisane zmiany',
     confirmClose: 'Część wpisanego tekstu nie jest zapisana. Zamknąć mimo to?',
+    leaveMessage: 'Ta aplikacja ma niezapisane zmiany.',
+    saveAndClose: 'Zapisz i zamknij',
+    closeWithoutSaving: 'Zamknij bez zapisywania',
+    keepEditing: 'Edytuj dalej',
   },
   reminders: {
     title: 'Przypomnienia',

@@ -483,6 +483,10 @@ const ar: TranslationObject = {
     discard: 'تجاهل وإغلاق',
     unsaved: 'تغييرات غير محفوظة',
     confirmClose: 'هناك نص كتبته لم يُحفظ. هل تريد الإغلاق على أي حال؟',
+    leaveMessage: 'لدى هذا الطلب تغييرات غير محفوظة.',
+    saveAndClose: 'حفظ وإغلاق',
+    closeWithoutSaving: 'إغلاق دون حفظ',
+    keepEditing: 'متابعة التعديل',
   },
   reminders: {
     title: 'التذكيرات',
