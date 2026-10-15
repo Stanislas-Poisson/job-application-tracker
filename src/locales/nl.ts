@@ -473,7 +473,13 @@ const nl: TranslationObject = {
     undo: 'Ongedaan maken',
     removed: 'Verwijderd: {name}.',
   },
-  tables: { title: 'Tabellen', tablist: 'De tabellen', applications: 'Sollicitaties', companies: 'Bedrijven' },
+  tables: {
+    title: 'Tabellen',
+    tablist: 'De tabellen',
+    applications: 'Sollicitaties',
+    companies: 'Bedrijven',
+    contacts: 'Contacten',
+  },
   table: {
     search: 'Zoeken in de tabel',
     shown: '{shown} van {total} getoond',
@@ -521,6 +527,15 @@ const nl: TranslationObject = {
       missing: 'Dit bedrijf bestaat niet meer.',
       itself: 'Een bedrijf kan niet met zichzelf worden samengevoegd.',
     },
+  },
+  contactPage: {
+    name: 'Naam',
+    languages: 'Talen',
+    newTitle: 'Nieuw contact',
+    create: 'Contact aanmaken',
+    delete: 'Contact verwijderen',
+    reach: 'Manieren om te bereiken',
+    add: 'Contact toevoegen',
   },
   picker: { existing: 'Al in je lijst: {name}', new: 'Nog niet in je lijst: wordt toegevoegd bij het opslaan.' },
   confirm: {

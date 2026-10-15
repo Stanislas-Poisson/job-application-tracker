@@ -479,7 +479,7 @@ const uk: TranslationObject = {
     undo: 'Скасувати',
     removed: 'Видалено: {name}.',
   },
-  tables: { title: 'Таблиці', tablist: 'Таблиці', applications: 'Заявки', companies: 'Компанії' },
+  tables: { title: 'Таблиці', tablist: 'Таблиці', applications: 'Заявки', companies: 'Компанії', contacts: 'Контакти' },
   table: {
     search: 'Пошук у таблиці',
     shown: 'Показано {shown} із {total}',
@@ -527,6 +527,15 @@ const uk: TranslationObject = {
       missing: 'Цієї компанії вже немає.',
       itself: 'Компанію не можна об’єднати з нею самою.',
     },
+  },
+  contactPage: {
+    name: 'Ім’я',
+    languages: 'Мови',
+    newTitle: 'Новий контакт',
+    create: 'Створити контакт',
+    delete: 'Видалити контакт',
+    reach: 'Способи зв’язку',
+    add: 'Додати контакт',
   },
   picker: { existing: 'Уже у вашому списку: {name}', new: 'Ще немає у вашому списку: буде додано під час збереження.' },
   confirm: {

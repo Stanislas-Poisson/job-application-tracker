@@ -455,7 +455,7 @@ const zhHans: TranslationObject = {
     undo: '撤销',
     removed: '已移除：{name}。',
   },
-  tables: { title: '表格', tablist: '表格', applications: '申请', companies: '公司' },
+  tables: { title: '表格', tablist: '表格', applications: '申请', companies: '公司', contacts: '联系人' },
   table: {
     search: '在表格中搜索',
     shown: '显示 {shown} / {total}',
@@ -502,6 +502,15 @@ const zhHans: TranslationObject = {
       missing: '这家公司已不存在。',
       itself: '公司不能合并到自身。',
     },
+  },
+  contactPage: {
+    name: '姓名',
+    languages: '语言',
+    newTitle: '新联系人',
+    create: '创建联系人',
+    delete: '删除联系人',
+    reach: '联系方式',
+    add: '添加联系人',
   },
   picker: { existing: '已在您的列表中：{name}', new: '尚未在您的列表中：保存时将添加。' },
   confirm: {

@@ -480,7 +480,13 @@ const ar: TranslationObject = {
     undo: 'تراجع',
     removed: 'تمت الإزالة: {name}.',
   },
-  tables: { title: 'الجداول', tablist: 'الجداول', applications: 'الطلبات', companies: 'الشركات' },
+  tables: {
+    title: 'الجداول',
+    tablist: 'الجداول',
+    applications: 'الطلبات',
+    companies: 'الشركات',
+    contacts: 'جهات الاتصال',
+  },
   table: {
     search: 'البحث في الجدول',
     shown: '{shown} من {total} معروضة',
@@ -527,6 +533,15 @@ const ar: TranslationObject = {
       missing: 'هذه الشركة لم تعد موجودة.',
       itself: 'لا يمكن دمج شركة في نفسها.',
     },
+  },
+  contactPage: {
+    name: 'الاسم',
+    languages: 'اللغات',
+    newTitle: 'جهة اتصال جديدة',
+    create: 'إنشاء جهة الاتصال',
+    delete: 'حذف جهة الاتصال',
+    reach: 'وسائل التواصل',
+    add: 'إضافة جهة اتصال',
   },
   picker: { existing: 'موجود في قائمتك: {name}', new: 'غير موجود في قائمتك بعد: سيُضاف عند الحفظ.' },
   confirm: {
