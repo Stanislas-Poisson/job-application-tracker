@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { FormButton, FormInput, FormSelect } from '@zairakai/vue-components/Form'
+  import { FormButton, FormSelect } from '@zairakai/vue-components/Form'
   import { useRepo } from 'pinia-orm'
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
@@ -9,6 +9,7 @@
   import { type Application, Tag } from '../../models'
   import { PRIORITIES, TagError, setPriority, tagEntityByName, toggleFavorite, untagEntity } from '../../services/tags'
   import { collatorFor } from '../../utils/text'
+  import EntityPicker from '../EntityPicker.vue'
   import ItemSymbol from '../ItemSymbol.vue'
 
   const props = defineProps<{ application: Application }>()
@@ -97,19 +98,12 @@
         class="row"
         @submit.prevent="add"
       >
-        <FormInput
+        <EntityPicker
           v-model="name"
           name="tagName"
-          list="known-tags"
+          :options="known.map((tag) => tag.name)"
           :placeholder="t('labels.add')"
         />
-        <datalist id="known-tags">
-          <option
-            v-for="tag in known"
-            :key="tag.id"
-            :value="tag.name"
-          />
-        </datalist>
         <FormButton type="submit">{{ t('labels.addButton') }}</FormButton>
       </form>
       <p
