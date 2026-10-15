@@ -60,6 +60,10 @@ const fr: TranslationObject = {
     backupLater: 'Plus tard',
     backupFailed: 'La sauvegarde a échoué. Réessayez, ou passez par les options.',
     title: 'Tableau',
+    addOffer: 'Ajouter une offre',
+    addToColumn: 'Ajouter une offre à {name}',
+    offerAdded: 'Ajoutée : {name}.',
+    openAdded: 'L’ouvrir',
     search: 'Rechercher par intitulé, entreprise ou lieu',
     showArchived: 'Afficher les archivées',
     empty:
