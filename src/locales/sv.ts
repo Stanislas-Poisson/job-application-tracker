@@ -471,7 +471,13 @@ const sv: TranslationObject = {
     undo: 'Ångra',
     removed: 'Borttaget: {name}.',
   },
-  tables: { title: 'Tabeller', tablist: 'Tabeller', applications: 'Ansökningar', companies: 'Företag' },
+  tables: {
+    title: 'Tabeller',
+    tablist: 'Tabeller',
+    applications: 'Ansökningar',
+    companies: 'Företag',
+    contacts: 'Kontakter',
+  },
   table: {
     search: 'Sök i tabellen',
     shown: '{shown} av {total} visas',
@@ -519,6 +525,15 @@ const sv: TranslationObject = {
       missing: 'Företaget finns inte längre.',
       itself: 'Ett företag kan inte slås ihop med sig självt.',
     },
+  },
+  contactPage: {
+    name: 'Namn',
+    languages: 'Språk',
+    newTitle: 'Ny kontakt',
+    create: 'Skapa kontakten',
+    delete: 'Ta bort kontakten',
+    reach: 'Sätt att nå',
+    add: 'Lägg till en kontakt',
   },
   picker: { existing: 'Finns redan i din lista: {name}', new: 'Finns inte i din lista än: läggs till när du sparar.' },
   confirm: {

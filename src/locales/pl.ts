@@ -481,7 +481,7 @@ const pl: TranslationObject = {
     undo: 'Cofnij',
     removed: 'Usunięto: {name}.',
   },
-  tables: { title: 'Tabele', tablist: 'Tabele', applications: 'Aplikacje', companies: 'Firmy' },
+  tables: { title: 'Tabele', tablist: 'Tabele', applications: 'Aplikacje', companies: 'Firmy', contacts: 'Kontakty' },
   table: {
     search: 'Szukaj w tabeli',
     shown: 'Pokazano {shown} z {total}',
@@ -528,6 +528,15 @@ const pl: TranslationObject = {
       missing: 'Ta firma już nie istnieje.',
       itself: 'Firmy nie można scalić z nią samą.',
     },
+  },
+  contactPage: {
+    name: 'Imię i nazwisko',
+    languages: 'Języki',
+    newTitle: 'Nowy kontakt',
+    create: 'Utwórz kontakt',
+    delete: 'Usuń kontakt',
+    reach: 'Sposoby kontaktu',
+    add: 'Dodaj kontakt',
   },
   picker: { existing: 'Już na Twojej liście: {name}', new: 'Jeszcze nie ma na liście: zostanie dodane przy zapisie.' },
   confirm: {

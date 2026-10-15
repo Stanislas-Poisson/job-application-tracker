@@ -2534,5 +2534,78 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await waitFor(async () => (await rows()).length === empty, { message: 'the company to come back' })
       assert.ok((await names()).includes(emptyName))
     })
+
+    test('the contacts are read in a table, made on their own, edited once, and deleted with their undo', async () => {
+      await open('tables', 'footer')
+      await css('[role=tab][data-tab=contacts]').then((tab) => tab.click())
+      const rows = () => all('tbody tr.table-row')
+      await waitFor(async () => (await rows()).length > 0, { message: 'the contacts' })
+      const start = (await rows()).length
+      const names = () => texts('tbody tr.table-row td[data-column=name]')
+      const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
+      const sorted = await names()
+      assert.deepEqual(sorted, [...sorted].sort(collator.compare), 'sorted by the name')
+      const drawer = 'dialog[open] .contact-drawer'
+      const title = () => text('dialog[open] .modal-title')
+
+      // A contact is made on its own, with a company that does not exist yet, said to be new before it is made.
+      await css('button[name=addContact]').then((button) => button.click())
+      await waitFor(async () => (await all(drawer)).length > 0, { message: 'the form of a new contact' })
+      assert.match(await title(), /New contact/)
+      await css(`${drawer} button[name=save]`).then((button) => button.click())
+      await waitFor(async () => /first name or a last name/.test(await text(`${drawer} .error`)), {
+        message: 'the refusal of a contact with no name',
+      })
+      await type(`${drawer} input[name=firstName]`, 'Zed')
+      await type(`${drawer} input[name=lastName]`, 'Zebra')
+      await type(`${drawer} input[name=company]`, 'Brand New Org')
+      await waitFor(async () => (await all(`${drawer} .picker-hint[data-state=new]`)).length === 1, {
+        message: 'the company to be told as new',
+      })
+      await type(`${drawer} input[name=email]`, 'ZED@Example.com')
+      await css(`${drawer} button[name=save]`).then((button) => button.click())
+
+      // It opens as a contact that exists: its way to reach it and its company are listed, in canonical forms.
+      await waitFor(async () => /Zed Zebra/.test(await title()), { message: 'the contact that was made' })
+      await waitFor(async () => /zed@example\.com/.test(await text(drawer)), { message: 'its email' })
+      assert.match(await text(drawer), /Brand New Org/)
+
+      // Edited once: the role, and the table shows it.
+      await type(`${drawer} input[name=role]`, 'CTO')
+      await css(`${drawer} button[name=save]`).then((button) => button.click())
+      await waitFor(async () => (await all(`${drawer} .picker-hint`)).length === 0, { message: 'settled' })
+      await css(`${drawer} button[name=favorite]`).then((button) => button.click())
+      await waitFor(
+        async () =>
+          'true' === (await css(`${drawer} button[name=favorite]`).then((b) => b.getAttribute('aria-pressed'))),
+        {
+          message: 'the favourite mark',
+        }
+      )
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+      await waitFor(async () => (await rows()).length === start + 1, { message: 'the new row' })
+      const line = (await texts('tbody tr.table-row')).find((row) => /Zed Zebra/.test(row)) ?? ''
+      assert.match(line, /CTO/)
+      assert.match(line, /Brand New Org/)
+      assert.match(line, /zed@example\.com/)
+
+      // Deleted with the message that puts it back.
+      const openContact = async () => {
+        const buttons = await all('tbody tr.table-row .row-open')
+        const labels = await Promise.all(buttons.map((button) => button.getText()))
+        await buttons[labels.indexOf('Zed Zebra')].click()
+        await waitFor(async () => (await all(drawer)).length > 0, { message: 'the drawer of the contact' })
+      }
+      await openContact()
+      await css(`${drawer} button[name=deleteContact]`).then((button) => button.click())
+      await waitFor(async () => (await rows()).length === start, { message: 'the contact to be deleted' })
+      await waitFor(async () => (await all('.toast .notice-action')).length > 0, { message: 'the message' })
+      await css('.toast .notice-action').then((button) => button.click())
+      await waitFor(async () => (await rows()).length === start + 1, { message: 'the contact to come back' })
+      // Left as it was found, for the tests that count what is there.
+      await openContact()
+      await css(`${drawer} button[name=deleteContact]`).then((button) => button.click())
+      await waitFor(async () => (await rows()).length === start, { message: 'the contact to be deleted again' })
+    })
   })
 })

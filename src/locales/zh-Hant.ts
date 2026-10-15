@@ -455,7 +455,7 @@ const zhHant: TranslationObject = {
     undo: '撤銷',
     removed: '已移除：{name}。',
   },
-  tables: { title: '表格', tablist: '表格', applications: '申請', companies: '公司' },
+  tables: { title: '表格', tablist: '表格', applications: '申請', companies: '公司', contacts: '聯絡人' },
   table: {
     search: '在表格中搜尋',
     shown: '顯示 {shown} / {total}',
@@ -502,6 +502,15 @@ const zhHant: TranslationObject = {
       missing: '這家公司已不存在。',
       itself: '公司不能合併到自身。',
     },
+  },
+  contactPage: {
+    name: '姓名',
+    languages: '語言',
+    newTitle: '新聯絡人',
+    create: '建立聯絡人',
+    delete: '刪除聯絡人',
+    reach: '聯絡方式',
+    add: '新增聯絡人',
   },
   picker: { existing: '已在您的清單中：{name}', new: '尚未在您的清單中：儲存時將新增。' },
   confirm: {

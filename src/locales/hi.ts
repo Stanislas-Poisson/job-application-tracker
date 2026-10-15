@@ -466,7 +466,7 @@ const hi: TranslationObject = {
     undo: 'पूर्ववत करें',
     removed: 'हटाया गया: {name}।',
   },
-  tables: { title: 'तालिकाएँ', tablist: 'तालिकाएँ', applications: 'आवेदन', companies: 'कंपनियाँ' },
+  tables: { title: 'तालिकाएँ', tablist: 'तालिकाएँ', applications: 'आवेदन', companies: 'कंपनियाँ', contacts: 'संपर्क' },
   table: {
     search: 'तालिका में खोजें',
     shown: '{total} में से {shown} दिखाए गए',
@@ -514,6 +514,15 @@ const hi: TranslationObject = {
       missing: 'यह कंपनी अब मौजूद नहीं है।',
       itself: 'कंपनी को स्वयं में नहीं मिलाया जा सकता।',
     },
+  },
+  contactPage: {
+    name: 'नाम',
+    languages: 'भाषाएँ',
+    newTitle: 'नया संपर्क',
+    create: 'संपर्क बनाएँ',
+    delete: 'संपर्क हटाएँ',
+    reach: 'संपर्क के तरीके',
+    add: 'संपर्क जोड़ें',
   },
   picker: { existing: 'पहले से आपकी सूची में है: {name}', new: 'अभी आपकी सूची में नहीं है: सहेजने पर जुड़ जाएगा।' },
   confirm: {

@@ -470,7 +470,13 @@ const pt: TranslationObject = {
     undo: 'Anular',
     removed: 'Removido: {name}.',
   },
-  tables: { title: 'Tabelas', tablist: 'As tabelas', applications: 'Candidaturas', companies: 'Empresas' },
+  tables: {
+    title: 'Tabelas',
+    tablist: 'As tabelas',
+    applications: 'Candidaturas',
+    companies: 'Empresas',
+    contacts: 'Contactos',
+  },
   table: {
     search: 'Pesquisar na tabela',
     shown: '{shown} de {total} mostradas',
@@ -518,6 +524,15 @@ const pt: TranslationObject = {
       missing: 'Esta empresa já não existe.',
       itself: 'Uma empresa não pode ser juntada a si própria.',
     },
+  },
+  contactPage: {
+    name: 'Nome',
+    languages: 'Idiomas',
+    newTitle: 'Novo contacto',
+    create: 'Criar o contacto',
+    delete: 'Eliminar o contacto',
+    reach: 'Formas de contacto',
+    add: 'Adicionar um contacto',
   },
   picker: { existing: 'Já está na sua lista: {name}', new: 'Ainda não está na sua lista: é adicionado ao guardar.' },
   confirm: {
