@@ -92,6 +92,8 @@ const ja: TranslationObject = {
     },
     timeZoneHint: '時刻は {zone} です。',
     close: '閉じる',
+    edit: '編集',
+    done: '完了',
     details: '詳細',
     openOffer: '求人を開く',
     save: '保存',

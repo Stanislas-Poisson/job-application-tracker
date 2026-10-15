@@ -4,6 +4,7 @@
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
+  import { useDrawerMode } from '../../composables/useDrawerMode'
   import { useFormat } from '../../composables/useFormat'
   import { type Application, Tag } from '../../models'
   import { PRIORITIES, TagError, setPriority, tagEntityByName, toggleFavorite, untagEntity } from '../../services/tags'
@@ -13,6 +14,7 @@
   const props = defineProps<{ application: Application }>()
 
   const { t } = useApp()
+  const { isEditing } = useDrawerMode()
   const format = useFormat()
 
   const name = ref('')
@@ -76,6 +78,7 @@
           <ItemSymbol :symbol="tag.symbol" />
           <span dir="auto">{{ tag.name }}</span>
           <button
+            v-if="isEditing"
             type="button"
             class="tag-remove"
             :aria-label="t('labels.remove', { name: tag.name })"
@@ -87,6 +90,7 @@
       </ul>
 
       <form
+        v-if="isEditing"
         class="row"
         @submit.prevent="add"
       >

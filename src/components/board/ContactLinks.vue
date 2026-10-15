@@ -4,6 +4,7 @@
   import { computed, reactive, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
+  import { useDrawerMode } from '../../composables/useDrawerMode'
   import { useFormat } from '../../composables/useFormat'
   import { Application, ApplicationContact, Company, type Contact, ContactCompany } from '../../models'
   import { unlinkContact } from '../../services/applications'
@@ -21,6 +22,7 @@
   const props = defineProps<{ contact: Contact; applicationId: string }>()
 
   const { t } = useApp()
+  const { isEditing } = useDrawerMode()
   const format = useFormat()
 
   // Reading the links makes the lists follow every change, in this page and in the others.
@@ -102,8 +104,11 @@
 </script>
 
 <template>
-  <div class="contact-links stack">
-    <h4>{{ t('contactLinks.companies') }}</h4>
+  <div
+    v-if="isEditing || 0 < companies.length || 1 < applications.length"
+    class="contact-links stack"
+  >
+    <h4 v-if="isEditing || 0 < companies.length">{{ t('contactLinks.companies') }}</h4>
     <ul
       v-if="0 < companies.length"
       class="contact-companies"
@@ -129,12 +134,13 @@
           >
         </span>
         <FormButton
-          v-if="null === link.endedOn"
+          v-if="isEditing && null === link.endedOn"
           type="button"
           @click="leave(link.id)"
           >{{ t('contactLinks.left') }}</FormButton
         >
         <button
+          v-if="isEditing"
           type="button"
           class="tag-remove"
           :aria-label="t('contactLinks.removeCompany', { name: link.company?.name ?? '' })"
@@ -145,6 +151,7 @@
       </li>
     </ul>
     <form
+      v-if="isEditing"
       class="stack contact-company-form"
       @submit.prevent="addCompany"
     >
@@ -185,8 +192,11 @@
       <FormButton type="submit">{{ t('contactLinks.addCompany') }}</FormButton>
     </form>
 
-    <h4>{{ t('contactLinks.applications') }}</h4>
-    <ul class="contact-applications">
+    <h4 v-if="isEditing || 1 < applications.length">{{ t('contactLinks.applications') }}</h4>
+    <ul
+      v-if="isEditing || 1 < applications.length"
+      class="contact-applications"
+    >
       <li
         v-for="application in applications"
         :key="application.id"
@@ -194,7 +204,7 @@
       >
         <span>{{ label(application) }}</span>
         <button
-          v-if="application.id !== applicationId"
+          v-if="isEditing && application.id !== applicationId"
           type="button"
           class="tag-remove"
           :aria-label="t('contactLinks.unlinkApplication', { name: label(application) })"
@@ -205,7 +215,7 @@
       </li>
     </ul>
     <div
-      v-if="0 < others.length"
+      v-if="isEditing && 0 < others.length"
       class="row"
     >
       <FormSelect

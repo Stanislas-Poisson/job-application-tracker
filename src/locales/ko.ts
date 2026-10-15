@@ -92,6 +92,8 @@ const ko: TranslationObject = {
     },
     timeZoneHint: '시각은 {zone} 기준입니다.',
     close: '닫기',
+    edit: '편집',
+    done: '완료',
     details: '세부 정보',
     openOffer: '공고 열기',
     save: '저장',
