@@ -435,6 +435,7 @@ const sv: TranslationObject = {
     browser:
       'I webbläsaren, som standard: Alt+Skift+J sparar jobbet på sidan, Alt+Skift+L öppnar tavlan. Ändra dem i webbläsarens kortkommandon (tilläggssidan i Chrome och Edge, hanteraren för kortkommandon bland tilläggen i Firefox).',
     actions: {
+      open: 'Öppna kortet',
       search: 'Gå till sökningen',
       up: 'Kortet ovanför',
       down: 'Kortet under',

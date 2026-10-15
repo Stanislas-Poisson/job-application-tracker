@@ -442,6 +442,7 @@ const es: TranslationObject = {
     browser:
       'En el navegador, por defecto: Alt+Mayús+J guarda la oferta de la página, Alt+Mayús+L abre el tablero. Cámbielas en los atajos de su navegador (la página de extensiones de Chrome y Edge, el gestor de atajos de los complementos de Firefox).',
     actions: {
+      open: 'Abrir la tarjeta',
       search: 'Ir a la búsqueda',
       up: 'Tarjeta de arriba',
       down: 'Tarjeta de abajo',

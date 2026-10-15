@@ -430,6 +430,7 @@ const en: TranslationObject = {
     browser:
       'In the browser, by default: Alt+Shift+J saves the offer of the page, Alt+Shift+L opens the board. Change them in the shortcuts of your browser (the extensions page of Chrome and Edge, the manager of shortcuts in the add-ons of Firefox).',
     actions: {
+      open: 'Open the card',
       search: 'Go to the search',
       up: 'Card above',
       down: 'Card below',

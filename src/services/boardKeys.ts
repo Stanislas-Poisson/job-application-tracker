@@ -4,7 +4,10 @@
 import type { KeyAction } from './shortcutKeys'
 
 const CARD = '.application-card .card-open'
-const EDITABLE = 'input, textarea, select, [contenteditable=""], [contenteditable="true"]'
+// What takes the keys of a person who types or chooses: the fields, the editable parts (also in their plain-text form) and what
+// plays the role of a field. A key pressed there is for it, not for the page.
+const EDITABLE =
+  'input, textarea, select, [contenteditable=""], [contenteditable="true"], [contenteditable="plaintext-only"], [role="textbox"], [role="combobox"], [role="searchbox"], [role="spinbutton"]'
 
 export type Move = 'up' | 'down' | 'previous' | 'next'
 
@@ -25,7 +28,10 @@ export const movesCard = (action: KeyAction): boolean => 'moveLeft' === action |
 
 // A person typing, or choosing in a list: the keys belong to the field, not to the page.
 export function isTyping(target: EventTarget | null): boolean {
-  return target instanceof Element && target.matches(EDITABLE)
+  return (
+    target instanceof Element &&
+    (target.matches(EDITABLE) || null !== target.closest('[contenteditable]:not([contenteditable="false"])'))
+  )
 }
 
 const columnsOf = (board: ParentNode): HTMLElement[] => [...board.querySelectorAll<HTMLElement>('section.column')]
