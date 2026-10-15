@@ -7,9 +7,9 @@
   import ApplicationCard from './ApplicationCard.vue'
 
   const props = defineProps<{ status: Status; applications: Application[]; index: number }>()
-  const emit = defineEmits<{ open: [id: string]; dropApplication: [id: string] }>()
+  const emit = defineEmits<{ open: [id: string]; dropApplication: [id: string]; add: [statusKey: string] }>()
 
-  const { settings, statusName } = useApp()
+  const { t, settings, statusName } = useApp()
 
   const over = ref(false)
   // A custom theme in use brings the colours of the columns.
@@ -38,24 +38,35 @@
     @dragleave="over = false"
     @drop.prevent="onDrop"
   >
-    <h2
-      :id="`column-${status.id}`"
-      :style="{ '--status': color }"
-    >
-      <span
-        v-if="shape"
-        class="shape"
-        aria-hidden="true"
-        >{{ shape }}</span
+    <header class="column-head">
+      <h2
+        :id="`column-${status.id}`"
+        :style="{ '--status': color }"
       >
-      <span
-        v-else
-        class="dot"
-        :data-shape="columnShape(index)"
-      />
-      {{ statusName(status) }}
-      <span class="count">{{ applications.length }}</span>
-    </h2>
+        <span
+          v-if="shape"
+          class="shape"
+          aria-hidden="true"
+          >{{ shape }}</span
+        >
+        <span
+          v-else
+          class="dot"
+          :data-shape="columnShape(index)"
+        />
+        {{ statusName(status) }}
+        <span class="count">{{ applications.length }}</span>
+      </h2>
+      <button
+        type="button"
+        class="column-add"
+        :aria-label="t('board.addToColumn', { name: statusName(status) })"
+        :title="t('board.addToColumn', { name: statusName(status) })"
+        @click="emit('add', status.key)"
+      >
+        <span aria-hidden="true">+</span>
+      </button>
+    </header>
     <ApplicationCard
       v-for="application in applications"
       :key="application.id"
@@ -80,12 +91,28 @@
       border-color: var(--primary);
     }
 
-    h2 {
+    .column-head {
       display: flex;
       align-items: center;
       gap: 0.5rem;
       margin: 0 0 0.2rem;
+    }
+
+    h2 {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0;
       font-size: 0.85rem;
+    }
+
+    // A small button, but a target the size the guidelines ask for.
+    .column-add {
+      min-inline-size: 24px;
+      min-block-size: 24px;
+      padding: 0 0.4rem;
+      line-height: 1;
     }
 
     .dot {
