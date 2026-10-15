@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url'
 
 import { By, Key } from 'selenium-webdriver'
 
-import { launch, openPage, unpack, waitFor, zipFor } from './lib.mjs'
+import { launch, openPage, startEditing, unpack, waitFor, zipFor } from './lib.mjs'
 
 const browser = process.env.BROWSER || 'chrome'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
@@ -242,19 +242,24 @@ async function reload(page) {
   await waitFor(async () => (await all('footer')).length > 0, { message: `${page} to reload` })
 }
 
-async function openDrawer() {
+// The card opens to be read; with edit, the form is open too.
+async function openDrawer({ edit = false } = {}) {
   await use('board')
   await css('.application-card .card-open').then((button) => button.click())
-  await waitFor(async () => (await all('dialog[open] textarea[name=newNote]')).length > 0, { message: 'the drawer' })
+  await waitFor(async () => (await all('dialog[open] button[name=toggleEdit]')).length > 0, { message: 'the drawer' })
+  if (edit) {
+    await startEditing(driver)
+  }
   await pause(300)
 }
 
+// Escape steps back from the form to the reading, and closes from there.
 async function closeDrawer() {
-  const pending = await all('dialog[open] textarea[name=newNote]')
-  if (0 < pending.length) {
+  for (let attempt = 0; attempt < 2 && 0 < (await all('dialog[open]')).length; attempt += 1) {
     await driver.actions().sendKeys(Key.ESCAPE).perform()
-    await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the drawer to close' })
+    await pause(400)
   }
+  await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the drawer to close' })
 }
 
 // The three pages and the drawer in the look now set.
@@ -270,7 +275,9 @@ async function pages(label, { drawer = true, popup = true } = {}) {
   await shot(`${tag}-options`, `${label}: the options`)
   if (drawer) {
     await openDrawer()
-    await shot(`${tag}-drawer`, `${label}: the drawer of an application`, { whole: false })
+    await shot(`${tag}-drawer`, `${label}: the drawer of an application, read`, { whole: false })
+    await startEditing(driver)
+    await shot(`${tag}-drawer-edit`, `${label}: the drawer of an application, edited`, { whole: false })
     await closeDrawer()
   }
 }
@@ -394,7 +401,7 @@ async function messages() {
     await pause(500)
 
     // The confirmation over the drawer, from a note typed and not saved.
-    await openDrawer()
+    await openDrawer({ edit: true })
     await css('dialog[open] textarea[name=newNote]').then((field) => field.sendKeys('A note that is not saved'))
     await driver.actions().sendKeys(Key.ESCAPE).perform()
     await waitFor(async () => (await all('#confirm-dialog[open], dialog#confirm-dialog')).length > 0, {
