@@ -108,3 +108,11 @@
     </form>
   </OverlayModal>
 </template>
+
+<style lang="scss">
+  // The dialog that adds an offer is as roomy as the fields in it need, and more on a wide window.
+  dialog#new-offer-dialog {
+    width: min(44rem, 94vw);
+    max-width: none;
+  }
+</style>
