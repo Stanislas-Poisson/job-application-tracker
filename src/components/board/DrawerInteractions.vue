@@ -3,6 +3,7 @@
   import { computed, reactive, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
+  import { useDrawerMode } from '../../composables/useDrawerMode'
   import { useFormat } from '../../composables/useFormat'
   import type { Application } from '../../models'
   import { CHANNELS, DIRECTIONS } from '../../models/Interaction'
@@ -13,6 +14,7 @@
   const props = defineProps<{ application: Application }>()
 
   const { t } = useApp()
+  const { isEditing } = useDrawerMode()
   const format = useFormat()
 
   const now = () => utcToZonedInput(new Date().toISOString(), format.timeZone.value)
@@ -82,9 +84,10 @@
 </script>
 
 <template>
-  <section>
+  <section v-if="isEditing || 0 < exchanges.length">
     <h3>{{ t('interactions.title') }}</h3>
     <form
+      v-if="isEditing"
       class="stack"
       @submit.prevent="add"
     >
@@ -145,7 +148,10 @@
       <FormButton type="submit">{{ t('interactions.add') }}</FormButton>
     </form>
 
-    <ImportExchanges :application="application" />
+    <ImportExchanges
+      v-if="isEditing"
+      :application="application"
+    />
 
     <ul>
       <li
@@ -168,6 +174,7 @@
             >{{ t('interactions.minutes', { count: exchange.durationMinutes }) }}</small
           >
           <FormButton
+            v-if="isEditing"
             type="button"
             @click="removeInteraction(exchange.id)"
           >

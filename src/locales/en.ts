@@ -93,6 +93,8 @@ const en: TranslationObject = {
     },
     timeZoneHint: 'The time is in {zone}.',
     close: 'Close',
+    edit: 'Edit',
+    done: 'Done',
     details: 'Details',
     openOffer: 'Open the offer',
     save: 'Save',

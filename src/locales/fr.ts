@@ -93,6 +93,8 @@ const fr: TranslationObject = {
     },
     timeZoneHint: "L'heure est celle du fuseau {zone}.",
     close: 'Fermer',
+    edit: 'Modifier',
+    done: 'Terminé',
     details: 'Détails',
     openOffer: "Ouvrir l'offre",
     save: 'Enregistrer',

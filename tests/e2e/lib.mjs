@@ -6,7 +6,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { Browser, Builder, logging } from 'selenium-webdriver'
+import { Browser, Builder, By, logging } from 'selenium-webdriver'
 import chrome from 'selenium-webdriver/chrome.js'
 import edge from 'selenium-webdriver/edge.js'
 import firefox from 'selenium-webdriver/firefox.js'
@@ -196,6 +196,21 @@ async function launchOnce(browser, { dir, zip }) {
 
   await driver.manage().setTimeouts({ pageLoad: 60_000, script: 60_000 })
   return { driver, base }
+}
+
+// The drawer of an application opens to be read: the button of the drawer passes to the form.
+export async function startEditing(driver) {
+  const button = await waitFor(
+    async () => {
+      const found = await driver.findElements(By.css('dialog[open] button[name=toggleEdit]'))
+      return found[0]
+    },
+    { message: 'the button that edits the card' }
+  )
+  await button.click()
+  await waitFor(async () => (await driver.findElements(By.css('dialog[open] textarea[name=newNote]'))).length > 0, {
+    message: 'the form of the card',
+  })
 }
 
 // Opens a page of the extension in a new tab, selects it and returns its handle. Marionette refuses

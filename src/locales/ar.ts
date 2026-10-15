@@ -92,6 +92,8 @@ const ar: TranslationObject = {
     },
     timeZoneHint: 'الوقت بتوقيت {zone}.',
     close: 'إغلاق',
+    edit: 'تعديل',
+    done: 'تم',
     details: 'التفاصيل',
     openOffer: 'فتح الإعلان',
     save: 'حفظ',

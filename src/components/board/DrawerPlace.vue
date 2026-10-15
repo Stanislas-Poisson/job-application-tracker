@@ -4,6 +4,7 @@
   import { computed, nextTick, reactive, watch } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { useDirtyGuard } from '../../composables/useDirty'
+  import { useDrawerMode } from '../../composables/useDrawerMode'
   import { useFormat } from '../../composables/useFormat'
   import { type Application, JobOffer, type JobOffer as Offer } from '../../models'
   import { type AddressParts, emptyAddress, formatAddress, normalizeAddress } from '../../services/address'
@@ -15,6 +16,7 @@
 
   const { t, settings } = useApp()
   const format = useFormat()
+  const { isEditing } = useDrawerMode()
 
   const offer = computed(() => props.application.jobOffer)
 
@@ -82,9 +84,13 @@
 </script>
 
 <template>
-  <section id="place">
+  <section
+    v-if="isEditing || '' !== oneLine"
+    id="place"
+  >
     <h3>{{ t('place.title') }}</h3>
     <form
+      v-if="isEditing"
       class="stack"
       @submit.prevent="save"
     >
@@ -149,5 +155,40 @@
         >
       </div>
     </form>
+    <div
+      v-else
+      class="stack"
+    >
+      <p
+        id="address-line"
+        dir="auto"
+      >
+        {{ oneLine }}
+      </p>
+      <div class="row">
+        <a
+          v-if="place"
+          id="map-place"
+          :href="place"
+          target="_blank"
+          rel="noopener noreferrer"
+          >{{ t('place.show') }}</a
+        >
+        <a
+          v-if="route"
+          id="map-route"
+          :href="route"
+          target="_blank"
+          rel="noopener noreferrer"
+          >{{ t('place.route') }}</a
+        >
+      </div>
+      <p
+        v-if="routeNote"
+        class="muted"
+      >
+        {{ t(`place.notes.${routeNote}`) }}
+      </p>
+    </div>
   </section>
 </template>

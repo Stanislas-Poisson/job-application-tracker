@@ -92,6 +92,8 @@ const he: TranslationObject = {
     },
     timeZoneHint: 'השעה היא לפי {zone}.',
     close: 'סגירה',
+    edit: 'עריכה',
+    done: 'סיום',
     details: 'פרטים',
     openOffer: 'פתיחת המשרה',
     save: 'שמירה',
