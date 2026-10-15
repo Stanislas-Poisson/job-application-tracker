@@ -2,7 +2,7 @@ import type { TranslationObject } from '@zairakai/js-i18n'
 
 const nl: TranslationObject = {
   app: { name: 'Job Application Tracker' },
-  nav: { board: 'Bord', options: 'Opties' },
+  nav: { board: 'Bord', options: 'Opties', tables: 'Tabellen' },
   footer: {
     source: 'Broncode',
     issues: 'Een probleem melden',
@@ -472,6 +472,16 @@ const nl: TranslationObject = {
     close: 'Sluiten',
     undo: 'Ongedaan maken',
     removed: 'Verwijderd: {name}.',
+  },
+  tables: { title: 'Tabellen', tablist: 'De tabellen', applications: 'Sollicitaties' },
+  table: {
+    search: 'Zoeken in de tabel',
+    shown: '{shown} van {total} getoond',
+    empty: 'Niets te tonen.',
+    columns: 'Kolommen',
+    yes: 'Ja',
+    applied: 'Gesolliciteerd op',
+    updated: 'Gewijzigd',
   },
   picker: { existing: 'Al in je lijst: {name}', new: 'Nog niet in je lijst: wordt toegevoegd bij het opslaan.' },
   confirm: {
