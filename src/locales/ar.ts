@@ -490,6 +490,14 @@ const ar: TranslationObject = {
     applied: 'قُدِّم في',
     updated: 'عُدِّل',
   },
+  optionsTabs: {
+    list: 'مجموعات الخيارات',
+    appearance: 'اللغة والمظهر',
+    board: 'اللوحة والمفاتيح',
+    money: 'المال والراتب',
+    places: 'الأماكن والبريد',
+    data: 'البيانات والنسخ الاحتياطية',
+  },
   picker: { existing: 'موجود في قائمتك: {name}', new: 'غير موجود في قائمتك بعد: سيُضاف عند الحفظ.' },
   confirm: {
     title: 'يُرجى التأكيد',

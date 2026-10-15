@@ -490,6 +490,14 @@ const ru: TranslationObject = {
     applied: 'Подано',
     updated: 'Изменено',
   },
+  optionsTabs: {
+    list: 'Группы настроек',
+    appearance: 'Язык и вид',
+    board: 'Доска и клавиши',
+    money: 'Деньги и зарплата',
+    places: 'Места и почта',
+    data: 'Данные и резервные копии',
+  },
   picker: { existing: 'Уже в вашем списке: {name}', new: 'Ещё нет в вашем списке: будет добавлено при сохранении.' },
   confirm: {
     title: 'Подтвердите, пожалуйста',

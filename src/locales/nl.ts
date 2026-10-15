@@ -483,6 +483,14 @@ const nl: TranslationObject = {
     applied: 'Gesolliciteerd op',
     updated: 'Gewijzigd',
   },
+  optionsTabs: {
+    list: 'De groepen opties',
+    appearance: 'Taal en uiterlijk',
+    board: 'Bord en toetsen',
+    money: 'Geld en loon',
+    places: 'Plaatsen en e-mail',
+    data: 'Gegevens en back-ups',
+  },
   picker: { existing: 'Al in je lijst: {name}', new: 'Nog niet in je lijst: wordt toegevoegd bij het opslaan.' },
   confirm: {
     title: 'Bevestig alstublieft',

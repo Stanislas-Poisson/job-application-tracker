@@ -252,6 +252,17 @@ export async function quitBrowser(driver) {
   }
 }
 
+// The options are in tabs that all stay in the page, the ones not in use hidden. The tab that holds the element is shown, so that it
+// can be used; an element that is in no tab (the footer) changes nothing.
+export async function showTabOf(driver, selector) {
+  await driver.executeScript(
+    `const element = document.querySelector(arguments[0]);
+     const panel = element && element.closest('[role=tabpanel]');
+     if (panel && panel.hidden) { document.getElementById(panel.getAttribute('aria-labelledby')).click(); }`,
+    selector
+  )
+}
+
 // The drawer of an application opens to be read: the button of the drawer passes to the form.
 export async function startEditing(driver) {
   const button = await waitFor(

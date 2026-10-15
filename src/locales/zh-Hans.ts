@@ -465,6 +465,14 @@ const zhHans: TranslationObject = {
     applied: '申请日期',
     updated: '更新时间',
   },
+  optionsTabs: {
+    list: '选项分组',
+    appearance: '语言与外观',
+    board: '看板与按键',
+    money: '金钱与薪资',
+    places: '地点与邮件',
+    data: '数据与备份',
+  },
   picker: { existing: '已在您的列表中：{name}', new: '尚未在您的列表中：保存时将添加。' },
   confirm: {
     title: '请确认',
