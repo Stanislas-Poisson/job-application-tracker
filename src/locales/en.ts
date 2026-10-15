@@ -466,7 +466,13 @@ const en: TranslationObject = {
     undo: 'Undo',
     removed: 'Removed: {name}.',
   },
-  tables: { title: 'Tables', tablist: 'The tables', applications: 'Applications', companies: 'Companies' },
+  tables: {
+    title: 'Tables',
+    tablist: 'The tables',
+    applications: 'Applications',
+    companies: 'Companies',
+    contacts: 'Contacts',
+  },
   table: {
     search: 'Search the table',
     shown: '{shown} of {total} shown',
@@ -514,6 +520,15 @@ const en: TranslationObject = {
       missing: 'This company no longer exists.',
       itself: 'A company cannot be merged into itself.',
     },
+  },
+  contactPage: {
+    name: 'Name',
+    languages: 'Languages',
+    newTitle: 'New contact',
+    create: 'Create the contact',
+    delete: 'Delete the contact',
+    reach: 'Ways to reach',
+    add: 'Add a contact',
   },
   picker: { existing: 'Already in your list: {name}', new: 'Not in your list yet: it is added when you save.' },
   confirm: {

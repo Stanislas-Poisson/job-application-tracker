@@ -476,7 +476,13 @@ const de: TranslationObject = {
     undo: 'Rückgängig',
     removed: 'Entfernt: {name}.',
   },
-  tables: { title: 'Tabellen', tablist: 'Die Tabellen', applications: 'Bewerbungen', companies: 'Unternehmen' },
+  tables: {
+    title: 'Tabellen',
+    tablist: 'Die Tabellen',
+    applications: 'Bewerbungen',
+    companies: 'Unternehmen',
+    contacts: 'Kontakte',
+  },
   table: {
     search: 'In der Tabelle suchen',
     shown: '{shown} von {total} angezeigt',
@@ -524,6 +530,15 @@ const de: TranslationObject = {
       missing: 'Dieses Unternehmen gibt es nicht mehr.',
       itself: 'Ein Unternehmen kann nicht mit sich selbst zusammengeführt werden.',
     },
+  },
+  contactPage: {
+    name: 'Name',
+    languages: 'Sprachen',
+    newTitle: 'Neuer Kontakt',
+    create: 'Kontakt anlegen',
+    delete: 'Kontakt löschen',
+    reach: 'Kontaktwege',
+    add: 'Kontakt hinzufügen',
   },
   picker: {
     existing: 'Bereits in Ihrer Liste: {name}',

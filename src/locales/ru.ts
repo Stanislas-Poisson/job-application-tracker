@@ -480,7 +480,7 @@ const ru: TranslationObject = {
     undo: 'Отменить',
     removed: 'Удалено: {name}.',
   },
-  tables: { title: 'Таблицы', tablist: 'Таблицы', applications: 'Заявки', companies: 'Компании' },
+  tables: { title: 'Таблицы', tablist: 'Таблицы', applications: 'Заявки', companies: 'Компании', contacts: 'Контакты' },
   table: {
     search: 'Поиск по таблице',
     shown: 'Показано {shown} из {total}',
@@ -528,6 +528,15 @@ const ru: TranslationObject = {
       missing: 'Этой компании больше нет.',
       itself: 'Компанию нельзя объединить с ней самой.',
     },
+  },
+  contactPage: {
+    name: 'Имя',
+    languages: 'Языки',
+    newTitle: 'Новый контакт',
+    create: 'Создать контакт',
+    delete: 'Удалить контакт',
+    reach: 'Способы связи',
+    add: 'Добавить контакт',
   },
   picker: { existing: 'Уже в вашем списке: {name}', new: 'Ещё нет в вашем списке: будет добавлено при сохранении.' },
   confirm: {

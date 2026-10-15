@@ -470,7 +470,13 @@ const tr: TranslationObject = {
     undo: 'Geri al',
     removed: 'Kaldırıldı: {name}.',
   },
-  tables: { title: 'Tablolar', tablist: 'Tablolar', applications: 'Başvurular', companies: 'Şirketler' },
+  tables: {
+    title: 'Tablolar',
+    tablist: 'Tablolar',
+    applications: 'Başvurular',
+    companies: 'Şirketler',
+    contacts: 'Kişiler',
+  },
   table: {
     search: 'Tabloda ara',
     shown: '{total} içinden {shown} gösteriliyor',
@@ -517,6 +523,15 @@ const tr: TranslationObject = {
       missing: 'Bu şirket artık yok.',
       itself: 'Bir şirket kendisiyle birleştirilemez.',
     },
+  },
+  contactPage: {
+    name: 'Ad',
+    languages: 'Diller',
+    newTitle: 'Yeni kişi',
+    create: 'Kişiyi oluştur',
+    delete: 'Kişiyi sil',
+    reach: 'İletişim yolları',
+    add: 'Kişi ekle',
   },
   picker: { existing: 'Zaten listenizde: {name}', new: 'Henüz listenizde değil: kaydedince eklenir.' },
   confirm: {

@@ -466,7 +466,7 @@ const he: TranslationObject = {
     undo: 'ביטול',
     removed: 'הוסר: {name}.',
   },
-  tables: { title: 'טבלאות', tablist: 'הטבלאות', applications: 'מועמדויות', companies: 'חברות' },
+  tables: { title: 'טבלאות', tablist: 'הטבלאות', applications: 'מועמדויות', companies: 'חברות', contacts: 'אנשי קשר' },
   table: {
     search: 'חיפוש בטבלה',
     shown: '{shown} מתוך {total} מוצגות',
@@ -513,6 +513,15 @@ const he: TranslationObject = {
       missing: 'החברה הזו כבר לא קיימת.',
       itself: 'אי אפשר למזג חברה לעצמה.',
     },
+  },
+  contactPage: {
+    name: 'שם',
+    languages: 'שפות',
+    newTitle: 'איש קשר חדש',
+    create: 'יצירת איש הקשר',
+    delete: 'מחיקת איש הקשר',
+    reach: 'דרכי יצירת קשר',
+    add: 'הוספת איש קשר',
   },
   picker: { existing: 'כבר ברשימה שלכם: {name}', new: 'עדיין לא ברשימה שלכם: יתווסף בעת השמירה.' },
   confirm: {
