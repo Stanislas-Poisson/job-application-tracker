@@ -474,6 +474,7 @@ const es: TranslationObject = {
     undo: 'Deshacer',
     removed: 'Eliminado: {name}.',
   },
+  picker: { existing: 'Ya está en tu lista: {name}', new: 'Aún no está en tu lista: se añade al guardar.' },
   confirm: {
     title: 'Confirma, por favor',
     ok: 'Confirmar',

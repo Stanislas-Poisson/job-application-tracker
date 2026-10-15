@@ -469,6 +469,7 @@ const nl: TranslationObject = {
     undo: 'Ongedaan maken',
     removed: 'Verwijderd: {name}.',
   },
+  picker: { existing: 'Al in je lijst: {name}', new: 'Nog niet in je lijst: wordt toegevoegd bij het opslaan.' },
   confirm: {
     title: 'Bevestig alstublieft',
     ok: 'Bevestigen',
