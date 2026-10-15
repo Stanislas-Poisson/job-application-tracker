@@ -1,10 +1,12 @@
 <script setup lang="ts">
+  import { FormButton } from '@zairakai/vue-components/Form'
   import { OverlayDrawer } from '@zairakai/vue-components/Overlay'
   import { useRepo } from 'pinia-orm'
-  import { computed } from 'vue'
+  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { confirmAction } from '../../composables/useConfirm'
   import { anyDirty } from '../../composables/useDirty'
+  import { provideDrawerMode } from '../../composables/useDrawerMode'
   import { Application } from '../../models'
   import DrawerCompany from './DrawerCompany.vue'
   import DrawerContacts from './DrawerContacts.vue'
@@ -23,14 +25,55 @@
 
   const { t } = useApp()
 
-  // Escape, the close button and a click outside ask to close: unsaved text asks the user first, and can keep the drawer.
-  // The drawer stays open while the question is asked (the event cannot wait for an answer), and closes if the answer is yes.
+  // The card opens to be read; editing is a step taken on purpose, with the button, and never a key.
+  const mode = provideDrawerMode()
+  const editing = computed(() => 'edit' === mode.value)
+  // Back to reading drops what was typed and not kept: the sections are drawn again, with nothing in their forms.
+  const session = ref(0)
+  function read() {
+    mode.value = 'read'
+    session.value += 1
+  }
+  watch(() => props.applicationId, read)
+
+  // Unsaved text asks the user first, and can keep the drawer open. The question cannot wait for an answer inside the event:
+  // the drawer stays open while it is asked, and the answer decides.
+  function askToDiscard(then: () => void) {
+    void confirmAction({ message: t('dirty.confirmClose'), confirmLabel: t('dirty.discard'), danger: true }).then(
+      (discard) => discard && then()
+    )
+  }
+
+  // The button of the drawer: from reading to editing, and back.
+  function toggle() {
+    if (!editing.value) {
+      mode.value = 'edit'
+    } else if (anyDirty()) {
+      askToDiscard(read)
+    } else {
+      read()
+    }
+  }
+
+  // Escape is told from the close button and a click outside: it steps back from editing to reading when nothing changed.
+  let escaped = false
+  const markEscape = (event: KeyboardEvent) => {
+    if ('Escape' === event.key) {
+      escaped = true
+      setTimeout(() => (escaped = false))
+    }
+  }
+  onMounted(() => window.addEventListener('keydown', markEscape, true))
+  onBeforeUnmount(() => window.removeEventListener('keydown', markEscape, true))
+
+  // Escape, the close button and a click outside ask to close.
   function onCancel(event: Event) {
-    if (anyDirty()) {
+    if (editing.value && escaped && !anyDirty()) {
       event.preventDefault()
-      void confirmAction({ message: t('dirty.confirmClose'), confirmLabel: t('dirty.discard'), danger: true }).then(
-        (discard) => discard && emit('close')
-      )
+      read()
+    } else if (anyDirty()) {
+      event.preventDefault()
+      askToDiscard(() => emit('close'))
     }
   }
 
@@ -62,20 +105,33 @@
       v-if="application"
       class="stack drawer-content"
     >
-      <DrawerDetails
-        :application="application"
-        @deleted="emit('close')"
-      />
-      <DrawerPlace :application="application" />
-      <DrawerJourneys :application="application" />
-      <DrawerNetPay :application="application" />
-      <DrawerCompany :application="application" />
-      <DrawerLabels :application="application" />
-      <DrawerInteractions :application="application" />
-      <DrawerNotes :application="application" />
-      <DrawerReminders :application="application" />
-      <DrawerContacts :application="application" />
-      <DrawerTimeline :application="application" />
+      <div class="drawer-bar">
+        <FormButton
+          type="button"
+          name="toggleEdit"
+          @click="toggle"
+          >{{ editing ? t('drawer.done') : t('drawer.edit') }}</FormButton
+        >
+      </div>
+      <template
+        v-for="run in [session]"
+        :key="run"
+      >
+        <DrawerDetails
+          :application="application"
+          @deleted="emit('close')"
+        />
+        <DrawerPlace :application="application" />
+        <DrawerJourneys :application="application" />
+        <DrawerNetPay :application="application" />
+        <DrawerCompany :application="application" />
+        <DrawerLabels :application="application" />
+        <DrawerInteractions :application="application" />
+        <DrawerNotes :application="application" />
+        <DrawerReminders :application="application" />
+        <DrawerContacts :application="application" />
+        <DrawerTimeline :application="application" />
+      </template>
     </div>
   </OverlayDrawer>
 </template>
@@ -97,6 +153,17 @@
     gap: 1.5rem;
     min-width: 0;
 
+    // The button that passes from reading to editing stays in reach while the drawer scrolls.
+    .drawer-bar {
+      position: sticky;
+      inset-block-start: 0;
+      z-index: 1;
+      display: flex;
+      justify-content: flex-end;
+      padding-block: 0.25rem;
+      background: var(--surface);
+    }
+
     h3 {
       margin: 0 0 0.5rem;
       font-size: 0.9rem;
@@ -106,6 +173,26 @@
       margin: 0;
       padding: 0;
       list-style: none;
+    }
+
+    // The card as it is read: a label and its value, with what is empty left out.
+    .facts {
+      display: grid;
+      gap: 0.6rem;
+      margin: 0;
+    }
+
+    .fact dt {
+      font-size: 0.8rem;
+    }
+
+    .fact dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .fact-text {
+      white-space: pre-wrap;
     }
 
     li {

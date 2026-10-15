@@ -92,6 +92,8 @@ const pl: TranslationObject = {
     },
     timeZoneHint: 'Czas jest podany w strefie {zone}.',
     close: 'Zamknij',
+    edit: 'Edytuj',
+    done: 'Gotowe',
     details: 'Szczegóły',
     openOffer: 'Otwórz ofertę',
     save: 'Zapisz',

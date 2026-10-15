@@ -4,6 +4,7 @@
   import { computed, reactive } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
+  import { useDrawerMode } from '../../composables/useDrawerMode'
   import { useFormat } from '../../composables/useFormat'
   import type { Application } from '../../models'
   import { addReminder, setReminderDone } from '../../services/applications'
@@ -13,6 +14,7 @@
   const props = defineProps<{ application: Application }>()
 
   const { t, settings } = useApp()
+  const { isEditing } = useDrawerMode()
   const format = useFormat()
 
   // The time is typed in the time zone of the settings, and stored in UTC.
@@ -44,10 +46,10 @@
 </script>
 
 <template>
-  <section>
+  <section v-if="isEditing || 0 < reminders.length">
     <h3>{{ t('drawer.reminders') }}</h3>
     <div
-      v-if="suggestion"
+      v-if="isEditing && suggestion"
       id="follow-up-suggestion"
       class="row"
     >
@@ -61,6 +63,7 @@
       >
     </div>
     <form
+      v-if="isEditing"
       class="stack"
       @submit.prevent="add"
     >

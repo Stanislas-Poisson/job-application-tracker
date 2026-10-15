@@ -92,6 +92,8 @@ const sv: TranslationObject = {
     },
     timeZoneHint: 'Tiden anges i {zone}.',
     close: 'Stäng',
+    edit: 'Redigera',
+    done: 'Klar',
     details: 'Detaljer',
     openOffer: 'Öppna annonsen',
     save: 'Spara',

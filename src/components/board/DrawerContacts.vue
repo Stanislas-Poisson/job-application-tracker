@@ -3,6 +3,7 @@
   import { computed, reactive, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
+  import { useDrawerMode } from '../../composables/useDrawerMode'
   import { useFormat } from '../../composables/useFormat'
   import type { Application } from '../../models'
   import { addContact, unlinkContact } from '../../services/applications'
@@ -16,6 +17,7 @@
   const props = defineProps<{ application: Application }>()
 
   const { t, settings } = useApp()
+  const { isEditing } = useDrawerMode()
   const format = useFormat()
 
   const empty = () => ({
@@ -68,9 +70,10 @@
 </script>
 
 <template>
-  <section>
+  <section v-if="isEditing || 0 < application.contacts.length">
     <h3>{{ t('drawer.contacts') }}</h3>
     <form
+      v-if="isEditing"
       class="stack"
       @submit.prevent="add"
     >
@@ -157,6 +160,7 @@
             >({{ contact.role }})</small
           >
           <FormButton
+            v-if="isEditing"
             type="button"
             @click="unlinkContact(application.id, contact.id)"
           >

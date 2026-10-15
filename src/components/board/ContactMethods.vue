@@ -3,6 +3,7 @@
   import { computed, reactive, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
+  import { useDrawerMode } from '../../composables/useDrawerMode'
   import type { Contact } from '../../models'
   import { METHOD_TYPES, type MethodType } from '../../models/ContactMethod'
   import { addContactMethod, removeContactMethod, setPrimaryMethod, sortedMethods } from '../../services/contactMethods'
@@ -12,6 +13,7 @@
   const props = defineProps<{ contact: Contact }>()
 
   const { t, settings } = useApp()
+  const { isEditing } = useDrawerMode()
 
   const form = reactive({ type: 'email' as MethodType, value: '', label: '' })
   useDirtyGuard(() => hasText(form.value, form.label))
@@ -45,7 +47,10 @@
 </script>
 
 <template>
-  <div class="methods">
+  <div
+    v-if="isEditing || 0 < methods.length"
+    class="methods"
+  >
     <ul class="method-list">
       <li
         v-for="method in methods"
@@ -77,13 +82,14 @@
           >{{ t('methods.main') }}</small
         >
         <FormButton
-          v-else
+          v-else-if="isEditing"
           type="button"
           @click="setPrimaryMethod(method.id)"
         >
           {{ t('methods.makeMain') }}
         </FormButton>
         <FormButton
+          v-if="isEditing"
           type="button"
           @click="removeContactMethod(method.id)"
         >
@@ -92,6 +98,7 @@
       </li>
     </ul>
     <form
+      v-if="isEditing"
       class="row method-form"
       @submit.prevent="add"
     >

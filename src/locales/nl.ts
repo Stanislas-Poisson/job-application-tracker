@@ -92,6 +92,8 @@ const nl: TranslationObject = {
     },
     timeZoneHint: 'De tijd is in {zone}.',
     close: 'Sluiten',
+    edit: 'Bewerken',
+    done: 'Klaar',
     details: 'Details',
     openOffer: 'De vacature openen',
     save: 'Opslaan',

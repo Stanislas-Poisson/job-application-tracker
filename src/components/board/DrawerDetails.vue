@@ -4,6 +4,7 @@
   import { computed, nextTick, reactive, ref, watch } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { useDirtyGuard } from '../../composables/useDirty'
+  import { useDrawerMode } from '../../composables/useDrawerMode'
   import { useFormat } from '../../composables/useFormat'
   import { notifyUndo } from '../../composables/useNotices'
   import { type Application, JobOffer, Status } from '../../models'
@@ -18,6 +19,7 @@
 
   const { t, persistence, statusName } = useApp()
   const format = useFormat()
+  const { isEditing } = useDrawerMode()
   // What is wrong with the form, shown under it.
   const problem = ref('')
 
@@ -69,6 +71,27 @@
     )
   )
   useDirtyGuard(() => dirty.value)
+
+  // What the card says when it is read: the order of the form, with what is empty left out.
+  const facts = computed(() => {
+    const source = offer.value
+    if (!source) {
+      return []
+    }
+    return [
+      { key: 'company', label: t('fields.company'), value: source.company?.name ?? '' },
+      { key: 'location', label: t('fields.location'), value: source.location ?? '' },
+      {
+        key: 'country',
+        label: t('fields.country'),
+        value: source.country ? countryName(source.country, format.locale.value) : '',
+      },
+      { key: 'contractType', label: t('fields.contractType'), value: source.contractType ?? '' },
+      { key: 'postedOn', label: t('fields.postedOn'), value: source.postedOn ? format.date(source.postedOn) : '' },
+      { key: 'salary', label: t('drawer.salary'), value: format.salary(source) },
+      { key: 'description', label: t('fields.description'), value: source.description ?? '' },
+    ].filter((fact) => '' !== fact.value)
+  })
 
   const statusOptions = computed(() =>
     Object.fromEntries(
@@ -163,6 +186,7 @@
   <section>
     <h3>{{ t('drawer.details') }}</h3>
     <form
+      v-if="isEditing"
       class="stack"
       @submit.prevent="save"
     >
@@ -306,6 +330,41 @@
         >
       </div>
     </form>
+    <div
+      v-else
+      class="stack"
+    >
+      <!-- Moving the card to another column is an action of the day: it stays in reach while reading. -->
+      <FormSelect
+        :model-value="application.statusId ?? ''"
+        name="status"
+        :label="t('fields.status')"
+        :options="statusOptions"
+        @update:model-value="move(String($event))"
+      />
+      <a
+        v-if="offer?.url"
+        :href="offer.url"
+        target="_blank"
+        rel="noopener"
+        >{{ t('drawer.openOffer') }}</a
+      >
+      <dl class="facts">
+        <div
+          v-for="fact in facts"
+          :key="fact.key"
+          class="fact"
+        >
+          <dt class="muted">{{ fact.label }}</dt>
+          <dd
+            :class="{ 'fact-text': 'description' === fact.key }"
+            dir="auto"
+          >
+            {{ fact.value }}
+          </dd>
+        </div>
+      </dl>
+    </div>
   </section>
 </template>
 

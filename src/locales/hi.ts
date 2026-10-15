@@ -92,6 +92,8 @@ const hi: TranslationObject = {
     },
     timeZoneHint: 'समय {zone} में है।',
     close: 'बंद करें',
+    edit: 'संपादित करें',
+    done: 'हो गया',
     details: 'ब्योरा',
     openOffer: 'विज्ञापन खोलें',
     save: 'सहेजें',
