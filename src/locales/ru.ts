@@ -2,7 +2,7 @@ import type { TranslationObject } from '@zairakai/js-i18n'
 
 const ru: TranslationObject = {
   app: { name: 'Job Application Tracker' },
-  nav: { board: 'Доска', options: 'Настройки' },
+  nav: { board: 'Доска', options: 'Настройки', tables: 'Таблицы' },
   footer: {
     source: 'Исходный код',
     issues: 'Сообщить о проблеме',
@@ -479,6 +479,16 @@ const ru: TranslationObject = {
     close: 'Закрыть',
     undo: 'Отменить',
     removed: 'Удалено: {name}.',
+  },
+  tables: { title: 'Таблицы', tablist: 'Таблицы', applications: 'Заявки' },
+  table: {
+    search: 'Поиск по таблице',
+    shown: 'Показано {shown} из {total}',
+    empty: 'Нечего показать.',
+    columns: 'Столбцы',
+    yes: 'Да',
+    applied: 'Подано',
+    updated: 'Изменено',
   },
   picker: { existing: 'Уже в вашем списке: {name}', new: 'Ещё нет в вашем списке: будет добавлено при сохранении.' },
   confirm: {

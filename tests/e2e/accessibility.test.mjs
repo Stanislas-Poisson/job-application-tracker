@@ -93,7 +93,7 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
   })
 
   for (const theme of ['light', 'dark']) {
-    for (const page of ['popup', 'options', 'board']) {
+    for (const page of ['popup', 'options', 'board', 'tables']) {
       test(`${page} has nothing axe can fault, in the ${theme} look`, async () => {
         await open(page, 'footer')
         await look(theme)
@@ -510,6 +510,12 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
         await scan(`drawer/edit/${code}/200%`).catch((error) => failures.push(error.message))
         const wide = await overflow()
         if (wide > 1) failures.push(`drawer/${code}/200%: the page is ${wide}px too wide`)
+
+        // The page of the tables, at the same width: the table scrolls inside its own region, never the page.
+        await open('tables', 'tbody tr')
+        await scan(`tables/${code}/200%`).catch((error) => failures.push(error.message))
+        const tablesWide = await overflow()
+        if (tablesWide > 1) failures.push(`tables/${code}/200%: the page is ${tablesWide}px too wide`)
         // The page is in the language that was asked for, and written in its direction.
         const page = await driver.executeScript(
           `return { lang: document.documentElement.getAttribute('lang'), dir: document.documentElement.getAttribute('dir') }`
@@ -527,7 +533,7 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
   for (const [width, height] of SIZES) {
     test(`the pages hold at ${width} pixels wide`, async () => {
       await resize(width, height)
-      for (const page of ['popup', 'options', 'board']) {
+      for (const page of ['popup', 'options', 'board', 'tables']) {
         await open(page, 'footer')
         const wide = await overflow()
         assert.ok(wide <= 1, `${page} is ${wide}px too wide at ${width}`)

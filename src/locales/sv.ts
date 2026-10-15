@@ -2,7 +2,7 @@ import type { TranslationObject } from '@zairakai/js-i18n'
 
 const sv: TranslationObject = {
   app: { name: 'Job Application Tracker' },
-  nav: { board: 'Tavla', options: 'Alternativ' },
+  nav: { board: 'Tavla', options: 'Alternativ', tables: 'Tabeller' },
   footer: {
     source: 'Källkod',
     issues: 'Rapportera ett problem',
@@ -470,6 +470,16 @@ const sv: TranslationObject = {
     close: 'Stäng',
     undo: 'Ångra',
     removed: 'Borttaget: {name}.',
+  },
+  tables: { title: 'Tabeller', tablist: 'Tabeller', applications: 'Ansökningar' },
+  table: {
+    search: 'Sök i tabellen',
+    shown: '{shown} av {total} visas',
+    empty: 'Inget att visa.',
+    columns: 'Kolumner',
+    yes: 'Ja',
+    applied: 'Ansökt',
+    updated: 'Ändrad',
   },
   picker: { existing: 'Finns redan i din lista: {name}', new: 'Finns inte i din lista än: läggs till när du sparar.' },
   confirm: {

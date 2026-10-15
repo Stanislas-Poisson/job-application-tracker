@@ -2,7 +2,7 @@ import type { TranslationObject } from '@zairakai/js-i18n'
 
 const zhHans: TranslationObject = {
   app: { name: 'Job Application Tracker' },
-  nav: { board: '看板', options: '选项' },
+  nav: { board: '看板', options: '选项', tables: '表格' },
   footer: {
     source: '源代码',
     issues: '报告问题',
@@ -454,6 +454,16 @@ const zhHans: TranslationObject = {
     close: '关闭',
     undo: '撤销',
     removed: '已移除：{name}。',
+  },
+  tables: { title: '表格', tablist: '表格', applications: '申请' },
+  table: {
+    search: '在表格中搜索',
+    shown: '显示 {shown} / {total}',
+    empty: '没有可显示的内容。',
+    columns: '列',
+    yes: '是',
+    applied: '申请日期',
+    updated: '更新时间',
   },
   picker: { existing: '已在您的列表中：{name}', new: '尚未在您的列表中：保存时将添加。' },
   confirm: {

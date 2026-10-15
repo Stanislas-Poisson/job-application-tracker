@@ -2,7 +2,7 @@ import type { TranslationObject } from '@zairakai/js-i18n'
 
 const ja: TranslationObject = {
   app: { name: 'Job Application Tracker' },
-  nav: { board: 'ボード', options: 'オプション' },
+  nav: { board: 'ボード', options: 'オプション', tables: 'テーブル' },
   footer: {
     source: 'ソースコード',
     issues: '問題を報告',
@@ -465,6 +465,16 @@ const ja: TranslationObject = {
     close: '閉じる',
     undo: '元に戻す',
     removed: '削除しました: {name}。',
+  },
+  tables: { title: 'テーブル', tablist: 'テーブル', applications: '応募' },
+  table: {
+    search: 'テーブル内を検索',
+    shown: '{total} 件中 {shown} 件を表示',
+    empty: '表示するものはありません。',
+    columns: '列',
+    yes: 'はい',
+    applied: '応募日',
+    updated: '更新日',
   },
   picker: { existing: 'すでにリストにあります: {name}', new: 'まだリストにありません。保存すると追加されます。' },
   confirm: {
