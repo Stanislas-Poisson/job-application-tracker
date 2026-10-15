@@ -14,7 +14,7 @@
   const props = defineProps<{ application: Application }>()
   const emit = defineEmits<{ open: [] }>()
 
-  const { t, sourceName } = useApp()
+  const { t, sourceName, settings } = useApp()
   const format = useFormat()
 
   const offer = computed(() => props.application.jobOffer)
@@ -97,7 +97,10 @@
         class="tag-chip"
         :style="{ '--tag': tag.color }"
       >
-        <ItemSymbol :symbol="tag.symbol" />
+        <ItemSymbol
+          v-if="settings.showTagSymbols"
+          :symbol="tag.symbol"
+        />
         <span dir="auto">{{ tag.name }}</span>
       </li>
     </ul>

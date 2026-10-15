@@ -344,6 +344,7 @@ const en: TranslationObject = {
     addButton: 'Add',
     remove: 'Remove the tag {name}',
     manage: 'Tags',
+    showSymbols: 'Show the symbols of the tags',
     manageHint: 'The tags you put on applications. Rename them, change their colour, or remove them.',
     none: 'No tag yet. Add one to an application, or here.',
     usage: {

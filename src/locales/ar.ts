@@ -346,6 +346,7 @@ const ar: TranslationObject = {
     addButton: 'إضافة',
     remove: 'إزالة الوسم {name}',
     manage: 'الوسوم',
+    showSymbols: 'إظهار رموز الوسوم',
     manageHint: 'الوسوم التي تضعها على الطلبات. أعد تسميتها أو غيّر لونها أو أزلها.',
     none: 'لا توجد وسوم بعد. أضف وسمًا إلى طلب أو هنا.',
     usage: {

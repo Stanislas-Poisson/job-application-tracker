@@ -342,6 +342,7 @@ const ko: TranslationObject = {
     addButton: '추가',
     remove: '태그 {name} 제거',
     manage: '태그',
+    showSymbols: '태그의 기호 표시',
     manageHint: '지원에 붙이는 태그입니다. 이름을 바꾸거나 색을 바꾸거나 제거할 수 있습니다.',
     none: '아직 태그가 없습니다. 지원 항목이나 여기서 추가하세요.',
     usage: {

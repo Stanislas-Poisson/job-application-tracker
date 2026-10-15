@@ -78,6 +78,9 @@ export interface Settings {
   // The keys of the pages (search, moving between the cards and moving a card). Off until the user turns them on: a key made of
   // one character can clash with a screen reader or a keyboard of their own (WCAG 2.1.4 asks that it can be turned off).
   shortcuts: boolean
+  // Shows the symbol the user gave a tag in front of its name, on the cards, in the drawer and in the filters. The editor of the
+  // tags always shows them. On by default.
+  showTagSymbols: boolean
   // The keys the user chose for the keys of the board (see services/shortcutKeys.ts); an action not in it has its default.
   shortcutKeys: ShortcutKeys
   // How dates are written: "auto" follows the language. The pattern is the one of the "custom" format. Relative dates say how long ago.
@@ -144,6 +147,7 @@ export const DEFAULT_SETTINGS: Settings = {
   timeZone: 'auto',
   developerMode: false,
   shortcuts: false,
+  showTagSymbols: true,
   shortcutKeys: {},
   dateFormat: 'auto',
   timeFormat: 'auto',
@@ -207,6 +211,7 @@ const VALID: {
   timeZone: (value) => 'auto' === value || isValidTimeZone(value),
   developerMode: (value) => 'boolean' === typeof value,
   shortcuts: (value) => 'boolean' === typeof value,
+  showTagSymbols: (value) => 'boolean' === typeof value,
   dateFormat: oneOf(DATE_FORMATS),
   timeFormat: oneOf(TIME_FORMATS),
   dateCustom: isPattern,
