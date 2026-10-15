@@ -460,7 +460,14 @@ const ko: TranslationObject = {
     undo: '실행 취소',
     removed: '제거함: {name}.',
   },
-  tables: { title: '표', tablist: '표', applications: '지원', companies: '회사', contacts: '연락처' },
+  tables: {
+    title: '표',
+    tablist: '표',
+    applications: '지원',
+    companies: '회사',
+    contacts: '연락처',
+    addresses: '주소',
+  },
   table: {
     search: '표에서 검색',
     shown: '{total}개 중 {shown}개 표시',
@@ -517,6 +524,7 @@ const ko: TranslationObject = {
     reach: '연락 방법',
     add: '연락처 추가',
   },
+  addressPage: { address: '주소', map: '지도' },
   picker: { existing: '이미 목록에 있음: {name}', new: '아직 목록에 없음: 저장하면 추가됩니다.' },
   confirm: {
     title: '확인해 주세요',

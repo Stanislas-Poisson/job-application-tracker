@@ -481,7 +481,14 @@ const pl: TranslationObject = {
     undo: 'Cofnij',
     removed: 'Usunięto: {name}.',
   },
-  tables: { title: 'Tabele', tablist: 'Tabele', applications: 'Aplikacje', companies: 'Firmy', contacts: 'Kontakty' },
+  tables: {
+    title: 'Tabele',
+    tablist: 'Tabele',
+    applications: 'Aplikacje',
+    companies: 'Firmy',
+    contacts: 'Kontakty',
+    addresses: 'Adresy',
+  },
   table: {
     search: 'Szukaj w tabeli',
     shown: 'Pokazano {shown} z {total}',
@@ -538,6 +545,7 @@ const pl: TranslationObject = {
     reach: 'Sposoby kontaktu',
     add: 'Dodaj kontakt',
   },
+  addressPage: { address: 'Adres', map: 'Mapa' },
   picker: { existing: 'Już na Twojej liście: {name}', new: 'Jeszcze nie ma na liście: zostanie dodane przy zapisie.' },
   confirm: {
     title: 'Potwierdź',
