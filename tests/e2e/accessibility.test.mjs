@@ -61,10 +61,11 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
   }
   // The options are in tabs: each one is shown in turn, and scanned.
   const OPTION_TABS = ['appearance', 'board', 'money', 'places', 'data']
-  async function scanEachTab(label) {
-    for (const id of OPTION_TABS) {
+  const TABLE_TABS = ['applications', 'companies']
+  async function scanEachTab(label, ids = OPTION_TABS) {
+    for (const id of ids) {
       await css(`.tab[data-tab=${id}]`).then((tab) => tab.click())
-      await waitFor(async () => (await all(`[role=tabpanel]:not([hidden]) .options-grid`)).length > 0, {
+      await waitFor(async () => (await all(`[role=tabpanel]:not([hidden])`)).length > 0, {
         message: `the tab ${id}`,
       })
       await scan(`${label}/${id}`)
@@ -109,7 +110,11 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
       test(`${page} has nothing axe can fault, in the ${theme} look`, async () => {
         await open(page, 'footer')
         await look(theme)
-        await ('options' === page ? scanEachTab(`options/${theme}`) : scan(`${page}/${theme}`))
+        await ('options' === page
+          ? scanEachTab(`options/${theme}`)
+          : 'tables' === page
+            ? scanEachTab(`tables/${theme}`, TABLE_TABS)
+            : scan(`${page}/${theme}`))
       })
     }
 
