@@ -61,7 +61,7 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
   }
   // The options are in tabs: each one is shown in turn, and scanned.
   const OPTION_TABS = ['appearance', 'board', 'money', 'places', 'data']
-  const TABLE_TABS = ['applications', 'companies', 'contacts']
+  const TABLE_TABS = ['applications', 'companies', 'contacts', 'addresses']
   async function scanEachTab(label, ids = OPTION_TABS) {
     for (const id of ids) {
       await css(`.tab[data-tab=${id}]`).then((tab) => tab.click())
