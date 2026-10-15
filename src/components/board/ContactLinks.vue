@@ -18,6 +18,7 @@
     removeCompanyLink,
   } from '../../services/contactLinks'
   import { todayIn } from '../../utils/time'
+  import EntityPicker from '../EntityPicker.vue'
 
   const props = defineProps<{ contact: Contact; applicationId: string }>()
 
@@ -156,10 +157,10 @@
       @submit.prevent="addCompany"
     >
       <div class="row">
-        <FormInput
+        <EntityPicker
           v-model="form.company"
           name="linkCompany"
-          list="contact-company-names"
+          :options="known.map((candidate) => candidate.name)"
           :placeholder="t('contactLinks.company')"
         />
         <FormInput
@@ -182,13 +183,6 @@
           :label="t('contactLinks.to')"
         />
       </div>
-      <datalist id="contact-company-names">
-        <option
-          v-for="candidate in known"
-          :key="candidate.id"
-          :value="candidate.name"
-        />
-      </datalist>
       <FormButton type="submit">{{ t('contactLinks.addCompany') }}</FormButton>
     </form>
 

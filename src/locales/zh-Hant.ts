@@ -451,6 +451,7 @@ const zhHant: TranslationObject = {
     undo: '撤銷',
     removed: '已移除：{name}。',
   },
+  picker: { existing: '已在您的清單中：{name}', new: '尚未在您的清單中：儲存時將新增。' },
   confirm: {
     title: '請確認',
     ok: '確認',

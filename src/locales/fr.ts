@@ -470,6 +470,10 @@ const fr: TranslationObject = {
     undo: 'Annuler',
     removed: 'Supprimé : {name}.',
   },
+  picker: {
+    existing: 'Déjà dans votre liste : {name}',
+    new: 'Pas encore dans votre liste : ajouté à l’enregistrement.',
+  },
   confirm: {
     title: 'Veuillez confirmer',
     ok: 'Confirmer',

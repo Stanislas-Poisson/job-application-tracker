@@ -4,13 +4,14 @@
   import { computed, onMounted, reactive, ref, watch } from 'vue'
   import AppFooter from '../../components/AppFooter.vue'
   import AppHeader from '../../components/AppHeader.vue'
+  import EntityPicker from '../../components/EntityPicker.vue'
   import { useApp } from '../../composables/useApp'
   import { adapterFor } from '../../extraction/adapters'
   import { type ReadOffer } from '../../extraction/jobPosting'
   import { collectSnapshot } from '../../extraction/page'
   import { readSnapshot } from '../../extraction/read'
   import { reportMailto, reportUrl } from '../../extraction/report'
-  import { Status } from '../../models'
+  import { Company, Status } from '../../models'
   import { browserAdapter } from '../../persistence/adapter'
   import { addNote, captureOffer } from '../../services/applications'
   import { clearDraft, draftFor, loadDraft, saveDraft } from '../../services/draft'
@@ -30,6 +31,12 @@
   )
 
   const statuses = computed(() => useRepo(Status).orderBy('order').get())
+  // The companies that exist, offered to the field of the company.
+  const companyNames = computed(() =>
+    useRepo(Company)
+      .all()
+      .map((company) => company.name)
+  )
   const statusOptions = computed(() =>
     Object.fromEntries(statuses.value.map((status) => [status.key, statusName(status)]))
   )
@@ -196,9 +203,10 @@
         :label="t('fields.title')"
         required
       />
-      <FormInput
+      <EntityPicker
         v-model="form.company"
         name="company"
+        :options="companyNames"
         :label="t('fields.company')"
         required
       />

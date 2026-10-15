@@ -451,6 +451,7 @@ const zhHans: TranslationObject = {
     undo: '撤销',
     removed: '已移除：{name}。',
   },
+  picker: { existing: '已在您的列表中：{name}', new: '尚未在您的列表中：保存时将添加。' },
   confirm: {
     title: '请确认',
     ok: '确认',

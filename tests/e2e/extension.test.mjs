@@ -1562,6 +1562,40 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
     })
 
+    test('a company that exists is offered, and a new one is said to be added on saving', async () => {
+      await open('popup', 'form')
+      const clear = (selector) =>
+        driver.executeScript(
+          `const field = document.querySelector(arguments[0]); field.value = ''; field.dispatchEvent(new Event('input', { bubbles: true }))`,
+          selector
+        )
+      // The case and the accents do not matter: "acme" is the company Acme.
+      await type('input[name=company]', 'acme')
+      await waitFor(async () => (await all('.picker-hint[data-state=existing]')).length === 1, {
+        message: 'the company to be told as existing',
+      })
+      assert.match(await text('.picker-hint'), /Acme/)
+      // The companies that exist are the ones the field offers.
+      assert.ok(
+        (
+          await driver.executeScript(`return [...document.querySelectorAll('datalist option')].map((o) => o.value)`)
+        ).includes('Acme')
+      )
+      // A name that is not in the list is a new company, and the field says so before the offer is saved.
+      await type('input[name=company]', 'Never Heard Of Inc')
+      await waitFor(async () => (await all('.picker-hint[data-state=new]')).length === 1, {
+        message: 'the company to be told as new',
+      })
+      // The field is described by the hint, for a screen reader.
+      const described = await driver.executeScript(
+        `const field = document.querySelector('input[name=company]'); return document.getElementById(field.getAttribute('aria-describedby'))?.textContent.trim()`
+      )
+      assert.match(described, /Not in your list/)
+      // Nothing is left behind for the popup that follows.
+      await clear('input[name=company]')
+      await waitFor(async () => (await all('.picker-hint')).length === 0, { message: 'the hint to go' })
+    })
+
     test('the popup gives back what was typed and not saved, and forgets it once the offer is saved', async () => {
       await open('popup', 'form')
       await type('input[name=title]', 'A draft title')

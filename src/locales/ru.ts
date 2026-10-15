@@ -476,6 +476,7 @@ const ru: TranslationObject = {
     undo: 'Отменить',
     removed: 'Удалено: {name}.',
   },
+  picker: { existing: 'Уже в вашем списке: {name}', new: 'Ещё нет в вашем списке: будет добавлено при сохранении.' },
   confirm: {
     title: 'Подтвердите, пожалуйста',
     ok: 'Подтвердить',

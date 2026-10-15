@@ -462,6 +462,7 @@ const ja: TranslationObject = {
     undo: '元に戻す',
     removed: '削除しました: {name}。',
   },
+  picker: { existing: 'すでにリストにあります: {name}', new: 'まだリストにありません。保存すると追加されます。' },
   confirm: {
     title: '確認してください',
     ok: '確認',
