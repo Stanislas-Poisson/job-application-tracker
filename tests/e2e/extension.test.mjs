@@ -2607,5 +2607,35 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await css(`${drawer} button[name=deleteContact]`).then((button) => button.click())
       await waitFor(async () => (await rows()).length === start, { message: 'the contact to be deleted again' })
     })
+
+    test('the addresses of the offers are read in a table, with the map link, and a row opens the application', async () => {
+      await open('tables', 'footer')
+      await css('[role=tab][data-tab=addresses]').then((tab) => tab.click())
+      const rows = () => all('tbody tr.table-row')
+      await waitFor(async () => (await rows()).length > 0, { message: 'the addresses' })
+      const lines = () => texts('tbody tr.table-row td[data-column=address]')
+      const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
+      const sorted = await lines()
+      assert.deepEqual(sorted, [...sorted].sort(collator.compare), 'sorted by the address')
+
+      // The address that was given in fields earlier is there, in one line, and found by its postal code.
+      await type('input[name=tableSearch]', '69001')
+      await waitFor(async () => (await rows()).length >= 1, { message: 'the search by the postal code' })
+      assert.match((await lines())[0], /Lyon/)
+      assert.match(await text('tbody tr.table-row td[data-column=company]'), /\S/)
+
+      // The link opens the place on the map chosen, in a new tab with no referrer.
+      const link = await css('tbody tr.table-row td[data-column=map] a')
+      assert.match(await link.getAttribute('href'), /^https:\/\//)
+      assert.match(await link.getAttribute('rel'), /noopener/)
+      assert.equal(await link.getAttribute('target'), '_blank')
+
+      // The row opens the application, where the address is edited.
+      await css('tbody tr.table-row .row-open').then((button) => button.click())
+      await waitFor(async () => (await all('dialog[open] button[name=toggleEdit]')).length > 0, {
+        message: 'the drawer',
+      })
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
   })
 })
