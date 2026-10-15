@@ -103,23 +103,35 @@ const CHROMIUM_ARGS = (dir, browser) => [
   `--log-file=${diag.file(`${browser}-browser.log`)}`,
 ]
 
-// Chrome and Edge as the vendors ship them ignore --load-extension, and say so in their own log: only Chrome for Testing
+// Chrome and Edge as the vendors ship them can ignore --load-extension, and say so in their own log: only Chrome for Testing
 // and Chromium take it. Named here because the symptom, a popup that never draws, points nowhere.
 function refusesExtensions(browser) {
   try {
     const log = fs.readFileSync(diag.file(`${browser}-browser.log`), 'utf8')
     return log.includes('--load-extension is not allowed')
-      ? ` (the browser refuses --load-extension: it is not Chrome for Testing, point BROWSER_BINARY to one)`
+      ? ` (the browser refuses --load-extension: it is not Chrome for Testing; set SE_FORCE_BROWSER_DOWNLOAD=true so that Selenium Manager uses its own)`
       : ''
   } catch {
     return ''
   }
 }
 
+// The version that really runs, written in the timeline: a result is read against it.
+async function logBrowser(driver, browser) {
+  try {
+    const capabilities = await driver.getCapabilities()
+    diag.log(`${browser} ${capabilities.get('browserVersion')} on ${capabilities.get('platformName')}`)
+  } catch (error) {
+    diag.log(`the version of ${browser} is not known: ${error.message}`)
+  }
+}
+
 // Starts the browser with the extension loaded, and returns the driver and the base URL of its pages.
 async function launchOnce(browser, { dir, zip }) {
   if (browser === 'firefox') {
+    // The current stable Firefox: with SE_FORCE_BROWSER_DOWNLOAD (the CI sets it) Selenium Manager downloads it, whatever is installed.
     const options = new firefox.Options()
+      .setBrowserVersion('stable')
       .addArguments('-headless')
       .setPreference('extensions.webextensions.uuids', JSON.stringify({ [FIREFOX_ID]: FIREFOX_UUID }))
     // geckodriver needs --allow-system-access to open the pages of the extension from the browser interface.
@@ -135,6 +147,7 @@ async function launchOnce(browser, { dir, zip }) {
     await driver.manage().setTimeouts({ pageLoad: 60_000, script: 60_000 })
     await driver.installAddon(zip, true)
     diag.attach(driver, browser)
+    await logBrowser(driver, browser)
     return { driver, base: `moz-extension://${FIREFOX_UUID}/` }
   }
 
@@ -163,7 +176,7 @@ async function launchOnce(browser, { dir, zip }) {
     if (process.env.BROWSER_BINARY) {
       options.setChromeBinaryPath(process.env.BROWSER_BINARY)
     } else {
-      // Chrome for Testing, downloaded by Selenium Manager: the Chrome of the runner ignores --load-extension.
+      // Chrome for Testing, downloaded by Selenium Manager: the Chrome of the runner can ignore --load-extension.
       options.setBrowserVersion('stable')
     }
     builder.forBrowser(Browser.CHROME).setChromeOptions(options)
@@ -176,6 +189,7 @@ async function launchOnce(browser, { dir, zip }) {
   // It must also be the extension that answers: the form of the popup is drawn by its code, and a browser that
   // loaded the page without running the extension would let every test wait for its limit.
   diag.attach(driver, browser)
+  await logBrowser(driver, browser)
   try {
     await driver.manage().setTimeouts({ pageLoad: 30_000, script: 30_000 })
     await driver.get(`${base}popup.html`)
