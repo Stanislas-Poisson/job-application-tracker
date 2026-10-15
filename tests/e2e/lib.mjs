@@ -198,6 +198,46 @@ async function launchOnce(browser, { dir, zip }) {
   return { driver, base }
 }
 
+// The tests open a tab for each page and keep it. Firefox does not close with a hundred of them (the quit order is given, the
+// process stays), so every tab but one is closed first.
+async function closeExtraWindows(driver) {
+  try {
+    const handles = await driver.getAllWindowHandles()
+    for (const handle of handles.slice(1)) {
+      await driver.switchTo().window(handle)
+      await driver.close()
+    }
+    await driver.switchTo().window(handles[0])
+    diag.log(`${handles.length - 1} tabs closed before the browser`)
+  } catch (error) {
+    diag.log(`the tabs could not be closed: ${error.message}`)
+  }
+}
+
+// Closes the browser, and says why when it does not: a browser that stays open keeps the run alive until the CI cuts it.
+export async function quitBrowser(driver) {
+  if (!driver) {
+    return
+  }
+  diag.detach(driver)
+  await closeExtraWindows(driver)
+  let timer
+  try {
+    await Promise.race([
+      driver.quit(),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error('the browser did not close in 60s')), 60_000)
+      }),
+    ])
+    diag.log('the browser is closed')
+  } catch (error) {
+    diag.log(`the browser did not close: ${error.message}`)
+    diag.machine('after-quit-failed')
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 // The drawer of an application opens to be read: the button of the drawer passes to the form.
 export async function startEditing(driver) {
   const button = await waitFor(

@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url'
 import { By } from 'selenium-webdriver'
 
 import { afterTest } from './diagnostics.mjs'
-import { launch, openPage, startEditing, unpack, waitFor, zipFor } from './lib.mjs'
+import { launch, openPage, quitBrowser, startEditing, unpack, waitFor, zipFor } from './lib.mjs'
 
 const browser = process.env.BROWSER || 'chrome'
 const AXE = fs.readFileSync(
@@ -44,7 +44,7 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
     ;({ driver, base } = await launch(browser, { dir: unpack(zip), zip }))
   })
   afterEach(afterTest)
-  after(async () => driver?.quit())
+  after(async () => quitBrowser(driver))
 
   const css = (selector) => driver.findElement(By.css(selector))
   const all = (selector) => driver.findElements(By.css(selector))
