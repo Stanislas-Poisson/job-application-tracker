@@ -585,6 +585,53 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.switchTo().window(optionsTab)
     })
 
+    test('the symbol of a tag shows with its name, and the option of the tags turns it off and on', async () => {
+      // A symbol for the tag, chosen in the options (a letter: every machine can draw it).
+      const optionsTab = await open('options', 'input[name^=symbol-]:not([name^=symbol-status])')
+      await type('input[name^=symbol-]:not([name^=symbol-status])', 'T')
+      await driver.executeScript(
+        `document.querySelector('input[name^=symbol-]:not([name^=symbol-status])').dispatchEvent(new Event('change', { bubbles: true }))`
+      )
+      // It is kept in the storage first, then the card shows it.
+      await waitFor(
+        async () =>
+          driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:tags', (items) => done((items['jat:tags'] || []).some((tag) => tag.symbol === 'T')));
+          `),
+        { message: 'the symbol to be kept' }
+      )
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => (await all('.application-card .tag-chip .item-symbol')).length > 0, {
+        message: 'the symbol on the card',
+      })
+
+      // Turned off in the options: the card follows, and the name and the colour stay.
+      await driver.switchTo().window(optionsTab)
+      assert.equal(await css('input[name=showTagSymbols]').then((box) => box.isSelected()), true, 'on by default')
+      await css('input[name=showTagSymbols]').then((box) => box.click())
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => (await all('.application-card .tag-chip .item-symbol')).length === 0, {
+        message: 'the symbol to go',
+      })
+      assert.ok((await all('.application-card .tag-chip')).length > 0, 'the tag is still on the card')
+
+      // The editor of the tags still shows the symbol that was chosen, to be changed or removed.
+      await driver.switchTo().window(optionsTab)
+      assert.equal(
+        await css('input[name^=symbol-]:not([name^=symbol-status])').then((field) => field.getAttribute('value')),
+        'T'
+      )
+
+      // And turned on again.
+      await css('input[name=showTagSymbols]').then((box) => box.click())
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => (await all('.application-card .tag-chip .item-symbol')).length > 0, {
+        message: 'the symbol to come back',
+      })
+      await driver.switchTo().window(optionsTab)
+    })
+
     test('the board is searched, filtered and sorted, and keeps the view it was left in', async () => {
       // Two more applications, in the first column.
       for (const [title, company] of [
