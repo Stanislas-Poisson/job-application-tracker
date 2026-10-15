@@ -473,6 +473,10 @@ const pt: TranslationObject = {
     discard: 'Descartar e fechar',
     unsaved: 'Alterações por guardar',
     confirmClose: 'Algum texto que escreveu não está guardado. Fechar mesmo assim?',
+    leaveMessage: 'Esta candidatura tem alterações por guardar.',
+    saveAndClose: 'Guardar e fechar',
+    closeWithoutSaving: 'Fechar sem guardar',
+    keepEditing: 'Continuar a editar',
   },
   reminders: {
     title: 'Lembretes',

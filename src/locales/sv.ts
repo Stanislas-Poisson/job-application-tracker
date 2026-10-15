@@ -474,6 +474,10 @@ const sv: TranslationObject = {
     discard: 'Kassera och stäng',
     unsaved: 'Osparade ändringar',
     confirmClose: 'En del av texten du skrev är inte sparad. Stänga ändå?',
+    leaveMessage: 'Den här ansökan har ändringar som inte är sparade.',
+    saveAndClose: 'Spara och stäng',
+    closeWithoutSaving: 'Stäng utan att spara',
+    keepEditing: 'Fortsätt redigera',
   },
   reminders: {
     title: 'Påminnelser',

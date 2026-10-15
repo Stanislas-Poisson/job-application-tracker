@@ -469,6 +469,10 @@ const en: TranslationObject = {
     discard: 'Discard and close',
     unsaved: 'Unsaved changes',
     confirmClose: 'Some text you typed is not saved. Close anyway?',
+    leaveMessage: 'This card has changes that are not saved.',
+    saveAndClose: 'Save and close',
+    closeWithoutSaving: 'Close without saving',
+    keepEditing: 'Keep editing',
   },
   reminders: {
     title: 'Reminders',

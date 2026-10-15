@@ -476,6 +476,10 @@ const it: TranslationObject = {
     discard: 'Scarta e chiudi',
     unsaved: 'Modifiche non salvate',
     confirmClose: 'Un testo che hai scritto non è salvato. Chiudere comunque?',
+    leaveMessage: 'Questa candidatura ha modifiche non salvate.',
+    saveAndClose: 'Salva e chiudi',
+    closeWithoutSaving: 'Chiudi senza salvare',
+    keepEditing: 'Continua a modificare',
   },
   reminders: {
     title: 'Promemoria',

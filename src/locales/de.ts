@@ -479,6 +479,10 @@ const de: TranslationObject = {
     discard: 'Verwerfen und schließen',
     unsaved: 'Nicht gespeicherte Änderungen',
     confirmClose: 'Ein eingegebener Text ist nicht gespeichert. Trotzdem schließen?',
+    leaveMessage: 'Diese Bewerbung hat nicht gespeicherte Änderungen.',
+    saveAndClose: 'Speichern und schließen',
+    closeWithoutSaving: 'Ohne Speichern schließen',
+    keepEditing: 'Weiter bearbeiten',
   },
   reminders: {
     title: 'Erinnerungen',
