@@ -438,6 +438,7 @@ const fr: TranslationObject = {
     browser:
       'Dans le navigateur, par défaut : Alt+Maj+J enregistre l’offre de la page, Alt+Maj+L ouvre le tableau. Changez-les dans les raccourcis de votre navigateur (page des extensions de Chrome et Edge, gestionnaire de raccourcis des modules de Firefox).',
     actions: {
+      open: 'Ouvrir la carte',
       search: 'Aller à la recherche',
       up: 'Carte au-dessus',
       down: 'Carte en dessous',

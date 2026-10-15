@@ -444,6 +444,7 @@ const pl: TranslationObject = {
     browser:
       'W przeglądarce, domyślnie: Alt+Shift+J zapisuje ofertę ze strony, Alt+Shift+L otwiera tablicę. Zmienisz je w skrótach przeglądarki (strona rozszerzeń w Chrome i Edge, menedżer skrótów dodatków w Firefoksie).',
     actions: {
+      open: 'Otwórz kartę',
       search: 'Przejdź do wyszukiwania',
       up: 'Karta powyżej',
       down: 'Karta poniżej',

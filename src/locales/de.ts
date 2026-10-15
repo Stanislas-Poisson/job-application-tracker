@@ -440,6 +440,7 @@ const de: TranslationObject = {
     browser:
       'Im Browser, standardmäßig: Alt+Umschalt+J speichert das Angebot der Seite, Alt+Umschalt+L öffnet das Board. Ändern Sie sie in den Tastenkürzeln Ihres Browsers (Erweiterungsseite von Chrome und Edge, Verwaltung der Tastenkürzel bei den Add-ons von Firefox).',
     actions: {
+      open: 'Die Karte öffnen',
       search: 'Zur Suche gehen',
       up: 'Karte darüber',
       down: 'Karte darunter',

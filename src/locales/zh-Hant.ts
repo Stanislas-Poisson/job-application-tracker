@@ -421,6 +421,7 @@ const zhHant: TranslationObject = {
     browser:
       '瀏覽器中的預設設定：Alt+Shift+J 儲存此頁面的職缺，Alt+Shift+L 開啟看板。可在瀏覽器的快速鍵設定中變更（Chrome 和 Edge 的擴充功能頁面，Firefox 的附加元件快速鍵管理）。',
     actions: {
+      open: '開啟卡片',
       search: '前往搜尋',
       up: '上方的卡片',
       down: '下方的卡片',

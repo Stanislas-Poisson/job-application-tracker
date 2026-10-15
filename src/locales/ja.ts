@@ -431,6 +431,7 @@ const ja: TranslationObject = {
     browser:
       'ブラウザの既定：Alt+Shift+J でこのページの求人を保存、Alt+Shift+L でボードを開きます。ブラウザのショートカット設定（Chrome と Edge の拡張機能ページ、Firefox のアドオンのショートカット管理）で変更できます。',
     actions: {
+      open: 'カードを開く',
       search: '検索へ移動',
       up: '上のカード',
       down: '下のカード',

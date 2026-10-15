@@ -434,6 +434,7 @@ const pt: TranslationObject = {
     browser:
       'No navegador, por predefinição: Alt+Maiús+J guarda a oferta da página, Alt+Maiús+L abre o quadro. Altere-as nos atalhos do navegador (a página de extensões do Chrome e do Edge, o gestor de atalhos dos suplementos do Firefox).',
     actions: {
+      open: 'Abrir o cartão',
       search: 'Ir para a pesquisa',
       up: 'Cartão acima',
       down: 'Cartão abaixo',

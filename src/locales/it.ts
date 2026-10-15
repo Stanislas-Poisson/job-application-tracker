@@ -437,6 +437,7 @@ const it: TranslationObject = {
     browser:
       'Nel browser, di default: Alt+Maiusc+J salva l’offerta della pagina, Alt+Maiusc+L apre la bacheca. Cambiali nelle scorciatoie del browser (la pagina delle estensioni di Chrome e Edge, il gestore delle scorciatoie dei componenti aggiuntivi di Firefox).',
     actions: {
+      open: 'Apri la scheda',
       search: 'Vai alla ricerca',
       up: 'Scheda sopra',
       down: 'Scheda sotto',

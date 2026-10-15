@@ -421,6 +421,7 @@ const zhHans: TranslationObject = {
     browser:
       '浏览器中的默认设置：Alt+Shift+J 保存此页面的职位，Alt+Shift+L 打开看板。可在浏览器的快捷键设置中更改（Chrome 和 Edge 的扩展程序页面，Firefox 的附加组件快捷键管理）。',
     actions: {
+      open: '打开卡片',
       search: '转到搜索',
       up: '上方的卡片',
       down: '下方的卡片',
