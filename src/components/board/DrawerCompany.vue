@@ -9,12 +9,13 @@
   import { RELATION_VIEWS, RelationError, addLink, linksOf, removeRelation } from '../../services/companyRelations'
   import EntityPicker from '../EntityPicker.vue'
 
-  const props = defineProps<{ application: Application }>()
+  // The company of an application, or a company on its own (the drawer of a company).
+  const props = defineProps<{ application?: Application; company?: Company | null }>()
 
   const { t } = useApp()
   const { isEditing } = useDrawerMode()
 
-  const company = computed(() => props.application.jobOffer?.company ?? null)
+  const company = computed(() => props.company ?? props.application?.jobOffer?.company ?? null)
   // Reading the relations makes the list follow every change, in this page and in the others.
   const links = computed(() => (useRepo(CompanyRelation).all(), company.value ? linksOf(company.value.id) : []))
   const known = computed(() => useRepo(Company).orderBy('name').get())
