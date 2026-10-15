@@ -426,9 +426,7 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
           await open('board', '.application-card')
           await look(theme)
           await css('.application-card').then((card) => card.click())
-          await waitFor(async () => (await all('dialog[open] textarea[name=newNote]')).length > 0, {
-            message: 'the drawer',
-          })
+          await startEditing(driver)
           await driver.executeScript(
             `[...document.querySelectorAll('dialog[open] form .row button[type=button]')].pop().click()`
           )
@@ -442,9 +440,7 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
 
           // The question before leaving, asked because a note was typed and not added.
           await css('.application-card').then((card) => card.click())
-          await waitFor(async () => (await all('dialog[open] textarea[name=newNote]')).length > 0, {
-            message: 'the drawer',
-          })
+          await startEditing(driver)
           await type('textarea[name=newNote]', 'A note that is not added')
           await press('')
           await waitFor(async () => (await all('#confirm-dialog')).length > 0, { message: 'the question' })
@@ -480,10 +476,13 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
         await resize(...ZOOMED)
         await open('board', '.application-card')
         await css('.application-card').then((card) => card.click())
-        await waitFor(async () => (await all('dialog[open] textarea[name=newNote]')).length > 0, {
+        await waitFor(async () => (await all('dialog[open] button[name=toggleEdit]')).length > 0, {
           message: `the drawer in ${code}`,
         })
-        await scan(`drawer/${code}/200%`).catch((error) => failures.push(error.message))
+        // The card is read, then edited: the form is where long words and long labels are the most likely to break.
+        await scan(`drawer/read/${code}/200%`).catch((error) => failures.push(error.message))
+        await startEditing(driver)
+        await scan(`drawer/edit/${code}/200%`).catch((error) => failures.push(error.message))
         const wide = await overflow()
         if (wide > 1) failures.push(`drawer/${code}/200%: the page is ${wide}px too wide`)
         // The page is in the language that was asked for, and written in its direction.
