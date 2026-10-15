@@ -483,6 +483,14 @@ const it: TranslationObject = {
     applied: 'Inviata il',
     updated: 'Modificata',
   },
+  optionsTabs: {
+    list: 'I gruppi di opzioni',
+    appearance: 'Lingua e aspetto',
+    board: 'Bacheca e tasti',
+    money: 'Denaro e stipendio',
+    places: 'Luoghi e posta',
+    data: 'Dati e backup',
+  },
   picker: {
     existing: 'Già nella tua lista: {name}',
     new: 'Non ancora nella tua lista: viene aggiunto al salvataggio.',

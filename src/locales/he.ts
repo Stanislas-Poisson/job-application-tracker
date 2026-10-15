@@ -476,6 +476,14 @@ const he: TranslationObject = {
     applied: 'הוגשה ב',
     updated: 'עודכנה',
   },
+  optionsTabs: {
+    list: 'קבוצות ההגדרות',
+    appearance: 'שפה ומראה',
+    board: 'לוח ומקשים',
+    money: 'כסף ומשכורת',
+    places: 'מקומות ודואר',
+    data: 'נתונים וגיבויים',
+  },
   picker: { existing: 'כבר ברשימה שלכם: {name}', new: 'עדיין לא ברשימה שלכם: יתווסף בעת השמירה.' },
   confirm: {
     title: 'נא לאשר',

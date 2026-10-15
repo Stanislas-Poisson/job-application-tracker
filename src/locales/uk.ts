@@ -489,6 +489,14 @@ const uk: TranslationObject = {
     applied: 'Подано',
     updated: 'Змінено',
   },
+  optionsTabs: {
+    list: 'Групи налаштувань',
+    appearance: 'Мова і вигляд',
+    board: 'Дошка і клавіші',
+    money: 'Гроші та зарплата',
+    places: 'Місця і пошта',
+    data: 'Дані та резервні копії',
+  },
   picker: { existing: 'Уже у вашому списку: {name}', new: 'Ще немає у вашому списку: буде додано під час збереження.' },
   confirm: {
     title: 'Підтвердьте, будь ласка',

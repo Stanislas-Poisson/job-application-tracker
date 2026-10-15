@@ -470,6 +470,14 @@ const ko: TranslationObject = {
     applied: '지원일',
     updated: '수정일',
   },
+  optionsTabs: {
+    list: '옵션 그룹',
+    appearance: '언어와 모양',
+    board: '보드와 키',
+    money: '돈과 급여',
+    places: '장소와 메일',
+    data: '데이터와 백업',
+  },
   picker: { existing: '이미 목록에 있음: {name}', new: '아직 목록에 없음: 저장하면 추가됩니다.' },
   confirm: {
     title: '확인해 주세요',

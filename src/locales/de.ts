@@ -486,6 +486,14 @@ const de: TranslationObject = {
     applied: 'Beworben am',
     updated: 'Geändert',
   },
+  optionsTabs: {
+    list: 'Die Optionsgruppen',
+    appearance: 'Sprache und Aussehen',
+    board: 'Board und Tasten',
+    money: 'Geld und Gehalt',
+    places: 'Orte und E-Mails',
+    data: 'Daten und Sicherungen',
+  },
   picker: {
     existing: 'Bereits in Ihrer Liste: {name}',
     new: 'Noch nicht in Ihrer Liste: wird beim Speichern hinzugefügt.',
