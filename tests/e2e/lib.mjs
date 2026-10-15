@@ -103,6 +103,19 @@ const CHROMIUM_ARGS = (dir, browser) => [
   `--log-file=${diag.file(`${browser}-browser.log`)}`,
 ]
 
+// Chrome and Edge as the vendors ship them ignore --load-extension, and say so in their own log: only Chrome for Testing
+// and Chromium take it. Named here because the symptom, a popup that never draws, points nowhere.
+function refusesExtensions(browser) {
+  try {
+    const log = fs.readFileSync(diag.file(`${browser}-browser.log`), 'utf8')
+    return log.includes('--load-extension is not allowed')
+      ? ` (the browser refuses --load-extension: it is not Chrome for Testing, point BROWSER_BINARY to one)`
+      : ''
+  } catch {
+    return ''
+  }
+}
+
 // Starts the browser with the extension loaded, and returns the driver and the base URL of its pages.
 async function launchOnce(browser, { dir, zip }) {
   if (browser === 'firefox') {
@@ -169,7 +182,8 @@ async function launchOnce(browser, { dir, zip }) {
     await driver.executeScript('return document.readyState')
     const end = Date.now() + 30_000
     while (!(await driver.executeScript(`return !!document.querySelector('form')`))) {
-      if (Date.now() > end) throw new Error('the popup of the extension did not draw its form in 30s')
+      if (Date.now() > end)
+        throw new Error(`the popup of the extension did not draw its form in 30s${refusesExtensions(browser)}`)
       await sleep(250)
     }
   } catch (error) {
