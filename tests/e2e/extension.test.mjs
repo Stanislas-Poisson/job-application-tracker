@@ -1404,9 +1404,17 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         return event.defaultPrevented;
       `)
       assert.equal(cancelled, true)
-      await waitFor(async () => (await all('#confirm-dialog[open]')).length === 1, { message: 'the question' })
-      await driver.executeScript(`document.querySelector('#confirm-dialog button[value=cancel]').click()`)
-      await waitFor(async () => (await all('#confirm-dialog')).length === 0, { message: 'the question to go' })
+      await waitFor(async () => (await all('#choice-dialog[open]')).length === 1, { message: 'the question' })
+      // Three answers, and the one that loses nothing has the focus.
+      assert.deepEqual(
+        await driver.executeScript(
+          `return [...document.querySelectorAll('#choice-dialog button')].map((button) => button.value)`
+        ),
+        ['keep', 'discard', 'save']
+      )
+      assert.equal(await driver.executeScript(`return document.activeElement && document.activeElement.value`), 'keep')
+      await driver.executeScript(`document.querySelector('#choice-dialog button[value=keep]').click()`)
+      await waitFor(async () => (await all('#choice-dialog')).length === 0, { message: 'the question to go' })
       assert.equal((await all('dialog[open]')).length, 1)
       assert.equal(
         await css('.drawer-content input[name=location]').then((input) => input.getAttribute('value')),
@@ -1437,11 +1445,74 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await type('.drawer-content input[name=location]', 'Elsewhere again')
       await waitFor(async () => (await all('#offer-unsaved')).length > 0, { message: 'the unsaved mark again' })
       await driver.executeScript(
-        `document.querySelector('dialog[open]:not(#confirm-dialog)').dispatchEvent(new Event('cancel', { cancelable: true }))`
+        `document.querySelector('dialog[open]:not(#confirm-dialog):not(#choice-dialog)').dispatchEvent(new Event('cancel', { cancelable: true }))`
       )
-      await waitFor(async () => (await all('#confirm-dialog[open]')).length === 1, { message: 'the question again' })
-      await driver.executeScript(`document.querySelector('#confirm-dialog button[value=confirm]').click()`)
+      await waitFor(async () => (await all('#choice-dialog[open]')).length === 1, { message: 'the question again' })
+      await driver.executeScript(`document.querySelector('#choice-dialog button[value=discard]').click()`)
       await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the drawer to close' })
+    })
+
+    test('leaving a card that changed: save and close, close without saving, or keep editing', async () => {
+      const askToLeave = async () => {
+        await driver.executeScript(
+          `document.querySelector('dialog[open]:not(#confirm-dialog):not(#choice-dialog)').dispatchEvent(new Event('cancel', { cancelable: true }))`
+        )
+        await waitFor(async () => (await all('#choice-dialog[open]')).length === 1, { message: 'the question' })
+      }
+      const answer = (value) =>
+        driver.executeScript(`document.querySelector('#choice-dialog button[value=${value}]').click()`)
+      const reopen = async () => {
+        await css('.application-card').then((card) => card.click())
+        await waitFor(async () => (await all('dialog[open] button[name=toggleEdit]')).length > 0, {
+          message: 'the drawer',
+        })
+      }
+
+      await open('board', '.application-card')
+      await reopen()
+      await startEditing(driver)
+
+      // Close without saving: the drawer closes and the card is as it was.
+      await type('.drawer-content input[name=location]', 'Dropped')
+      await askToLeave()
+      await answer('discard')
+      await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the drawer to close' })
+      await reopen()
+      assert.doesNotMatch(await text('dialog[open] dl.facts'), /Dropped/)
+
+      // Save and close: the drawer closes and the card has the change.
+      await startEditing(driver)
+      await type('.drawer-content input[name=location]', 'Kept on leaving')
+      await askToLeave()
+      await answer('save')
+      await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the drawer to close' })
+      await reopen()
+      assert.match(await text('dialog[open] dl.facts'), /Kept on leaving/)
+
+      // A card that cannot be saved stays open, and says why.
+      await startEditing(driver)
+      await type('.drawer-content input[name=salaryMin]', '5000')
+      await type('.drawer-content input[name=salaryMax]', '1000')
+      await choose('select[name=salaryCurrency]', 'EUR')
+      await askToLeave()
+      await answer('save')
+      await waitFor(async () => (await all('#choice-dialog')).length === 0, { message: 'the question to go' })
+      await waitFor(async () => (await all('.drawer-content form .error')).length > 0, { message: 'the reason' })
+      assert.equal((await all('dialog[open]')).length, 1)
+
+      // Escape answers nothing: the card stays open, still being edited.
+      await askToLeave()
+      await driver.actions().sendKeys('\uE00C').perform()
+      await waitFor(async () => (await all('#choice-dialog')).length === 0, { message: 'the question to go' })
+      assert.equal((await all('dialog[open]')).length, 1)
+      assert.equal((await all('dialog[open] input[name=salaryMin]')).length, 1)
+
+      // Cancel drops it all.
+      await css('dialog[open] button[name=cancel]').then((button) => button.click())
+      await waitFor(async () => (await all('dialog[open] input[name=salaryMin]')).length === 0, {
+        message: 'back to reading',
+      })
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
     })
 
     test('the popup gives back what was typed and not saved, and forgets it once the offer is saved', async () => {
