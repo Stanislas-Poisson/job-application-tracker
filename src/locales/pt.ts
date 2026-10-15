@@ -480,6 +480,14 @@ const pt: TranslationObject = {
     applied: 'Enviada em',
     updated: 'Modificada',
   },
+  optionsTabs: {
+    list: 'Os grupos de opções',
+    appearance: 'Idioma e aspeto',
+    board: 'Quadro e teclas',
+    money: 'Dinheiro e salário',
+    places: 'Locais e correio',
+    data: 'Dados e cópias',
+  },
   picker: { existing: 'Já está na sua lista: {name}', new: 'Ainda não está na sua lista: é adicionado ao guardar.' },
   confirm: {
     title: 'Confirme, por favor',

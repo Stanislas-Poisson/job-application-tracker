@@ -481,6 +481,14 @@ const sv: TranslationObject = {
     applied: 'Ansökt',
     updated: 'Ändrad',
   },
+  optionsTabs: {
+    list: 'Grupperna av alternativ',
+    appearance: 'Språk och utseende',
+    board: 'Tavla och tangenter',
+    money: 'Pengar och lön',
+    places: 'Platser och e-post',
+    data: 'Data och säkerhetskopior',
+  },
   picker: { existing: 'Finns redan i din lista: {name}', new: 'Finns inte i din lista än: läggs till när du sparar.' },
   confirm: {
     title: 'Bekräfta',

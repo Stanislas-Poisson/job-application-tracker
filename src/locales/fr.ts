@@ -484,6 +484,14 @@ const fr: TranslationObject = {
     applied: 'Postulé le',
     updated: 'Modifié',
   },
+  optionsTabs: {
+    list: 'Les groupes d’options',
+    appearance: 'Langue et apparence',
+    board: 'Tableau et touches',
+    money: 'Argent et paie',
+    places: 'Lieux et courriers',
+    data: 'Données et sauvegardes',
+  },
   picker: {
     existing: 'Déjà dans votre liste : {name}',
     new: 'Pas encore dans votre liste : ajouté à l’enregistrement.',

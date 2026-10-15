@@ -3,7 +3,14 @@
 
   // Tabs as the WAI-ARIA pattern has them: one tab in the order of the keyboard, the arrows (mirrored in right to left), Home and
   // End to move between them, and the panel of the tab in use below. The page gives a slot named after each tab.
-  const props = defineProps<{ tabs: { id: string; label: string }[]; modelValue: string; label: string }>()
+  // With `all`, every panel stays in the page and the ones not in use are hidden: what was typed in a form is kept when the tab
+  // changes. Without it only the panel in use is drawn (a table that is heavy is not drawn for nothing).
+  const props = defineProps<{
+    tabs: { id: string; label: string }[]
+    modelValue: string
+    label: string
+    all?: boolean
+  }>()
   const emit = defineEmits<{ 'update:modelValue': [id: string] }>()
 
   const prefix = useId()
@@ -72,15 +79,22 @@
         {{ tab.label }}
       </button>
     </div>
-    <div
-      :id="panelId(modelValue)"
-      role="tabpanel"
-      class="tabpanel"
-      tabindex="0"
-      :aria-labelledby="tabId(modelValue)"
+    <template
+      v-for="tab in tabs"
+      :key="tab.id"
     >
-      <slot :name="modelValue" />
-    </div>
+      <div
+        v-if="all || tab.id === modelValue"
+        :id="panelId(tab.id)"
+        role="tabpanel"
+        class="tabpanel"
+        tabindex="0"
+        :hidden="tab.id !== modelValue"
+        :aria-labelledby="tabId(tab.id)"
+      >
+        <slot :name="tab.id" />
+      </div>
+    </template>
   </div>
 </template>
 

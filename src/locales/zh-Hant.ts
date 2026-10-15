@@ -465,6 +465,14 @@ const zhHant: TranslationObject = {
     applied: '申請日期',
     updated: '更新時間',
   },
+  optionsTabs: {
+    list: '選項群組',
+    appearance: '語言與外觀',
+    board: '看板與按鍵',
+    money: '金錢與薪資',
+    places: '地點與郵件',
+    data: '資料與備份',
+  },
   picker: { existing: '已在您的清單中：{name}', new: '尚未在您的清單中：儲存時將新增。' },
   confirm: {
     title: '請確認',
