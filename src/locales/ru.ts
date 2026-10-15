@@ -480,7 +480,14 @@ const ru: TranslationObject = {
     undo: 'Отменить',
     removed: 'Удалено: {name}.',
   },
-  tables: { title: 'Таблицы', tablist: 'Таблицы', applications: 'Заявки', companies: 'Компании', contacts: 'Контакты' },
+  tables: {
+    title: 'Таблицы',
+    tablist: 'Таблицы',
+    applications: 'Заявки',
+    companies: 'Компании',
+    contacts: 'Контакты',
+    addresses: 'Адреса',
+  },
   table: {
     search: 'Поиск по таблице',
     shown: 'Показано {shown} из {total}',
@@ -538,6 +545,7 @@ const ru: TranslationObject = {
     reach: 'Способы связи',
     add: 'Добавить контакт',
   },
+  addressPage: { address: 'Адрес', map: 'Карта' },
   picker: { existing: 'Уже в вашем списке: {name}', new: 'Ещё нет в вашем списке: будет добавлено при сохранении.' },
   confirm: {
     title: 'Подтвердите, пожалуйста',

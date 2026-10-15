@@ -466,7 +466,14 @@ const hi: TranslationObject = {
     undo: 'पूर्ववत करें',
     removed: 'हटाया गया: {name}।',
   },
-  tables: { title: 'तालिकाएँ', tablist: 'तालिकाएँ', applications: 'आवेदन', companies: 'कंपनियाँ', contacts: 'संपर्क' },
+  tables: {
+    title: 'तालिकाएँ',
+    tablist: 'तालिकाएँ',
+    applications: 'आवेदन',
+    companies: 'कंपनियाँ',
+    contacts: 'संपर्क',
+    addresses: 'पते',
+  },
   table: {
     search: 'तालिका में खोजें',
     shown: '{total} में से {shown} दिखाए गए',
@@ -524,6 +531,7 @@ const hi: TranslationObject = {
     reach: 'संपर्क के तरीके',
     add: 'संपर्क जोड़ें',
   },
+  addressPage: { address: 'पता', map: 'नक्शा' },
   picker: { existing: 'पहले से आपकी सूची में है: {name}', new: 'अभी आपकी सूची में नहीं है: सहेजने पर जुड़ जाएगा।' },
   confirm: {
     title: 'कृपया पुष्टि करें',

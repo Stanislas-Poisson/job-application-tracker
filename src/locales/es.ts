@@ -484,6 +484,7 @@ const es: TranslationObject = {
     applications: 'Candidaturas',
     companies: 'Empresas',
     contacts: 'Contactos',
+    addresses: 'Direcciones',
   },
   table: {
     search: 'Buscar en la tabla',
@@ -542,6 +543,7 @@ const es: TranslationObject = {
     reach: 'Medios de contacto',
     add: 'Añadir un contacto',
   },
+  addressPage: { address: 'Dirección', map: 'Mapa' },
   picker: { existing: 'Ya está en tu lista: {name}', new: 'Aún no está en tu lista: se añade al guardar.' },
   confirm: {
     title: 'Confirma, por favor',

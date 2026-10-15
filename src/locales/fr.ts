@@ -480,6 +480,7 @@ const fr: TranslationObject = {
     applications: 'Candidatures',
     companies: 'Entreprises',
     contacts: 'Contacts',
+    addresses: 'Adresses',
   },
   table: {
     search: 'Rechercher dans le tableau',
@@ -538,6 +539,7 @@ const fr: TranslationObject = {
     reach: 'Moyens de contact',
     add: 'Ajouter un contact',
   },
+  addressPage: { address: 'Adresse', map: 'Carte' },
   picker: {
     existing: 'Déjà dans votre liste : {name}',
     new: 'Pas encore dans votre liste : ajouté à l’enregistrement.',

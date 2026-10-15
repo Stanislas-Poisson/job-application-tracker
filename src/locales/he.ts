@@ -466,7 +466,14 @@ const he: TranslationObject = {
     undo: 'ביטול',
     removed: 'הוסר: {name}.',
   },
-  tables: { title: 'טבלאות', tablist: 'הטבלאות', applications: 'מועמדויות', companies: 'חברות', contacts: 'אנשי קשר' },
+  tables: {
+    title: 'טבלאות',
+    tablist: 'הטבלאות',
+    applications: 'מועמדויות',
+    companies: 'חברות',
+    contacts: 'אנשי קשר',
+    addresses: 'כתובות',
+  },
   table: {
     search: 'חיפוש בטבלה',
     shown: '{shown} מתוך {total} מוצגות',
@@ -523,6 +530,7 @@ const he: TranslationObject = {
     reach: 'דרכי יצירת קשר',
     add: 'הוספת איש קשר',
   },
+  addressPage: { address: 'כתובת', map: 'מפה' },
   picker: { existing: 'כבר ברשימה שלכם: {name}', new: 'עדיין לא ברשימה שלכם: יתווסף בעת השמירה.' },
   confirm: {
     title: 'נא לאשר',
