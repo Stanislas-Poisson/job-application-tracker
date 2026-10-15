@@ -481,6 +481,10 @@ const es: TranslationObject = {
     discard: 'Descartar y cerrar',
     unsaved: 'Cambios sin guardar',
     confirmClose: 'Hay texto escrito que no está guardado. ¿Cerrar de todos modos?',
+    leaveMessage: 'Esta candidatura tiene cambios sin guardar.',
+    saveAndClose: 'Guardar y cerrar',
+    closeWithoutSaving: 'Cerrar sin guardar',
+    keepEditing: 'Seguir editando',
   },
   reminders: {
     title: 'Recordatorios',

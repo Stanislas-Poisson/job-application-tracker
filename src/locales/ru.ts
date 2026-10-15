@@ -483,6 +483,10 @@ const ru: TranslationObject = {
     discard: 'Отбросить и закрыть',
     unsaved: 'Несохранённые изменения',
     confirmClose: 'Часть введённого текста не сохранена. Всё равно закрыть?',
+    leaveMessage: 'В этой заявке есть несохранённые изменения.',
+    saveAndClose: 'Сохранить и закрыть',
+    closeWithoutSaving: 'Закрыть без сохранения',
+    keepEditing: 'Продолжить редактирование',
   },
   reminders: {
     title: 'Напоминания',

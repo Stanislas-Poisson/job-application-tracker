@@ -477,6 +477,10 @@ const fr: TranslationObject = {
     discard: 'Abandonner et fermer',
     unsaved: 'Modifications non enregistrées',
     confirmClose: 'Du texte saisi n’est pas enregistré. Fermer quand même ?',
+    leaveMessage: 'Cette candidature a des modifications non enregistrées.',
+    saveAndClose: 'Enregistrer et fermer',
+    closeWithoutSaving: 'Fermer sans enregistrer',
+    keepEditing: 'Continuer à modifier',
   },
   reminders: {
     title: 'Rappels',

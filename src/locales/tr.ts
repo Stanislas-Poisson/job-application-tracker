@@ -473,6 +473,10 @@ const tr: TranslationObject = {
     discard: 'Vazgeç ve kapat',
     unsaved: 'Kaydedilmemiş değişiklikler',
     confirmClose: 'Yazdığınız bazı metinler kaydedilmedi. Yine de kapatılsın mı?',
+    leaveMessage: 'Bu başvurunun kaydedilmemiş değişiklikleri var.',
+    saveAndClose: 'Kaydet ve kapat',
+    closeWithoutSaving: 'Kaydetmeden kapat',
+    keepEditing: 'Düzenlemeye devam et',
   },
   reminders: {
     title: 'Hatırlatmalar',

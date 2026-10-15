@@ -482,6 +482,10 @@ const uk: TranslationObject = {
     discard: 'Відкинути й закрити',
     unsaved: 'Незбережені зміни',
     confirmClose: 'Частину введеного тексту не збережено. Усе одно закрити?',
+    leaveMessage: 'У цій заявці є незбережені зміни.',
+    saveAndClose: 'Зберегти й закрити',
+    closeWithoutSaving: 'Закрити без збереження',
+    keepEditing: 'Продовжити редагування',
   },
   reminders: {
     title: 'Нагадування',

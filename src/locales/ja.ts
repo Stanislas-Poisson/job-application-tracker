@@ -469,6 +469,10 @@ const ja: TranslationObject = {
     discard: '破棄して閉じる',
     unsaved: '未保存の変更',
     confirmClose: '入力したテキストが保存されていません。このまま閉じますか？',
+    leaveMessage: 'この応募には未保存の変更があります。',
+    saveAndClose: '保存して閉じる',
+    closeWithoutSaving: '保存せずに閉じる',
+    keepEditing: '編集を続ける',
   },
   reminders: {
     title: 'リマインダー',

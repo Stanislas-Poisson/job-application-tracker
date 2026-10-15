@@ -415,6 +415,15 @@ async function messages() {
       `const field = document.querySelector('dialog[open] textarea[name=newNote]'); if (field) { field.value = ''; field.dispatchEvent(new Event('input', { bubbles: true })) }`
     )
     await closeDrawer()
+
+    // The three answers over the drawer, from a change of the card that was not saved.
+    await openDrawer({ edit: true })
+    await css('dialog[open] input[name=location]').then((field) => field.sendKeys(' (changed)'))
+    await driver.actions().sendKeys(Key.ESCAPE).perform()
+    await waitFor(async () => (await all('#choice-dialog')).length > 0, { message: 'the three answers' })
+    await shot(`choice-${tag}`, `${label}: the three answers over the drawer`, { whole: false })
+    await driver.executeScript(`document.querySelector('#choice-dialog button[value=discard]')?.click()`)
+    await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the drawer to close' })
   }
   await settings({ locale: 'en', theme: 'light', textScale: 100 })
 }

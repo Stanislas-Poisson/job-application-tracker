@@ -469,6 +469,10 @@ const hi: TranslationObject = {
     discard: 'छोड़ें और बंद करें',
     unsaved: 'बिना सहेजे बदलाव',
     confirmClose: 'आपने जो पाठ लिखा वह सहेजा नहीं गया है। फिर भी बंद करें?',
+    leaveMessage: 'इस आवेदन में बिना सहेजे बदलाव हैं।',
+    saveAndClose: 'सहेजें और बंद करें',
+    closeWithoutSaving: 'बिना सहेजे बंद करें',
+    keepEditing: 'संपादन जारी रखें',
   },
   reminders: {
     title: 'रिमाइंडर',
