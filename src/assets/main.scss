@@ -698,7 +698,8 @@ input[type="file"] {
 }
 
 // The question that cannot be undone says so by the colour of its confirm button.
-.confirm-danger button[value="confirm"] {
+.confirm-danger button[value="confirm"],
+.choice-danger {
   background: var(--error);
   color: var(--on-error);
 }

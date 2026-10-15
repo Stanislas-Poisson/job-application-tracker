@@ -456,6 +456,16 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
           // Leaving anyway: the answer of the danger button closes the drawer and drops the text.
           await css('#confirm-dialog button[value=confirm]').then((leave) => leave.click())
           await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the drawer to close' })
+
+          // The question of a card that changed has three answers.
+          await css('.application-card').then((card) => card.click())
+          await startEditing(driver)
+          await type('input[name=location]', 'Elsewhere')
+          await press('\uE00C')
+          await waitFor(async () => (await all('#choice-dialog[open]')).length > 0, { message: 'the three answers' })
+          await scan(`choice/${theme}/${width}`)
+          await css('#choice-dialog button[value=discard]').then((leave) => leave.click())
+          await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the drawer to close' })
         } finally {
           await resize(1280, 800)
         }

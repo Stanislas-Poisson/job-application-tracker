@@ -463,6 +463,10 @@ const ko: TranslationObject = {
     discard: '버리고 닫기',
     unsaved: '저장되지 않은 변경 사항',
     confirmClose: '입력한 글이 저장되지 않았습니다. 그래도 닫을까요?',
+    leaveMessage: '이 지원에는 저장되지 않은 변경 사항이 있습니다.',
+    saveAndClose: '저장하고 닫기',
+    closeWithoutSaving: '저장하지 않고 닫기',
+    keepEditing: '계속 편집',
   },
   reminders: {
     title: '알림',

@@ -469,6 +469,10 @@ const he: TranslationObject = {
     discard: 'ביטול הטקסט וסגירה',
     unsaved: 'שינויים שלא נשמרו',
     confirmClose: 'טקסט שהקלדתם לא נשמר. לסגור בכל זאת?',
+    leaveMessage: 'למועמדות הזו יש שינויים שלא נשמרו.',
+    saveAndClose: 'שמירה וסגירה',
+    closeWithoutSaving: 'סגירה בלי לשמור',
+    keepEditing: 'להמשיך לערוך',
   },
   reminders: {
     title: 'תזכורות',

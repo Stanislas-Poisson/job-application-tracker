@@ -458,6 +458,10 @@ const zhHant: TranslationObject = {
     discard: '放棄並關閉',
     unsaved: '有未儲存的更改',
     confirmClose: '您輸入的部分文字尚未儲存。仍要關閉嗎？',
+    leaveMessage: '此申請有未儲存的更改。',
+    saveAndClose: '儲存並關閉',
+    closeWithoutSaving: '不儲存並關閉',
+    keepEditing: '繼續編輯',
   },
   reminders: {
     title: '提醒',
