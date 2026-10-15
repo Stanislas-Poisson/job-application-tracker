@@ -2,7 +2,7 @@ import type { TranslationObject } from '@zairakai/js-i18n'
 
 const de: TranslationObject = {
   app: { name: 'Job Application Tracker' },
-  nav: { board: 'Board', options: 'Einstellungen' },
+  nav: { board: 'Board', options: 'Einstellungen', tables: 'Tabellen' },
   footer: {
     source: 'Quellcode',
     issues: 'Problem melden',
@@ -475,6 +475,16 @@ const de: TranslationObject = {
     close: 'Schließen',
     undo: 'Rückgängig',
     removed: 'Entfernt: {name}.',
+  },
+  tables: { title: 'Tabellen', tablist: 'Die Tabellen', applications: 'Bewerbungen' },
+  table: {
+    search: 'In der Tabelle suchen',
+    shown: '{shown} von {total} angezeigt',
+    empty: 'Nichts anzuzeigen.',
+    columns: 'Spalten',
+    yes: 'Ja',
+    applied: 'Beworben am',
+    updated: 'Geändert',
   },
   picker: {
     existing: 'Bereits in Ihrer Liste: {name}',
