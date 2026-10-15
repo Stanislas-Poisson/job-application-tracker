@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { FormInput } from '@zairakai/vue-components/Form'
-  import { computed, onMounted, ref, useId } from 'vue'
+  import { computed, onMounted, ref, useId, watchEffect } from 'vue'
   import { useApp } from '../composables/useApp'
   import { sameText } from '../utils/text'
 
@@ -35,9 +35,26 @@
     return null === existing.value ? t('picker.new') : t('picker.existing', { name: existing.value })
   })
 
-  // The hint describes the field to a screen reader. The field is inside a component of the library, which does not pass the
-  // attribute on.
-  onMounted(() => root.value?.querySelector('input')?.setAttribute('aria-describedby', hintId))
+  // The field is inside a component of the library, which does not pass the attributes on: they are put on it here. The hint
+  // describes it to a screen reader while there is one (an id that points at nothing says nothing), and a field with no visible
+  // label is named by its placeholder.
+  const mounted = ref(false)
+  onMounted(() => (mounted.value = true))
+  watchEffect(() => {
+    const input = mounted.value ? root.value?.querySelector('input') : null
+    if (!input) {
+      return
+    }
+    if ('' === hint.value) {
+      input.removeAttribute('aria-describedby')
+    } else {
+      input.setAttribute('aria-describedby', hintId)
+    }
+    const name = props.label ?? props.placeholder ?? ''
+    if (undefined === props.label && '' !== name) {
+      input.setAttribute('aria-label', name)
+    }
+  })
 </script>
 
 <template>
