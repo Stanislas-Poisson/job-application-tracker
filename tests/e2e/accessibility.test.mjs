@@ -21,6 +21,14 @@ const AXE = fs.readFileSync(
   path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../node_modules/axe-core/axe.min.js'),
   'utf8'
 )
+// The languages of the extension, read from its table: a language that is added is tested without a line here.
+const LANGUAGE_CODES = [
+  ...fs
+    .readFileSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../src/languages.ts'), 'utf8')
+    .matchAll(/^\s+\{ code: '([^']+)'/gm),
+].map((match) => match[1])
+// 640 pixels of page is what a window of 1280 comes to at 200 % of zoom.
+const ZOOMED = [640, 450]
 const SIZES = [
   [1024, 768],
   [1280, 800],
@@ -383,6 +391,100 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
       true,
       'the focus is back on the title of the card'
     )
+  })
+
+  // What comes and goes: the error of the popup, the notice with its undo, the question before leaving. In both looks, and
+  // at the width of a page zoomed to 200 %.
+  for (const theme of ['light', 'dark']) {
+    for (const [width, height] of [[1280, 800], ZOOMED]) {
+      test(`the error, the notice and the question have nothing axe can fault, in the ${theme} look at ${width} pixels`, async () => {
+        await resize(width, height)
+        try {
+          // The error of the popup: an offer with no title.
+          await open('popup', 'form')
+          await look(theme)
+          await driver.executeScript(
+            `const form = document.querySelector('form'); form.noValidate = true; form.requestSubmit()`
+          )
+          await waitFor(async () => (await all('[role=alert].error')).length > 0, { message: 'the error of the popup' })
+          await scan(`popup-error/${theme}/${width}`)
+
+          // The notice that offers to undo a deletion, which is then undone so that the next tests find the card.
+          await open('board', '.application-card')
+          await look(theme)
+          await css('.application-card').then((card) => card.click())
+          await waitFor(async () => (await all('dialog[open] textarea[name=newNote]')).length > 0, {
+            message: 'the drawer',
+          })
+          await driver.executeScript(
+            `[...document.querySelectorAll('dialog[open] form .row button[type=button]')].pop().click()`
+          )
+          await waitFor(async () => (await all('.toast .notice-action')).length > 0, { message: 'the notice' })
+          try {
+            await scan(`notice/${theme}/${width}`)
+          } finally {
+            await css('.toast .notice-action').then((undo) => undo.click())
+            await waitFor(async () => (await all('.application-card')).length > 0, { message: 'the card to come back' })
+          }
+
+          // The question before leaving, asked because a note was typed and not added.
+          await css('.application-card').then((card) => card.click())
+          await waitFor(async () => (await all('dialog[open] textarea[name=newNote]')).length > 0, {
+            message: 'the drawer',
+          })
+          await type('textarea[name=newNote]', 'A note that is not added')
+          await press('')
+          await waitFor(async () => (await all('#confirm-dialog')).length > 0, { message: 'the question' })
+          await scan(`confirm/${theme}/${width}`)
+          // Leaving anyway: the answer of the danger button closes the drawer and drops the text.
+          await css('#confirm-dialog button[value=confirm]').then((leave) => leave.click())
+          await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the drawer to close' })
+        } finally {
+          await resize(1280, 800)
+        }
+      })
+    }
+  }
+
+  // Every language, with its own words and its own direction: the popup with its error, then the board with a drawer open
+  // at the width of a page zoomed to 200 %, where long words and the right-to-left writing are the most likely to break.
+  test(`the pages have nothing axe can fault and hold at 200 % in the ${LANGUAGE_CODES.length} languages`, async () => {
+    const before = (await getSettings()).locale
+    const failures = []
+    try {
+      for (const code of LANGUAGE_CODES) {
+        await setSettings({ locale: code })
+        await resize(1280, 800)
+        await open('popup', 'form')
+        await driver.executeScript(
+          `const form = document.querySelector('form'); form.noValidate = true; form.requestSubmit()`
+        )
+        await waitFor(async () => (await all('[role=alert].error')).length > 0, {
+          message: `the error of the popup in ${code}`,
+        })
+        await scan(`popup-error/${code}`).catch((error) => failures.push(error.message))
+
+        await resize(...ZOOMED)
+        await open('board', '.application-card')
+        await css('.application-card').then((card) => card.click())
+        await waitFor(async () => (await all('dialog[open] textarea[name=newNote]')).length > 0, {
+          message: `the drawer in ${code}`,
+        })
+        await scan(`drawer/${code}/200%`).catch((error) => failures.push(error.message))
+        const wide = await overflow()
+        if (wide > 1) failures.push(`drawer/${code}/200%: the page is ${wide}px too wide`)
+        // The page is in the language that was asked for, and written in its direction.
+        const page = await driver.executeScript(
+          `return { lang: document.documentElement.getAttribute('lang'), dir: document.documentElement.getAttribute('dir') }`
+        )
+        assert.equal(page.lang, code, `the page is not in ${code}`)
+        assert.equal(page.dir, ['ar', 'he'].includes(code) ? 'rtl' : 'ltr', `${code} is not written in its direction`)
+      }
+    } finally {
+      await resize(1280, 800)
+      await setSettings({ locale: before ?? 'auto' })
+    }
+    assert.deepEqual(failures, [], `\n${failures.join('\n')}`)
   })
 
   for (const [width, height] of SIZES) {
