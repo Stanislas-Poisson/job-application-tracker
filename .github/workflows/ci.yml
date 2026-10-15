@@ -167,11 +167,51 @@ jobs:
       - name: Build the package
         run: npm run ${{ matrix.browser == 'firefox' && 'zip:firefox' || 'zip' }}
 
+      # The Chrome of the runner ignores --load-extension ("not allowed in Google Chrome"), and Selenium Manager sometimes
+      # picks it instead of Chrome for Testing: the extension is then never loaded. Chrome for Testing is installed here
+      # and handed to the tests, so that no choice is left to the runner image of the day.
+      - name: Install Chrome for Testing
+        if: matrix.browser == 'chrome'
+        run: |
+          CHROME=$(npx --yes @puppeteer/browsers@3.2.5 install chrome@stable --path "$RUNNER_TEMP/browsers" | tail -n 1 | cut -d' ' -f2-)
+          test -x "$CHROME"
+          echo "Chrome for Testing: $CHROME"
+          echo "BROWSER_BINARY=$CHROME" >> "$GITHUB_ENV"
+
+      # The step has its own limit, shorter than the one of the job, so that the steps below always have the time to run.
       - name: Run the tests in ${{ matrix.browser }}
+        timeout-minutes: 8
         working-directory: tests/e2e
         env:
           BROWSER: ${{ matrix.browser }}
         run: npm test
+
+      # What the run wrote down (timeline, logs of the driver and of the browser, screenshots, pages): see tests/e2e/diagnostics.mjs.
+      - name: Summarise the diagnostics
+        if: always()
+        working-directory: tests/e2e
+        run: |
+          DIR=.diagnostics/${{ matrix.browser }}
+          {
+            echo "### Browser test (${{ matrix.browser }})"
+            if [ -f "$DIR/timeline.log" ]; then
+              echo '```'
+              grep -E "FAILED|capture|timeout|did not|still waiting|starting|started" "$DIR/timeline.log" | tail -40
+              echo '```'
+            else
+              echo "No timeline was written."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-diagnostics-${{ matrix.browser }}
+          path: tests/e2e/.diagnostics
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 14
 
   # The check that the branch protection requires. It runs even when a job
   # fails, and fails with it: a skipped job would count as a success.
