@@ -183,7 +183,13 @@
       {{ t('board.empty') }}
     </p>
 
-    <div class="board">
+    <!-- It scrolls sideways when the window is narrow or zoomed: with no card in it (a new board) the keyboard needs a way in. -->
+    <div
+      class="board"
+      role="region"
+      tabindex="0"
+      :aria-label="t('board.title')"
+    >
       <BoardColumn
         v-for="(column, index) in columns"
         :key="column.status.id"
