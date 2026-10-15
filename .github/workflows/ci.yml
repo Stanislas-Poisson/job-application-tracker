@@ -167,6 +167,17 @@ jobs:
       - name: Build the package
         run: npm run ${{ matrix.browser == 'firefox' && 'zip:firefox' || 'zip' }}
 
+      # The Chrome of the runner ignores --load-extension ("not allowed in Google Chrome"), and Selenium Manager sometimes
+      # picks it instead of Chrome for Testing: the extension is then never loaded. Chrome for Testing is installed here
+      # and handed to the tests, so that no choice is left to the runner image of the day.
+      - name: Install Chrome for Testing
+        if: matrix.browser == 'chrome'
+        run: |
+          CHROME=$(npx --yes @puppeteer/browsers@3.2.5 install chrome@stable --path "$RUNNER_TEMP/browsers" | tail -n 1 | cut -d' ' -f2-)
+          test -x "$CHROME"
+          echo "Chrome for Testing: $CHROME"
+          echo "BROWSER_BINARY=$CHROME" >> "$GITHUB_ENV"
+
       # The step has its own limit, shorter than the one of the job, so that the steps below always have the time to run.
       - name: Run the tests in ${{ matrix.browser }}
         timeout-minutes: 8
