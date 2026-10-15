@@ -60,6 +60,10 @@ const de: TranslationObject = {
     backupLater: 'Später',
     backupFailed: 'Die Sicherung ist fehlgeschlagen. Versuchen Sie es erneut oder nutzen Sie die Einstellungen.',
     title: 'Board',
+    addOffer: 'Stelle hinzufügen',
+    addToColumn: 'Stelle zu {name} hinzufügen',
+    offerAdded: 'Hinzugefügt: {name}.',
+    openAdded: 'Öffnen',
     search: 'Nach Stelle, Unternehmen oder Ort suchen',
     showArchived: 'Archivierte anzeigen',
     empty:

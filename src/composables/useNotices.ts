@@ -93,6 +93,8 @@ export const notifySuccess = (text: string): number => add('success', text, DURA
 export const notifyInfo = (text: string): number => add('info', text, DURATIONS.info)
 export const notifyError = (text: string): number => add('error', text, DURATIONS.error)
 
+// A message with a button that does something about what was done (open what was added). The same as the undo message: it is
+// the label that tells which.
 // A message with a button that undoes what was done. The button closes the message and runs.
 export function notifyUndo(text: string, label: string, run: () => void | Promise<void>): number {
   const id = next
@@ -104,6 +106,8 @@ export function notifyUndo(text: string, label: string, run: () => void | Promis
     },
   })
 }
+
+export const notifyAction = notifyUndo
 
 export const useNotices = () => ({
   notices,

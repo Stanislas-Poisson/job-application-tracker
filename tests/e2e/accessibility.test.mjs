@@ -457,6 +457,13 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
           await css('#confirm-dialog button[value=confirm]').then((leave) => leave.click())
           await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the drawer to close' })
 
+          // The dialog that adds an offer from the board.
+          await css('button[name=addOffer]').then((button) => button.click())
+          await waitFor(async () => (await all('#new-offer-dialog[open]')).length > 0, { message: 'the dialog' })
+          await scan(`add/${theme}/${width}`)
+          await press('\uE00C')
+          await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the dialog to close' })
+
           // The question of a card that changed has three answers.
           await css('.application-card').then((card) => card.click())
           await startEditing(driver)
