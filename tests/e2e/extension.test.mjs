@@ -544,9 +544,28 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await startEditing(driver)
       await waitFor(async () => (await all('input[name=tagName]')).length > 0, { message: 'the labels section' })
 
+      // A tag that does not exist is said to be new before it is made.
       await type('input[name=tagName]', 'remote')
+      await waitFor(async () => (await all('dialog[open] .picker-hint[data-state=new]')).length === 1, {
+        message: 'the tag to be told as new',
+      })
       await driver.executeScript(
         `document.querySelector('input[name=tagName]').closest('form').querySelector('button[type=submit]').click()`
+      )
+      // Once it exists it is offered, and told as one that exists, whatever the case.
+      await waitFor(
+        async () =>
+          driver.executeScript(
+            `return [...document.querySelectorAll('dialog[open] datalist option')].some((option) => option.value === 'remote')`
+          ),
+        { message: 'the tag to be offered' }
+      )
+      await type('input[name=tagName]', 'REMOTE')
+      await waitFor(async () => /Already in your list: remote/.test(await text('dialog[open]')), {
+        message: 'the tag to be told as existing',
+      })
+      await driver.executeScript(
+        `const field = document.querySelector('input[name=tagName]'); field.value = ''; field.dispatchEvent(new Event('input', { bubbles: true }))`
       )
       await css('button[name=favorite]').then((button) => button.click())
       await choose('select[name=priority]', '3')
