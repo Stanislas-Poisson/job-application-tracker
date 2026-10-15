@@ -466,7 +466,7 @@ const ja: TranslationObject = {
     undo: '元に戻す',
     removed: '削除しました: {name}。',
   },
-  tables: { title: 'テーブル', tablist: 'テーブル', applications: '応募', companies: '企業' },
+  tables: { title: 'テーブル', tablist: 'テーブル', applications: '応募', companies: '企業', contacts: '連絡先' },
   table: {
     search: 'テーブル内を検索',
     shown: '{total} 件中 {shown} 件を表示',
@@ -513,6 +513,15 @@ const ja: TranslationObject = {
       missing: 'この企業はもう存在しません。',
       itself: '企業を自分自身に統合することはできません。',
     },
+  },
+  contactPage: {
+    name: '名前',
+    languages: '言語',
+    newTitle: '新しい連絡先',
+    create: '連絡先を作成',
+    delete: '連絡先を削除',
+    reach: '連絡手段',
+    add: '連絡先を追加',
   },
   picker: { existing: 'すでにリストにあります: {name}', new: 'まだリストにありません。保存すると追加されます。' },
   confirm: {
