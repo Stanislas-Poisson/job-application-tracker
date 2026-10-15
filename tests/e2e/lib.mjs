@@ -213,6 +213,21 @@ export async function startEditing(driver) {
   })
 }
 
+// Saves the draft of the card with the button of the drawer, which then goes back to reading.
+export async function saveCard(driver) {
+  const button = await waitFor(
+    async () => {
+      const found = await driver.findElements(By.css('dialog[open] button[name=save]'))
+      return found[0]
+    },
+    { message: 'the button that saves the card' }
+  )
+  await button.click()
+  await waitFor(async () => (await driver.findElements(By.css('dialog[open] input[name=title]'))).length === 0, {
+    message: 'the card back to reading',
+  })
+}
+
 // Opens a page of the extension in a new tab, selects it and returns its handle. Marionette refuses
 // to navigate to a moz-extension address, so Firefox opens the tab from its own interface.
 export async function openPage(driver, browser, url) {
