@@ -7,11 +7,12 @@
   import { useDrawerMode } from '../../composables/useDrawerMode'
   import { useFormat } from '../../composables/useFormat'
   import { notifyUndo } from '../../composables/useNotices'
-  import { type Application, Status } from '../../models'
+  import { type Application, Company, Status } from '../../models'
   import { deleteApplication, moveApplication, setArchived } from '../../services/applications'
   import { deleteWithUndo } from '../../services/undo'
   import { countryName, listCountries } from '../../utils/contact'
   import { SALARY_KINDS, SALARY_PERIODS, currencyName, listCurrencies } from '../../utils/money'
+  import EntityPicker from '../EntityPicker.vue'
 
   const props = defineProps<{ application: Application }>()
   const emit = defineEmits<{ deleted: [] }>()
@@ -44,6 +45,13 @@
       { key: 'description', label: t('fields.description'), value: source.description ?? '' },
     ].filter((fact) => '' !== fact.value)
   })
+
+  // The companies that exist, offered to the field of the company.
+  const companyNames = computed(() =>
+    useRepo(Company)
+      .all()
+      .map((company) => company.name)
+  )
 
   const statusOptions = computed(() =>
     Object.fromEntries(
@@ -115,9 +123,10 @@
         :label="t('fields.title')"
         required
       />
-      <FormInput
+      <EntityPicker
         v-model="form.company"
         name="company"
+        :options="companyNames"
         :label="t('fields.company')"
       />
       <FormInput

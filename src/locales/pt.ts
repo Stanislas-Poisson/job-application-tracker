@@ -466,6 +466,7 @@ const pt: TranslationObject = {
     undo: 'Anular',
     removed: 'Removido: {name}.',
   },
+  picker: { existing: 'Já está na sua lista: {name}', new: 'Ainda não está na sua lista: é adicionado ao guardar.' },
   confirm: {
     title: 'Confirme, por favor',
     ok: 'Confirmar',

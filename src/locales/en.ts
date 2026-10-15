@@ -462,6 +462,7 @@ const en: TranslationObject = {
     undo: 'Undo',
     removed: 'Removed: {name}.',
   },
+  picker: { existing: 'Already in your list: {name}', new: 'Not in your list yet: it is added when you save.' },
   confirm: {
     title: 'Please confirm',
     ok: 'Confirm',

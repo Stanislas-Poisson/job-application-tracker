@@ -472,6 +472,10 @@ const de: TranslationObject = {
     undo: 'Rückgängig',
     removed: 'Entfernt: {name}.',
   },
+  picker: {
+    existing: 'Bereits in Ihrer Liste: {name}',
+    new: 'Noch nicht in Ihrer Liste: wird beim Speichern hinzugefügt.',
+  },
   confirm: {
     title: 'Bitte bestätigen',
     ok: 'Bestätigen',

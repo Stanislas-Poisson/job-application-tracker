@@ -467,6 +467,7 @@ const sv: TranslationObject = {
     undo: 'Ångra',
     removed: 'Borttaget: {name}.',
   },
+  picker: { existing: 'Finns redan i din lista: {name}', new: 'Finns inte i din lista än: läggs till när du sparar.' },
   confirm: {
     title: 'Bekräfta',
     ok: 'Bekräfta',

@@ -469,6 +469,10 @@ const it: TranslationObject = {
     undo: 'Annulla',
     removed: 'Rimosso: {name}.',
   },
+  picker: {
+    existing: 'Già nella tua lista: {name}',
+    new: 'Non ancora nella tua lista: viene aggiunto al salvataggio.',
+  },
   confirm: {
     title: 'Conferma, per favore',
     ok: 'Conferma',

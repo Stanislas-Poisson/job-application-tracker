@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { FormButton, FormInput, FormSelect } from '@zairakai/vue-components/Form'
+  import { FormButton, FormSelect } from '@zairakai/vue-components/Form'
   import { useRepo } from 'pinia-orm'
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
@@ -7,6 +7,7 @@
   import { useDrawerMode } from '../../composables/useDrawerMode'
   import { type Application, Company, CompanyRelation } from '../../models'
   import { RELATION_VIEWS, RelationError, addLink, linksOf, removeRelation } from '../../services/companyRelations'
+  import EntityPicker from '../EntityPicker.vue'
 
   const props = defineProps<{ application: Application }>()
 
@@ -92,19 +93,12 @@
           :label="t('company.kind')"
           :options="viewOptions"
         />
-        <FormInput
+        <EntityPicker
           v-model="other"
           name="relationCompany"
-          list="company-names"
+          :options="known.map((candidate) => candidate.name)"
           :label="t('company.other')"
         />
-        <datalist id="company-names">
-          <option
-            v-for="candidate in known"
-            :key="candidate.id"
-            :value="candidate.name"
-          />
-        </datalist>
       </div>
       <p
         v-if="problem"

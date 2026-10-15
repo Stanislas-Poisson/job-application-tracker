@@ -466,6 +466,7 @@ const tr: TranslationObject = {
     undo: 'Geri al',
     removed: 'Kaldırıldı: {name}.',
   },
+  picker: { existing: 'Zaten listenizde: {name}', new: 'Henüz listenizde değil: kaydedince eklenir.' },
   confirm: {
     title: 'Lütfen onaylayın',
     ok: 'Onayla',
