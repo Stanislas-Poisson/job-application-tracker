@@ -455,7 +455,14 @@ const zhHans: TranslationObject = {
     undo: '撤销',
     removed: '已移除：{name}。',
   },
-  tables: { title: '表格', tablist: '表格', applications: '申请', companies: '公司', contacts: '联系人' },
+  tables: {
+    title: '表格',
+    tablist: '表格',
+    applications: '申请',
+    companies: '公司',
+    contacts: '联系人',
+    addresses: '地址',
+  },
   table: {
     search: '在表格中搜索',
     shown: '显示 {shown} / {total}',
@@ -512,6 +519,7 @@ const zhHans: TranslationObject = {
     reach: '联系方式',
     add: '添加联系人',
   },
+  addressPage: { address: '地址', map: '地图' },
   picker: { existing: '已在您的列表中：{name}', new: '尚未在您的列表中：保存时将添加。' },
   confirm: {
     title: '请确认',

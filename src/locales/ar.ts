@@ -486,6 +486,7 @@ const ar: TranslationObject = {
     applications: 'الطلبات',
     companies: 'الشركات',
     contacts: 'جهات الاتصال',
+    addresses: 'العناوين',
   },
   table: {
     search: 'البحث في الجدول',
@@ -543,6 +544,7 @@ const ar: TranslationObject = {
     reach: 'وسائل التواصل',
     add: 'إضافة جهة اتصال',
   },
+  addressPage: { address: 'العنوان', map: 'الخريطة' },
   picker: { existing: 'موجود في قائمتك: {name}', new: 'غير موجود في قائمتك بعد: سيُضاف عند الحفظ.' },
   confirm: {
     title: 'يُرجى التأكيد',

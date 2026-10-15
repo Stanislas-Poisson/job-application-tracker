@@ -472,6 +472,7 @@ const en: TranslationObject = {
     applications: 'Applications',
     companies: 'Companies',
     contacts: 'Contacts',
+    addresses: 'Addresses',
   },
   table: {
     search: 'Search the table',
@@ -530,6 +531,7 @@ const en: TranslationObject = {
     reach: 'Ways to reach',
     add: 'Add a contact',
   },
+  addressPage: { address: 'Address', map: 'Map' },
   picker: { existing: 'Already in your list: {name}', new: 'Not in your list yet: it is added when you save.' },
   confirm: {
     title: 'Please confirm',

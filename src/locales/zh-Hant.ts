@@ -455,7 +455,14 @@ const zhHant: TranslationObject = {
     undo: '撤銷',
     removed: '已移除：{name}。',
   },
-  tables: { title: '表格', tablist: '表格', applications: '申請', companies: '公司', contacts: '聯絡人' },
+  tables: {
+    title: '表格',
+    tablist: '表格',
+    applications: '申請',
+    companies: '公司',
+    contacts: '聯絡人',
+    addresses: '地址',
+  },
   table: {
     search: '在表格中搜尋',
     shown: '顯示 {shown} / {total}',
@@ -512,6 +519,7 @@ const zhHant: TranslationObject = {
     reach: '聯絡方式',
     add: '新增聯絡人',
   },
+  addressPage: { address: '地址', map: '地圖' },
   picker: { existing: '已在您的清單中：{name}', new: '尚未在您的清單中：儲存時將新增。' },
   confirm: {
     title: '請確認',

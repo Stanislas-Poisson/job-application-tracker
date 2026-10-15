@@ -479,7 +479,14 @@ const uk: TranslationObject = {
     undo: 'Скасувати',
     removed: 'Видалено: {name}.',
   },
-  tables: { title: 'Таблиці', tablist: 'Таблиці', applications: 'Заявки', companies: 'Компанії', contacts: 'Контакти' },
+  tables: {
+    title: 'Таблиці',
+    tablist: 'Таблиці',
+    applications: 'Заявки',
+    companies: 'Компанії',
+    contacts: 'Контакти',
+    addresses: 'Адреси',
+  },
   table: {
     search: 'Пошук у таблиці',
     shown: 'Показано {shown} із {total}',
@@ -537,6 +544,7 @@ const uk: TranslationObject = {
     reach: 'Способи зв’язку',
     add: 'Додати контакт',
   },
+  addressPage: { address: 'Адреса', map: 'Мапа' },
   picker: { existing: 'Уже у вашому списку: {name}', new: 'Ще немає у вашому списку: буде додано під час збереження.' },
   confirm: {
     title: 'Підтвердьте, будь ласка',
