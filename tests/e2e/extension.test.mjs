@@ -2456,5 +2456,83 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.executeScript(`location.hash = 'tab=nothing'`)
       await waitFor(async () => 'appearance' === (await selected()), { message: 'the first tab for an unknown one' })
     })
+
+    test('the companies are read in a table, edited once in their drawer, merged when they are the same, and deleted when empty', async () => {
+      await open('tables', 'footer')
+      await css('[role=tab][data-tab=companies]').then((tab) => tab.click())
+      const rows = () => all('tbody tr.table-row')
+      await waitFor(async () => (await rows()).length > 1, { message: 'the companies' })
+      const names = () => texts('tbody tr.table-row td[data-column=name]')
+      const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
+      const sorted = await names()
+      assert.deepEqual(sorted, [...sorted].sort(collator.compare), 'sorted by the name')
+      assert.ok(sorted.includes('Acme') && sorted.includes('Brand New Company'))
+      // The offers are counted in a column that sorts by the number.
+      await css('th button[data-column=offers]').then((button) => button.click())
+      const counts = (await texts('tbody tr.table-row td[data-column=offers]')).map(Number)
+      assert.deepEqual(
+        counts,
+        [...counts].sort((a, b) => a - b),
+        'sorted by the number of offers'
+      )
+
+      const openCompany = async (name) => {
+        const rowButtons = await all('tbody tr.table-row .row-open')
+        const labels = await Promise.all(rowButtons.map((button) => button.getText()))
+        await rowButtons[labels.indexOf(name)].click()
+        await waitFor(async () => (await all('dialog[open] .company-drawer')).length > 0, {
+          message: `the drawer of ${name}`,
+        })
+      }
+      const drawer = 'dialog[open] .company-drawer'
+
+      // A name another company has is refused (the case and the accents do not count), with the way out said.
+      await openCompany('Brand New Company')
+      await type(`${drawer} input[name=name]`, 'acme')
+      await css(`${drawer} button[name=save]`).then((button) => button.click())
+      await waitFor(async () => /Another company has this name/.test(await text(`${drawer} .error`)), {
+        message: 'the refusal of the duplicate',
+      })
+
+      // Renamed once: the offer that names it shows the new name.
+      await type(`${drawer} input[name=name]`, 'Brand New Co')
+      await type(`${drawer} input[name=city]`, 'Lyon')
+      await css(`${drawer} button[name=save]`).then((button) => button.click())
+      await waitFor(async () => (await all(`${drawer} .error`)).length === 0, { message: 'the refusal to go' })
+      await waitFor(async () => /Brand New Co\b/.test(await text('dialog[open] .modal-title')), {
+        message: 'the new title',
+      })
+      assert.match(await text(drawer), /Added to Applied/, 'its offer is listed')
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+      await waitFor(async () => (await names()).includes('Brand New Co'), { message: 'the new name in the table' })
+      assert.ok(!(await names()).includes('Brand New Company'))
+
+      // Two names for one company: merged. The offer moves, and the company goes.
+      await openCompany('Brand New Co')
+      await driver.executeScript(
+        `const select = document.querySelector('dialog[open] select[name=mergeInto]'); select.value = [...select.options].find((o) => o.text === 'Acme').value; select.dispatchEvent(new Event('change', { bubbles: true }))`
+      )
+      await css(`${drawer} button[name=merge]`).then((button) => button.click())
+      await waitFor(async () => (await all('#confirm-dialog[open]')).length === 1, { message: 'the question' })
+      assert.match(await text('#confirm-dialog'), /Merge Brand New Co into Acme/)
+      await driver.executeScript(`document.querySelector('#confirm-dialog button[value=confirm]').click()`)
+      await waitFor(async () => !(await names()).includes('Brand New Co'), { message: 'the company to go' })
+      const acmeRow = (await texts('tbody tr.table-row')).find((line) => /^Acme\b/.test(line)) ?? ''
+      assert.match(acmeRow, /Added to Applied|\b[3-9]\b/, 'Acme has the offer now')
+
+      // A company with no offer is deleted, and the message puts it back.
+      const empty = (await rows()).length
+      const emptyName = await driver.executeScript(`
+        const row = [...document.querySelectorAll('tbody tr.table-row')].find((r) => r.querySelector('td[data-column=offers]').textContent.trim() === '0');
+        return row ? row.querySelector('.row-open').textContent.trim() : null`)
+      assert.ok(emptyName, 'a company with no offer exists')
+      await openCompany(emptyName)
+      await css(`${drawer} button[name=deleteCompany]`).then((button) => button.click())
+      await waitFor(async () => (await rows()).length === empty - 1, { message: 'the company to be deleted' })
+      await waitFor(async () => (await all('.toast .notice-action')).length > 0, { message: 'the message' })
+      await css('.toast .notice-action').then((button) => button.click())
+      await waitFor(async () => (await rows()).length === empty, { message: 'the company to come back' })
+      assert.ok((await names()).includes(emptyName))
+    })
   })
 })
