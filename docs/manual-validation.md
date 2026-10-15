@@ -68,7 +68,7 @@ More contrast asked by the system, and the colours forced (Chrome and Edge).
 
 ### 4. Languages (`4-languages`)
 
-Every language: board, popup, options, drawer. Arabic and Hebrew also in the dark look.
+Every language: board, popup, options, drawer (read, then edited with the Edit button). Arabic and Hebrew also in the dark look.
 
 - Right to left (Arabic, Hebrew): the page, the drawer (it opens on the side of the start of the line), the columns, the arrows
   and chevrons, the order of the buttons, the numbers, a Latin name inside an Arabic or Hebrew line (company, tag, address).
@@ -106,8 +106,8 @@ in English light and dark, in Arabic, in Hebrew and at 200 percent.
 
 A picture does not show what moves or what is read out. Do these once, on the package of the stores.
 
-- With the keyboard alone: the tab order is the reading order, Escape closes the drawer and the confirmation, the focus comes back
-  to where it was. (A test checks one path: see `docs/accessibility.md`.)
+- With the keyboard alone: the tab order is the reading order, the drawer opens to be read and the Edit button is reached by Tab, Escape steps back from editing to reading and closes
+  the drawer from there (and closes the confirmation), the focus comes back to where it was. (A test checks one path: see `docs/accessibility.md`.)
 - With a screen reader (NVDA on Windows, VoiceOver on macOS): add an application, move it, open the drawer, change the language.
   This is the issue #150.
 - With the movement reduced in the system: nothing slides or fades.

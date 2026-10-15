@@ -4,12 +4,14 @@
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
+  import { useDrawerMode } from '../../composables/useDrawerMode'
   import { type Application, Company, CompanyRelation } from '../../models'
   import { RELATION_VIEWS, RelationError, addLink, linksOf, removeRelation } from '../../services/companyRelations'
 
   const props = defineProps<{ application: Application }>()
 
   const { t } = useApp()
+  const { isEditing } = useDrawerMode()
 
   const company = computed(() => props.application.jobOffer?.company ?? null)
   // Reading the relations makes the list follow every change, in this page and in the others.
@@ -44,7 +46,7 @@
 </script>
 
 <template>
-  <section v-if="company">
+  <section v-if="company && (isEditing || 0 < links.length)">
     <h3>{{ t('company.title', { name: company.name }) }}</h3>
     <ul
       v-if="0 < links.length"
@@ -60,6 +62,7 @@
           <strong>{{ link.other.name }}</strong>
         </span>
         <button
+          v-if="isEditing"
           type="button"
           class="tag-remove"
           :aria-label="t('company.remove', { name: link.other.name })"
@@ -70,13 +73,14 @@
       </li>
     </ul>
     <p
-      v-else
+      v-else-if="isEditing"
       class="muted"
     >
       {{ t('company.none') }}
     </p>
 
     <form
+      v-if="isEditing"
       class="stack"
       @submit.prevent="add"
     >

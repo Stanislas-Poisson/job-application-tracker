@@ -92,6 +92,8 @@ const uk: TranslationObject = {
     },
     timeZoneHint: 'Час указано в поясі {zone}.',
     close: 'Закрити',
+    edit: 'Редагувати',
+    done: 'Готово',
     details: 'Подробиці',
     openOffer: 'Відкрити вакансію',
     save: 'Зберегти',

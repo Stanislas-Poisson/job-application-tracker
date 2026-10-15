@@ -92,6 +92,8 @@ const ru: TranslationObject = {
     },
     timeZoneHint: 'Время указано в поясе {zone}.',
     close: 'Закрыть',
+    edit: 'Изменить',
+    done: 'Готово',
     details: 'Подробности',
     openOffer: 'Открыть вакансию',
     save: 'Сохранить',

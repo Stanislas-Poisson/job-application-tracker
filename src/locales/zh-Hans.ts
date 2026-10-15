@@ -92,6 +92,8 @@ const zhHans: TranslationObject = {
     },
     timeZoneHint: '时间为 {zone}。',
     close: '关闭',
+    edit: '编辑',
+    done: '完成',
     details: '详情',
     openOffer: '打开职位',
     save: '保存',

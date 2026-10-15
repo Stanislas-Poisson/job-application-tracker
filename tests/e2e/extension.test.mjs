@@ -16,7 +16,7 @@ import os from 'node:os'
 import path from 'node:path'
 
 import { afterTest } from './diagnostics.mjs'
-import { launch, openPage, unpack, version, waitFor, zipFor } from './lib.mjs'
+import { launch, openPage, startEditing, unpack, version, waitFor, zipFor } from './lib.mjs'
 
 const browser = process.env.BROWSER || 'chrome'
 
@@ -222,6 +222,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
     test('the card opens its details, takes a note, and moves to another column', async () => {
       await driver.switchTo().window(boardTab)
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('textarea[name=newNote]')).length > 0, { message: 'the drawer' })
 
       // The note typed in the popup is the first one.
@@ -270,6 +271,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       await driver.switchTo().window(boardTab)
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('input[name=salaryMin]')).length > 0, { message: 'the salary fields' })
       await type('input[name=salaryMin]', '4000')
       await type('input[name=salaryMax]', '5000')
@@ -311,6 +313,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
     test('a contact is saved with its phone in the international format', async () => {
       await driver.switchTo().window(boardTab)
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('input[name=firstName]')).length > 0, { message: 'the contact form' })
 
       await type('input[name=firstName]', 'Ada')
@@ -384,6 +387,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       await driver.switchTo().window(boardTab)
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('input[name=interactionSubject]')).length > 0, {
         message: 'the exchange form',
       })
@@ -441,6 +445,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
     test('an email pasted as text, and a CSV file, are imported once each, after a preview', async () => {
       await driver.switchTo().window(boardTab)
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('details.import')).length > 0, { message: 'the import section' })
       await driver.executeScript(`document.querySelector('details.import').open = true`)
 
@@ -526,6 +531,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
     test('a tag, a favourite and a priority show on the card, and a tag is renamed from the options', async () => {
       await driver.switchTo().window(boardTab)
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('input[name=tagName]')).length > 0, { message: 'the labels section' })
 
       await type('input[name=tagName]', 'remote')
@@ -656,6 +662,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       await driver.switchTo().window(boardTab)
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('input[name=reminderDue]')).length > 0, { message: 'the reminder form' })
 
       await type('input[name=reminderTitle]', 'Follow up')
@@ -1313,9 +1320,60 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       })
     })
 
+    test('the card is read first: the details as text, no form, and the button edits on purpose', async () => {
+      await open('board', '.application-card')
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('dialog[open] button[name=toggleEdit]')).length > 0, {
+        message: 'the drawer',
+      })
+
+      // Reading: what the card says, with a way to move it, and no field to type in.
+      assert.equal(await text('dialog[open] button[name=toggleEdit]'), 'Edit')
+      await waitFor(async () => (await all('dialog[open] dl.facts')).length > 0, { message: 'the details as text' })
+      assert.equal((await all('dialog[open] input[name=title]')).length, 0, 'no field while reading')
+      assert.equal((await all('dialog[open] textarea[name=newNote]')).length, 0, 'no form to add a note while reading')
+      assert.equal((await all('dialog[open] select[name=status]')).length, 1, 'the card can still be moved')
+
+      // Editing: the form, and the same button says Done.
+      await startEditing(driver)
+      assert.equal(await text('dialog[open] button[name=toggleEdit]'), 'Done')
+      assert.equal((await all('dialog[open] input[name=title]')).length, 1)
+
+      // Done with nothing changed goes back to reading without a question.
+      await css('dialog[open] button[name=toggleEdit]').then((button) => button.click())
+      await waitFor(async () => (await all('dialog[open] input[name=title]')).length === 0, {
+        message: 'back to reading',
+      })
+      assert.equal((await all('#confirm-dialog')).length, 0)
+
+      // With something typed, Done asks first, and keeping it leaves the form as it was.
+      await startEditing(driver)
+      await type('textarea[name=newNote]', 'Not added yet')
+      await css('dialog[open] button[name=toggleEdit]').then((button) => button.click())
+      await waitFor(async () => (await all('#confirm-dialog[open]')).length === 1, { message: 'the question' })
+      await driver.executeScript(`document.querySelector('#confirm-dialog button:not([value=confirm])').click()`)
+      await waitFor(async () => (await all('#confirm-dialog')).length === 0, { message: 'the question to close' })
+      assert.equal(
+        await css('textarea[name=newNote]').then((field) => field.getAttribute('value') ?? field.getText()),
+        'Not added yet'
+      )
+
+      // Discarding goes back to reading and drops the text.
+      await css('dialog[open] button[name=toggleEdit]').then((button) => button.click())
+      await waitFor(async () => (await all('#confirm-dialog[open]')).length === 1, { message: 'the question again' })
+      await driver.executeScript(`document.querySelector('#confirm-dialog button[value=confirm]').click()`)
+      await waitFor(async () => (await all('dialog[open] textarea[name=newNote]')).length === 0, {
+        message: 'back to reading',
+      })
+      await startEditing(driver)
+      assert.equal(await css('textarea[name=newNote]').then((field) => field.getAttribute('value') ?? ''), '')
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
+
     test('unsaved text asks before the drawer is closed, and the offer form says it has changes', async () => {
       await open('board', '.application-card')
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
 
       // The form of the offer is not dirty, and its button has nothing to save.
@@ -1405,6 +1463,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const cards = await all('.application-card')
       const titles = await Promise.all(cards.map((card) => card.getText()))
       await cards[titles.findIndex((line) => /Follow me/.test(line))].click()
+      await startEditing(driver)
       await waitFor(async () => (await all('#follow-up-suggestion')).length > 0, { message: 'the suggestion' })
       assert.match(await text('#follow-up-suggestion'), /7 days later/)
 
@@ -1464,6 +1523,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       // A reminder that was due long ago.
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
       await type('input[name=reminderTitle]', 'Overdue for the badge')
       await driver.executeScript(`
@@ -1522,6 +1582,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const cards = await all('.application-card')
       const cardTexts = await Promise.all(cards.map((card) => card.getText()))
       await cards[cardTexts.findIndex((line) => /Backend developer/.test(line))].click()
+      await startEditing(driver)
       await waitFor(async () => (await all('select[name=relationView]')).length > 0, { message: 'the company section' })
 
       // The firm recruits for Big Client.
@@ -1567,6 +1628,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         const cards = await all('.application-card')
         const lines = await Promise.all(cards.map((card) => card.getText()))
         await cards[lines.findIndex((line) => line.includes(title))].click()
+        await startEditing(driver)
         await waitFor(async () => (await all('.drawer-content')).length > 0, { message: `the drawer of ${title}` })
       }
       const submit = (selector) =>
@@ -1675,6 +1737,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const cards = await all('.application-card')
       const lines = await Promise.all(cards.map((card) => card.getText()))
       await cards[lines.findIndex((line) => /Backend developer/.test(line))].click()
+      await startEditing(driver)
       await waitFor(async () => (await all('#net-estimate')).length > 0, { message: 'the estimate' })
       const estimate = await text('#net-estimate')
       assert.match(estimate, /About \$3,200 - \$4,000 net per month/)
@@ -1746,6 +1809,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const cards = await all('.application-card')
       const lines = await Promise.all(cards.map((card) => card.getText()))
       await cards[lines.findIndex((line) => /Follow me/.test(line))].click()
+      await startEditing(driver)
       await waitFor(async () => (await all('input[name=addressLine1]')).length > 0, { message: 'the place section' })
 
       // No address, no link.
@@ -1808,6 +1872,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const again = await all('.application-card')
       const names = await Promise.all(again.map((card) => card.getText()))
       await again[names.findIndex((line) => /Follow me/.test(line))].click()
+      await startEditing(driver)
       // The settings say public transport, for which OpenStreetMap has no route: for this offer, by car, it has one.
       await choose('select[name=routeMode]', 'car')
       await waitFor(async () => (await all('#map-route')).length > 0, { message: 'the route on OpenStreetMap' })
@@ -1837,6 +1902,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const cards = await all('.application-card')
       const lines = await Promise.all(cards.map((card) => card.getText()))
       await cards[lines.findIndex((line) => /Follow me/.test(line))].click()
+      await startEditing(driver)
       await waitFor(async () => (await all('#new-journey')).length > 0, { message: 'the journeys section' })
 
       // Tours to Bussy-Saint-Georges: on foot, bus, train, metro, suburban train, on foot.
@@ -1901,6 +1967,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const again = await all('.application-card')
       const names = await Promise.all(again.map((card) => card.getText()))
       await again[names.findIndex((line) => /Follow me/.test(line))].click()
+      await startEditing(driver)
       await waitFor(async () => (await all('.journey-reverse')).length > 0, { message: 'the journeys' })
       await driver.executeScript(`document.querySelector('.journey-reverse').click()`)
       await waitFor(async () => (await all('.journey[data-direction=return]')).length > 0, { message: 'the way back' })
@@ -1940,6 +2007,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const last = await all('.application-card')
       const labels = await Promise.all(last.map((card) => card.getText()))
       await last[labels.findIndex((line) => /Follow me/.test(line))].click()
+      await startEditing(driver)
       await waitFor(async () => (await all('.journey[data-direction=outbound]')).length === 2, {
         message: 'the journeys again',
       })
@@ -1958,6 +2026,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const before = (await all('.application-card')).length
 
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
       const buttons = await all('.drawer-content button')
       const labels = await Promise.all(buttons.map((button) => button.getText()))
@@ -1980,6 +2049,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const before = (await all('.application-card')).length
 
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
       const buttons = await all('.drawer-content button')
       const labels = await Promise.all(buttons.map((button) => button.getText()))

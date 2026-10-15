@@ -92,6 +92,8 @@ const es: TranslationObject = {
     },
     timeZoneHint: 'La hora está en {zone}.',
     close: 'Cerrar',
+    edit: 'Editar',
+    done: 'Hecho',
     details: 'Detalles',
     openOffer: 'Abrir la oferta',
     save: 'Guardar',

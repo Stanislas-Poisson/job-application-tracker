@@ -92,6 +92,8 @@ const tr: TranslationObject = {
     },
     timeZoneHint: 'Saat {zone} diliminde.',
     close: 'Kapat',
+    edit: 'Düzenle',
+    done: 'Bitti',
     details: 'Ayrıntılar',
     openOffer: 'İlanı aç',
     save: 'Kaydet',

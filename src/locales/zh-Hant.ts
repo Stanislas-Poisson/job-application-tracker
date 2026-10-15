@@ -92,6 +92,8 @@ const zhHant: TranslationObject = {
     },
     timeZoneHint: '時間為 {zone}。',
     close: '關閉',
+    edit: '編輯',
+    done: '完成',
     details: '詳情',
     openOffer: '開啟職位',
     save: '儲存',
