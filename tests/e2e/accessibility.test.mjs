@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url'
 import { By } from 'selenium-webdriver'
 
 import { afterTest } from './diagnostics.mjs'
-import { launch, openPage, unpack, waitFor, zipFor } from './lib.mjs'
+import { launch, openPage, startEditing, unpack, waitFor, zipFor } from './lib.mjs'
 
 const browser = process.env.BROWSER || 'chrome'
 const AXE = fs.readFileSync(
@@ -105,8 +105,13 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
       await open('board', '.application-card')
       await look(theme)
       await css('.application-card').then((card) => card.click())
-      await waitFor(async () => (await all('textarea[name=newNote]')).length > 0, { message: 'the drawer' })
-      await scan(`drawer/${theme}`)
+      await waitFor(async () => (await all('dialog[open] button[name=toggleEdit]')).length > 0, {
+        message: 'the drawer',
+      })
+      // The card is read first, then edited.
+      await scan(`drawer/read/${theme}`)
+      await startEditing(driver)
+      await scan(`drawer/edit/${theme}`)
     })
   }
 
@@ -279,9 +284,11 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
     // The key to open the card opens it; what is typed in the drawer is typed, whatever the keys of the board are.
     await driver.executeScript(`document.querySelector('.application-card .card-open').focus()`)
     await press('e')
-    await waitFor(async () => (await all('dialog[open] textarea[name=newNote]')).length > 0, {
+    await waitFor(async () => (await all('dialog[open] button[name=toggleEdit]')).length > 0, {
       message: 'the card opened',
     })
+    assert.equal((await all('dialog[open] textarea[name=newNote]')).length, 0, 'the card opens to be read')
+    await startEditing(driver)
     await css('dialog[open] textarea[name=newNote]').then((field) => field.sendKeys('fewer words, e and f'))
     assert.equal(
       await driver.executeScript(`return document.querySelector('dialog[open] textarea[name=newNote]').value`),
@@ -292,6 +299,12 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
     await driver.executeScript(
       `document.querySelector('dialog[open] textarea[name=newNote]').dispatchEvent(new Event('input', { bubbles: true }))`
     )
+    // Escape steps back from editing to reading when nothing changed, and closes the card from there.
+    await driver.actions().sendKeys('\uE00C').perform()
+    await waitFor(async () => (await all('dialog[open] textarea[name=newNote]')).length === 0, {
+      message: 'the card back to reading',
+    })
+    assert.equal((await all('dialog[open]')).length, 1, 'the card is still open')
     await driver.actions().sendKeys('\uE00C').perform()
     await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the card closed' })
 
@@ -381,7 +394,7 @@ describe(`accessibility and layout in ${browser}`, { timeout: 600_000 }, () => {
     await open('board', '.application-card')
     const opener = await css('.application-card .card-open')
     await opener.sendKeys('\uE007')
-    await waitFor(async () => (await all('dialog[open] textarea[name=newNote]')).length > 0, { message: 'the drawer' })
+    await waitFor(async () => (await all('dialog[open] button[name=toggleEdit]')).length > 0, { message: 'the drawer' })
     await driver.actions().sendKeys('\uE00C').perform()
     await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the drawer to close' })
     assert.equal(
