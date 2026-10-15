@@ -16,7 +16,7 @@ import os from 'node:os'
 import path from 'node:path'
 
 import { afterTest } from './diagnostics.mjs'
-import { launch, openPage, startEditing, unpack, version, waitFor, zipFor } from './lib.mjs'
+import { launch, openPage, quitBrowser, saveCard, startEditing, unpack, version, waitFor, zipFor } from './lib.mjs'
 
 const browser = process.env.BROWSER || 'chrome'
 
@@ -32,7 +32,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
     ;({ driver, base } = await launch(browser, { dir, zip }))
   })
   afterEach(afterTest)
-  after(async () => driver?.quit())
+  after(async () => quitBrowser(driver))
 
   const css = (selector) => driver.findElement(By.css(selector))
   const all = (selector) => driver.findElements(By.css(selector))
@@ -278,9 +278,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await choose('select[name=salaryCurrency]', 'USD')
       await choose('select[name=salaryPeriod]', 'month')
       await choose('select[name=salaryKind]', 'gross')
-      await driver.executeScript(
-        `document.querySelector('input[name=salaryMin]').closest('form').querySelector('button[type=submit]').click()`
-      )
+      await saveCard(driver)
 
       // The card shows the range, the period and the kind, with the dollar as the language writes it.
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
@@ -1376,14 +1374,28 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await startEditing(driver)
       await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
 
-      // The form of the offer is not dirty, and its button has nothing to save.
-      const save = await css('.drawer-content form button[type=submit]')
-      assert.equal(await save.isEnabled(), false)
+      // Nothing has changed: the bar of the drawer has nothing to save, only Done.
+      assert.equal((await all('dialog[open] button[name=save]')).length, 0)
       assert.equal((await all('#offer-unsaved')).length, 0)
 
+      // A change shows, and puts Save and Cancel in the place of Done.
+      const before =
+        (await css('.drawer-content input[name=location]').then((input) => input.getAttribute('value'))) ?? ''
       await type('.drawer-content input[name=location]', 'Somewhere else')
       await waitFor(async () => (await all('#offer-unsaved')).length > 0, { message: 'the unsaved mark' })
-      assert.equal(await save.isEnabled(), true)
+      assert.equal((await all('dialog[open] button[name=save]')).length, 1)
+      assert.equal((await all('dialog[open] button[name=cancel]')).length, 1)
+      assert.equal((await all('dialog[open] button[name=toggleEdit]')).length, 0)
+
+      // Putting it back is not a change any more: the mark goes, and Save with it.
+      await driver.executeScript(
+        `const field = document.querySelector('.drawer-content input[name=location]'); field.value = arguments[0]; field.dispatchEvent(new Event('input', { bubbles: true }))`,
+        before
+      )
+      await waitFor(async () => (await all('#offer-unsaved')).length === 0, { message: 'the mark to go when put back' })
+      assert.equal((await all('dialog[open] button[name=save]')).length, 0)
+      await type('.drawer-content input[name=location]', 'Somewhere else')
+      await waitFor(async () => (await all('#offer-unsaved')).length > 0, { message: 'the mark again' })
 
       // Closing asks first, in a dialog of the extension. Declining cancels the closing: the drawer stays, with what was typed.
       const cancelled = await driver.executeScript(`
@@ -1401,10 +1413,25 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         'Somewhere else'
       )
 
-      // Saving makes the form clean again.
-      await save.click()
+      // Saving makes the card clean again, and shows it as it is read.
+      await saveCard(driver)
       await waitFor(async () => (await all('#offer-unsaved')).length === 0, { message: 'the mark to go' })
-      assert.equal(await save.isEnabled(), false)
+      assert.match(await text('dialog[open] dl.facts'), /Somewhere else/)
+
+      // Cancel drops the draft: the card is as it was.
+      await startEditing(driver)
+      await type('.drawer-content input[name=location]', 'Never kept')
+      await waitFor(async () => (await all('dialog[open] button[name=cancel]')).length === 1, { message: 'Cancel' })
+      await css('dialog[open] button[name=cancel]').then((button) => button.click())
+      await waitFor(async () => (await all('dialog[open] input[name=location]')).length === 0, {
+        message: 'back to reading',
+      })
+      assert.doesNotMatch(await text('dialog[open] dl.facts'), /Never kept/)
+      await startEditing(driver)
+      assert.equal(
+        await css('.drawer-content input[name=location]').then((input) => input.getAttribute('value')),
+        'Somewhere else'
+      )
 
       // Typing again and closing: accepting lets it close.
       await type('.drawer-content input[name=location]', 'Elsewhere again')
@@ -1846,7 +1873,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       })
 
       // The address is kept in the offer, in fields.
-      await driver.executeScript(`document.querySelector('#place form').requestSubmit()`)
+      await saveCard(driver)
       const kept = await waitFor(
         async () => {
           const found = await driver.executeAsyncScript(`
