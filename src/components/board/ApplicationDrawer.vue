@@ -2,10 +2,11 @@
   import { FormButton } from '@zairakai/vue-components/Form'
   import { OverlayDrawer } from '@zairakai/vue-components/Overlay'
   import { useRepo } from 'pinia-orm'
-  import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+  import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { provideCardDraft } from '../../composables/useCardDraft'
   import { confirmAction } from '../../composables/useConfirm'
-  import { anyDirty } from '../../composables/useDirty'
+  import { anyDirty, useDirtyGuard } from '../../composables/useDirty'
   import { provideDrawerMode } from '../../composables/useDrawerMode'
   import { Application } from '../../models'
   import DrawerCompany from './DrawerCompany.vue'
@@ -25,14 +26,37 @@
 
   const { t } = useApp()
 
+  const application = computed(() =>
+    props.applicationId
+      ? useRepo(Application)
+          .with('jobOffer', (query) => query.with('company').with('source'))
+          .with('status')
+          .with('contacts', (query) => query.with('methods'))
+          .with('notes')
+          .with('activities')
+          .with('interactions')
+          .with('tags')
+          .with('reminders')
+          .find(props.applicationId)
+      : null
+  )
+
   // The card opens to be read; editing is a step taken on purpose, with the button, and never a key.
   const mode = provideDrawerMode()
   const editing = computed(() => 'edit' === mode.value)
+  // Editing the details and the address works on a draft, saved only if it really differs from what is stored.
+  const card = provideCardDraft(() => application.value)
+  useDirtyGuard(() => card.isDirty.value)
   // Back to reading drops what was typed and not kept: the sections are drawn again, with nothing in their forms.
   const session = ref(0)
   function read() {
+    card.end()
     mode.value = 'read'
     session.value += 1
+  }
+  function edit() {
+    card.begin()
+    mode.value = 'edit'
   }
   watch(() => props.applicationId, read)
 
@@ -44,15 +68,30 @@
     )
   }
 
-  // The button of the drawer: from reading to editing, and back.
+  // The button of the drawer: from reading to editing, and back. Back with text typed in a list and not added asks first.
   function toggle() {
     if (!editing.value) {
-      mode.value = 'edit'
+      edit()
     } else if (anyDirty()) {
       askToDiscard(read)
     } else {
       read()
     }
+  }
+
+  // Saves the draft, and goes back to reading. If a list below still holds text that was typed and not added, the card stays
+  // open for it, from the values just saved.
+  async function save() {
+    if (!card.save()) {
+      return
+    }
+    card.end()
+    await nextTick()
+    if (anyDirty()) {
+      card.begin()
+      return
+    }
+    read()
   }
 
   // Escape is told from the close button and a click outside: it steps back from editing to reading when nothing changed.
@@ -76,21 +115,6 @@
       askToDiscard(() => emit('close'))
     }
   }
-
-  const application = computed(() =>
-    props.applicationId
-      ? useRepo(Application)
-          .with('jobOffer', (query) => query.with('company').with('source'))
-          .with('status')
-          .with('contacts', (query) => query.with('methods'))
-          .with('notes')
-          .with('activities')
-          .with('interactions')
-          .with('tags')
-          .with('reminders')
-          .find(props.applicationId)
-      : null
-  )
 </script>
 
 <template>
@@ -106,7 +130,29 @@
       class="stack drawer-content"
     >
       <div class="drawer-bar">
+        <span
+          v-if="card.isDirty.value"
+          id="offer-unsaved"
+          class="muted"
+          role="status"
+          >{{ t('dirty.unsaved') }}</span
+        >
+        <template v-if="editing && card.isDirty.value">
+          <FormButton
+            type="button"
+            name="cancel"
+            @click="read"
+            >{{ t('options.cancel') }}</FormButton
+          >
+          <FormButton
+            type="button"
+            name="save"
+            @click="save"
+            >{{ t('drawer.save') }}</FormButton
+          >
+        </template>
         <FormButton
+          v-else
           type="button"
           name="toggleEdit"
           @click="toggle"
@@ -159,6 +205,9 @@
       inset-block-start: 0;
       z-index: 1;
       display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
       justify-content: flex-end;
       padding-block: 0.25rem;
       background: var(--surface);
@@ -193,6 +242,10 @@
 
     .fact-text {
       white-space: pre-wrap;
+    }
+
+    .reading-line {
+      margin: 0;
     }
 
     li {
