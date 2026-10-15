@@ -476,6 +476,14 @@ const hi: TranslationObject = {
     applied: 'आवेदन की तिथि',
     updated: 'अपडेट',
   },
+  optionsTabs: {
+    list: 'विकल्पों के समूह',
+    appearance: 'भाषा और रूप',
+    board: 'बोर्ड और कुंजियाँ',
+    money: 'पैसा और वेतन',
+    places: 'स्थान और मेल',
+    data: 'डेटा और बैकअप',
+  },
   picker: { existing: 'पहले से आपकी सूची में है: {name}', new: 'अभी आपकी सूची में नहीं है: सहेजने पर जुड़ जाएगा।' },
   confirm: {
     title: 'कृपया पुष्टि करें',

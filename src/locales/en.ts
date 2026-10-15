@@ -476,6 +476,14 @@ const en: TranslationObject = {
     applied: 'Applied on',
     updated: 'Updated',
   },
+  optionsTabs: {
+    list: 'The groups of options',
+    appearance: 'Language and look',
+    board: 'Board and keys',
+    money: 'Money and pay',
+    places: 'Places and mail',
+    data: 'Data and backups',
+  },
   picker: { existing: 'Already in your list: {name}', new: 'Not in your list yet: it is added when you save.' },
   confirm: {
     title: 'Please confirm',

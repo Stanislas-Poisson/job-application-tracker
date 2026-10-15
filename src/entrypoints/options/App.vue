@@ -1,6 +1,8 @@
 <script setup lang="ts">
+  import { computed } from 'vue'
   import AppFooter from '../../components/AppFooter.vue'
   import AppHeader from '../../components/AppHeader.vue'
+  import TabNav from '../../components/TabNav.vue'
   import AppearanceSetting from '../../components/options/AppearanceSetting.vue'
   import DataTools from '../../components/options/DataTools.vue'
   import ExchangeSetting from '../../components/options/ExchangeSetting.vue'
@@ -16,8 +18,14 @@
   import TagEditor from '../../components/options/TagEditor.vue'
   import TrashSetting from '../../components/options/TrashSetting.vue'
   import { useApp } from '../../composables/useApp'
+  import { useHashTab } from '../../composables/useHashTab'
 
   const { t } = useApp()
+
+  // The sections are grouped under tabs, and the tab in use is in the address of the page (#tab=money).
+  const TAB_IDS = ['appearance', 'board', 'money', 'places', 'data'] as const
+  const tabs = computed(() => TAB_IDS.map((id) => ({ id, label: t(`optionsTabs.${id}`) })))
+  const { tab, choose } = useHashTab(TAB_IDS)
 
   const boardUrl = browser.runtime.getURL('/board.html' as never)
 </script>
@@ -33,22 +41,48 @@
       <a href="tables.html">{{ t('nav.tables') }}</a>
     </AppHeader>
 
-    <div class="options-grid">
-      <section class="card"><LanguageSetting /></section>
-      <section class="card"><AppearanceSetting /></section>
-      <section class="card"><KeyboardSetting /></section>
-      <section class="card"><RegionalSetting /></section>
-      <section class="card"><MoneySetting /></section>
-      <section class="card"><ExchangeSetting /></section>
-      <section class="card"><StatusEditor /></section>
-      <section class="card"><TagEditor /></section>
-      <section class="card"><MapSetting /></section>
-      <section class="card"><PayProfiles /></section>
-      <section class="card"><FreelanceRate /></section>
-      <section class="card"><ReminderSetting /></section>
-      <section class="card"><DataTools /></section>
-      <section class="card"><TrashSetting /></section>
-    </div>
+    <TabNav
+      all
+      :tabs="tabs"
+      :model-value="tab"
+      :label="t('optionsTabs.list')"
+      @update:model-value="choose"
+    >
+      <template #appearance>
+        <div class="options-grid">
+          <section class="card"><LanguageSetting /></section>
+          <section class="card"><AppearanceSetting /></section>
+          <section class="card"><RegionalSetting /></section>
+        </div>
+      </template>
+      <template #board>
+        <div class="options-grid">
+          <section class="card"><StatusEditor /></section>
+          <section class="card"><TagEditor /></section>
+          <section class="card"><KeyboardSetting /></section>
+          <section class="card"><ReminderSetting /></section>
+        </div>
+      </template>
+      <template #money>
+        <div class="options-grid">
+          <section class="card"><MoneySetting /></section>
+          <section class="card"><PayProfiles /></section>
+          <section class="card"><FreelanceRate /></section>
+        </div>
+      </template>
+      <template #places>
+        <div class="options-grid">
+          <section class="card"><MapSetting /></section>
+          <section class="card"><ExchangeSetting /></section>
+        </div>
+      </template>
+      <template #data>
+        <div class="options-grid">
+          <section class="card"><DataTools /></section>
+          <section class="card"><TrashSetting /></section>
+        </div>
+      </template>
+    </TabNav>
 
     <AppFooter />
   </main>

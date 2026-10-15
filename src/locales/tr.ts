@@ -480,6 +480,14 @@ const tr: TranslationObject = {
     applied: 'Başvuru tarihi',
     updated: 'Güncellendi',
   },
+  optionsTabs: {
+    list: 'Seçenek grupları',
+    appearance: 'Dil ve görünüm',
+    board: 'Pano ve tuşlar',
+    money: 'Para ve maaş',
+    places: 'Yerler ve posta',
+    data: 'Veri ve yedekler',
+  },
   picker: { existing: 'Zaten listenizde: {name}', new: 'Henüz listenizde değil: kaydedince eklenir.' },
   confirm: {
     title: 'Lütfen onaylayın',

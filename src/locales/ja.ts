@@ -476,6 +476,14 @@ const ja: TranslationObject = {
     applied: '応募日',
     updated: '更新日',
   },
+  optionsTabs: {
+    list: '設定のグループ',
+    appearance: '言語と外観',
+    board: 'ボードとキー',
+    money: 'お金と給与',
+    places: '場所とメール',
+    data: 'データとバックアップ',
+  },
   picker: { existing: 'すでにリストにあります: {name}', new: 'まだリストにありません。保存すると追加されます。' },
   confirm: {
     title: '確認してください',

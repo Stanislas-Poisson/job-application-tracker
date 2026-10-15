@@ -16,7 +16,18 @@ import os from 'node:os'
 import path from 'node:path'
 
 import { afterTest } from './diagnostics.mjs'
-import { launch, openPage, quitBrowser, saveCard, startEditing, unpack, version, waitFor, zipFor } from './lib.mjs'
+import {
+  launch,
+  openPage,
+  quitBrowser,
+  saveCard,
+  showTabOf,
+  startEditing,
+  unpack,
+  version,
+  waitFor,
+  zipFor,
+} from './lib.mjs'
 
 const browser = process.env.BROWSER || 'chrome'
 
@@ -66,6 +77,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
   const open = async (page, ready) => {
     const handle = await openPage(driver, browser, `${base}${page}.html`)
     await waitFor(async () => (await all(ready)).length > 0, { message: `${page} to load` })
+    await showTabOf(driver, ready)
     return handle
   }
 
@@ -2396,6 +2408,53 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await open('tables', 'footer')
       await waitFor(async () => 'ascending' === (await sortOf('company')), { message: 'the sort to come back' })
       assert.equal((await all('th button[data-column=place]')).length, 0, 'the column is still hidden')
+    })
+
+    test('the options are in tabs: one panel at a time, the arrows move between the tabs, and the address keeps the place', async () => {
+      await open('options', 'footer')
+      const selected = () =>
+        driver.executeScript(`return document.querySelector('[role=tab][aria-selected=true]')?.dataset.tab`)
+      const visiblePanels = async () => (await all('[role=tabpanel]:not([hidden])')).length
+
+      // The first tab is shown, and only one panel at a time.
+      assert.equal(await selected(), 'appearance')
+      assert.equal(await visiblePanels(), 1)
+      assert.equal((await all('[role=tab]')).length, 5)
+      // One tab is in the order of the keyboard: the one in use.
+      assert.deepEqual(
+        await driver.executeScript(`return [...document.querySelectorAll('[role=tab]')].map((tab) => tab.tabIndex)`),
+        [0, -1, -1, -1, -1]
+      )
+
+      // A tab is chosen with a click: its panel shows, the address says it.
+      await css('[role=tab][data-tab=money]').then((tab) => tab.click())
+      await waitFor(async () => 'money' === (await selected()), { message: 'the money tab' })
+      assert.equal(await visiblePanels(), 1)
+      assert.equal(await driver.executeScript(`return location.hash`), '#tab=money')
+      assert.ok(await css('select[name=homeCurrency]').then((field) => field.isDisplayed()), 'its section is there')
+
+      // The arrows move between the tabs, round the ends, and Home and End go to the first and the last one.
+      await css('[role=tab][data-tab=money]').then((tab) => tab.sendKeys('\uE014'))
+      await waitFor(async () => 'places' === (await selected()), { message: 'the next tab' })
+      assert.equal(
+        await driver.executeScript(`return document.activeElement.dataset.tab`),
+        'places',
+        'the focus follows'
+      )
+      await driver.actions().sendKeys('\uE011').perform()
+      await waitFor(async () => 'appearance' === (await selected()), { message: 'Home' })
+      await driver.actions().sendKeys('\uE010').perform()
+      await waitFor(async () => 'data' === (await selected()), { message: 'End' })
+      await driver.actions().sendKeys('\uE014').perform()
+      await waitFor(async () => 'appearance' === (await selected()), { message: 'round the end' })
+
+      // The address keeps the place: a reload opens the tab that was left, and an unknown tab gives the first one.
+      await css('[role=tab][data-tab=board]').then((tab) => tab.click())
+      await waitFor(async () => 'board' === (await selected()), { message: 'the board tab' })
+      await driver.navigate().refresh()
+      await waitFor(async () => 'board' === (await selected()), { message: 'the tab to come back' })
+      await driver.executeScript(`location.hash = 'tab=nothing'`)
+      await waitFor(async () => 'appearance' === (await selected()), { message: 'the first tab for an unknown one' })
     })
   })
 })

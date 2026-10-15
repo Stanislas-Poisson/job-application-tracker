@@ -491,6 +491,14 @@ const pl: TranslationObject = {
     applied: 'Wysłano',
     updated: 'Zmieniono',
   },
+  optionsTabs: {
+    list: 'Grupy opcji',
+    appearance: 'Język i wygląd',
+    board: 'Tablica i klawisze',
+    money: 'Pieniądze i płaca',
+    places: 'Miejsca i poczta',
+    data: 'Dane i kopie zapasowe',
+  },
   picker: { existing: 'Już na Twojej liście: {name}', new: 'Jeszcze nie ma na liście: zostanie dodane przy zapisie.' },
   confirm: {
     title: 'Potwierdź',
