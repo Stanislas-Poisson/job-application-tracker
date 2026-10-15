@@ -1,25 +1,25 @@
 <script setup lang="ts">
-  import { FormButton, FormInput, FormSelect, FormTextarea } from '@zairakai/vue-components/Form'
+  import { FormButton } from '@zairakai/vue-components/Form'
   import { useRepo } from 'pinia-orm'
   import { computed, onMounted, reactive, ref, watch } from 'vue'
   import AppFooter from '../../components/AppFooter.vue'
   import AppHeader from '../../components/AppHeader.vue'
-  import EntityPicker from '../../components/EntityPicker.vue'
+  import OfferFields from '../../components/OfferFields.vue'
   import { useApp } from '../../composables/useApp'
   import { adapterFor } from '../../extraction/adapters'
   import { type ReadOffer } from '../../extraction/jobPosting'
   import { collectSnapshot } from '../../extraction/page'
   import { readSnapshot } from '../../extraction/read'
   import { reportMailto, reportUrl } from '../../extraction/report'
-  import { Company, Status } from '../../models'
+  import { Status } from '../../models'
   import { browserAdapter } from '../../persistence/adapter'
-  import { addNote, captureOffer } from '../../services/applications'
+  import { type OfferForm, captureFromForm } from '../../services/applications'
   import { clearDraft, draftFor, loadDraft, saveDraft } from '../../services/draft'
   import { resolveTimeZone } from '../../utils/time'
 
-  const { t, persistence, settings, statusName } = useApp()
+  const { t, persistence, settings } = useApp()
 
-  const form = reactive({ title: '', company: '', url: '', location: '', statusKey: '', note: '' })
+  const form = reactive<OfferForm>({ title: '', company: '', url: '', location: '', statusKey: '', note: '' })
   const state = ref<'idle' | 'saving' | 'saved'>('idle')
   const problem = ref('')
   // What the page said beyond the fields of the form (the date, the salary, the description). It is saved with them.
@@ -31,15 +31,6 @@
   )
 
   const statuses = computed(() => useRepo(Status).orderBy('order').get())
-  // The companies that exist, offered to the field of the company.
-  const companyNames = computed(() =>
-    useRepo(Company)
-      .all()
-      .map((company) => company.name)
-  )
-  const statusOptions = computed(() =>
-    Object.fromEntries(statuses.value.map((status) => [status.key, statusName(status)]))
-  )
   const report = computed(() => reportUrl(pageUrl.value, read.value, browser.runtime.getManifest().version))
   const reportMail = computed(() => reportMailto(pageUrl.value, read.value, browser.runtime.getManifest().version))
   const boardUrl = browser.runtime.getURL('/board.html' as never)
@@ -116,11 +107,7 @@
     }
 
     state.value = 'saving'
-    const application = captureOffer({
-      title: form.title,
-      companyName: form.company,
-      url: form.url || null,
-      location: form.location || null,
+    captureFromForm(form, {
       country: read.value.country ?? null,
       address: read.value.address ?? null,
       contractType: read.value.contractType ?? null,
@@ -128,11 +115,7 @@
       description: read.value.description ?? null,
       postedOn: read.value.postedOn ?? null,
       salary: read.value.salary ?? null,
-      statusKey: form.statusKey,
     })
-    if ('' !== form.note.trim()) {
-      addNote('applications', application.id, form.note)
-    }
     // The popup closes as soon as the user clicks away: the data is written before saying it is saved.
     await persistence.flush()
     await clearDraft(browserAdapter)
@@ -197,48 +180,16 @@
       class="card stack"
       @submit.prevent="save"
     >
-      <FormInput
-        v-model="form.title"
-        name="title"
-        :label="t('fields.title')"
-        required
-      />
-      <EntityPicker
-        v-model="form.company"
-        name="company"
-        :options="companyNames"
-        :label="t('fields.company')"
-        required
-      />
-      <FormInput
-        v-model="form.url"
-        name="url"
-        type="url"
-        :label="t('fields.url')"
-      />
-      <FormInput
-        v-model="form.location"
-        name="location"
-        :label="t('fields.location')"
-      />
-      <p
-        v-if="0 < found.length"
-        class="muted"
-      >
-        {{ t('popup.found', { list: found.map((key) => t(`popup.foundKeys.${key}`)).join(', ') }) }}
-      </p>
-      <FormSelect
-        v-model="form.statusKey"
-        name="status"
-        :label="t('fields.status')"
-        :options="statusOptions"
-      />
-      <FormTextarea
-        v-model="form.note"
-        name="note"
-        :label="t('fields.note')"
-        :rows="3"
-      />
+      <OfferFields v-model="form">
+        <template #after-place>
+          <p
+            v-if="0 < found.length"
+            class="muted"
+          >
+            {{ t('popup.found', { list: found.map((key) => t(`popup.foundKeys.${key}`)).join(', ') }) }}
+          </p>
+        </template>
+      </OfferFields>
       <p
         v-if="problem"
         class="error"

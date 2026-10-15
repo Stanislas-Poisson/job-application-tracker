@@ -44,6 +44,32 @@ export interface CaptureInput {
   statusKey?: string
 }
 
+// What the form of an offer holds, in the popup and on the board.
+export interface OfferForm {
+  title: string
+  company: string
+  url: string
+  location: string
+  statusKey: string
+  note: string
+}
+
+// Saves an offer from its form, with what a page may have said beyond the fields (the popup reads it), and its first note.
+export function captureFromForm(form: OfferForm, read: Partial<CaptureInput> = {}): Application {
+  const application = captureOffer({
+    ...read,
+    title: form.title,
+    companyName: form.company,
+    url: form.url || null,
+    location: form.location || null,
+    statusKey: form.statusKey,
+  })
+  if ('' !== form.note.trim()) {
+    addNote('applications', application.id, form.note)
+  }
+  return application
+}
+
 const now = () => new Date().toISOString()
 
 // The fields of an offer that hold its address, from an address in fields (empty ones are not kept).
