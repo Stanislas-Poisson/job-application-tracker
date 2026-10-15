@@ -254,3 +254,11 @@ describe('the shortcuts setting', () => {
     expect(normalizeSettings({ shortcuts: 'yes' }).shortcuts).toBe(false)
   })
 })
+
+describe('the setting that shows the symbols of the tags', () => {
+  it('is on by default, and a stored value that is not a boolean is not kept', () => {
+    expect(DEFAULT_SETTINGS.showTagSymbols).toBe(true)
+    expect(normalizeSettings({ showTagSymbols: false }).showTagSymbols).toBe(false)
+    expect(normalizeSettings({ showTagSymbols: 'no' }).showTagSymbols).toBe(true)
+  })
+})

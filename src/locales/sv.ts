@@ -348,6 +348,7 @@ const sv: TranslationObject = {
     addButton: 'Lägg till',
     remove: 'Ta bort taggen {name}',
     manage: 'Taggar',
+    showSymbols: 'Visa taggarnas symboler',
     manageHint: 'Taggarna du sätter på ansökningar. Byt namn på dem, ändra färg eller ta bort dem.',
     none: 'Ingen tagg ännu. Lägg till en på en ansökan eller här.',
     usage: {

@@ -343,6 +343,7 @@ const hi: TranslationObject = {
     addButton: 'जोड़ें',
     remove: 'टैग {name} हटाएँ',
     manage: 'टैग',
+    showSymbols: 'टैग के प्रतीक दिखाएँ',
     manageHint: 'आवेदनों पर लगाए आपके टैग। उनका नाम या रंग बदलें, या उन्हें हटाएँ।',
     none: 'अभी कोई टैग नहीं है। किसी आवेदन में या यहाँ जोड़ें।',
     usage: {

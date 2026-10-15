@@ -350,6 +350,7 @@ const fr: TranslationObject = {
     addButton: 'Ajouter',
     remove: "Retirer l'étiquette {name}",
     manage: 'Étiquettes',
+    showSymbols: 'Afficher les symboles des étiquettes',
     manageHint:
       'Les étiquettes que vous mettez sur les candidatures. Renommez-les, changez leur couleur ou retirez-les.',
     none: "Pas encore d'étiquette. Ajoutez-en une à une candidature, ou ici.",

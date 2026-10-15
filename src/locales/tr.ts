@@ -348,6 +348,7 @@ const tr: TranslationObject = {
     addButton: 'Ekle',
     remove: '{name} etiketini kaldır',
     manage: 'Etiketler',
+    showSymbols: 'Etiketlerin simgelerini göster',
     manageHint: 'Başvurulara koyduğunuz etiketler. Adlarını ve renklerini değiştirin veya kaldırın.',
     none: 'Henüz etiket yok. Bir başvuruya veya buraya ekleyin.',
     usage: {

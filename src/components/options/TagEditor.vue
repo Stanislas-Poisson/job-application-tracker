@@ -9,7 +9,7 @@
   import { TagError, createTag, deleteTag, recolorTag, renameTag, tagUsage } from '../../services/tags'
   import { deleteWithUndo } from '../../services/undo'
 
-  const { t, tn, persistence } = useApp()
+  const { t, tn, persistence, settings, updateSettings } = useApp()
 
   const name = ref('')
   const problem = ref('')
@@ -57,6 +57,15 @@
 <template>
   <h2>{{ t('labels.manage') }}</h2>
   <p class="muted">{{ t('labels.manageHint') }}</p>
+  <label class="row">
+    <input
+      type="checkbox"
+      name="showTagSymbols"
+      :checked="settings.showTagSymbols"
+      @change="updateSettings({ showTagSymbols: ($event.target as HTMLInputElement).checked })"
+    />
+    {{ t('labels.showSymbols') }}
+  </label>
   <p
     v-if="0 === tags.length"
     class="muted"
