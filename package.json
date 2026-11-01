@@ -48,7 +48,7 @@
     "@vue/test-utils": "^2.5.1",
     "@wxt-dev/module-vue": "^1.0.3",
     "@zairakai/mithril-scss": "^1.2.3",
-    "eslint": "^10.12.0",
+    "eslint": "^10.13.0",
     "happy-dom": "^21.0.1",
     "markdownlint-cli2": "^0.23.3",
     "prettier": "^3.9.10",
