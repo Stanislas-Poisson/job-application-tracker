@@ -44,7 +44,7 @@
   },
   "devDependencies": {
     "@stanislas-poisson/js-dev-tools": "^1.0.0",
-    "@vitest/coverage-v8": "^5.0.4",
+    "@vitest/coverage-v8": "^5.0.5",
     "@vue/test-utils": "^2.5.1",
     "@wxt-dev/module-vue": "^1.0.3",
     "@zairakai/mithril-scss": "^1.2.3",
