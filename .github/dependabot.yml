@@ -2,10 +2,12 @@ version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "develop"
     schedule:
       interval: "monthly"
   - package-ecosystem: "npm"
     directory: "/"
+    target-branch: "develop"
     schedule:
       interval: "monthly"
     ignore:
@@ -14,5 +16,6 @@ updates:
         update-types: ["version-update:semver-major"]
   - package-ecosystem: "npm"
     directory: "/tests/e2e"
+    target-branch: "develop"
     schedule:
       interval: "monthly"
