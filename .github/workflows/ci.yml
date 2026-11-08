@@ -138,7 +138,7 @@ jobs:
   e2e:
     name: Browser test (${{ matrix.browser }})
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -166,12 +166,22 @@ jobs:
       - name: Build the package
         run: npm run ${{ matrix.browser == 'firefox' && 'zip:firefox' || 'zip' }}
 
+      # GitHub Releases answers 504 now and then, and Selenium Manager waits about two minutes before it gives up. Done here once, with a
+      # mirror as the fallback, so that each file of tests does not wait for it again. See tests/e2e/prepare-firefox.mjs.
+      - name: Prepare geckodriver and Firefox
+        if: matrix.browser == 'firefox'
+        timeout-minutes: 6
+        working-directory: tests/e2e
+        env:
+          SE_FORCE_BROWSER_DOWNLOAD: "true"
+        run: node prepare-firefox.mjs
+
       # The step has its own limit, shorter than the one of the job, so that the steps below always have the time to run.
       # The browser is the current stable version, downloaded by Selenium Manager, and never the one installed on the runner: that one
       # is whatever the image of the day holds (the Chrome of the runner even ignores --load-extension, "not allowed in Google
       # Chrome", and the extension is then never loaded). The version used is written in the timeline of the run.
       - name: Run the tests in ${{ matrix.browser }}
-        timeout-minutes: 8
+        timeout-minutes: 12
         working-directory: tests/e2e
         env:
           BROWSER: ${{ matrix.browser }}
