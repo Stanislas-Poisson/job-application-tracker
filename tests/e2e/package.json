@@ -7,6 +7,6 @@
     "review": "node review.mjs"
   },
   "devDependencies": {
-    "selenium-webdriver": "4.51.0"
+    "selenium-webdriver": "4.52.0"
   }
 }
