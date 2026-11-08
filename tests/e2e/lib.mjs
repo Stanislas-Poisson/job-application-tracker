@@ -127,7 +127,8 @@ async function logBrowser(driver, browser) {
 }
 
 // The release asset that Selenium Manager could not download, as the error reports it.
-const GECKODRIVER_ASSET = /https:\/\/github\.com\/mozilla\/geckodriver\/releases\/download\/(v[\d.]+)\/(geckodriver-v[\d.]+-([\w-]+)\.tar\.gz)/
+const GECKODRIVER_ASSET =
+  /https:\/\/github\.com\/mozilla\/geckodriver\/releases\/download\/(v[\d.]+)\/(geckodriver-v[\d.]+-([\w-]+)\.tar\.gz)/
 const GECKODRIVER_MIRROR = 'https://registry.npmmirror.com/-/binary/geckodriver'
 
 // GitHub Releases answers 504 now and then, and Selenium Manager has no other source for geckodriver (its mirror option needs a
