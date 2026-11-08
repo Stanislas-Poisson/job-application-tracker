@@ -117,6 +117,7 @@
     <p
       v-if="problem"
       class="error"
+      role="alert"
     >
       {{ t('address.coordinatesProblem') }}
     </p>

@@ -14,7 +14,7 @@
   const props = defineProps<{ application: Application }>()
   const emit = defineEmits<{ open: [] }>()
 
-  const { t } = useApp()
+  const { t, sourceName, settings } = useApp()
   const format = useFormat()
 
   const offer = computed(() => props.application.jobOffer)
@@ -46,20 +46,28 @@
 <template>
   <article
     class="application-card"
+    :data-application="application.id"
     draggable="true"
-    tabindex="0"
     @dragstart="onDragStart"
     @click="emit('open')"
-    @keydown.enter="emit('open')"
   >
     <h3>
       <span
         v-if="application.isFavorite"
         class="card-star"
+        role="img"
+        :aria-label="t('labels.favorite')"
         :title="t('labels.favorite')"
         >&#9733;</span
       >
-      {{ strLimit(offer?.title ?? '', 70) }}
+      <!-- The one control of the card for the keyboard and for a screen reader: the card as a whole opens with a click. -->
+      <button
+        type="button"
+        class="card-open"
+        @click.stop="emit('open')"
+      >
+        {{ strLimit(offer?.title ?? '', 70) }}
+      </button>
     </h3>
     <p class="muted">
       {{ offer?.company?.name }}<template v-if="0 < clients.length"> → {{ clients.join(', ') }}</template
@@ -89,7 +97,10 @@
         class="tag-chip"
         :style="{ '--tag': tag.color }"
       >
-        <ItemSymbol :symbol="tag.symbol" />
+        <ItemSymbol
+          v-if="settings.showTagSymbols"
+          :symbol="tag.symbol"
+        />
         <span dir="auto">{{ tag.name }}</span>
       </li>
     </ul>
@@ -97,7 +108,7 @@
       <DisplayBadge
         v-if="offer?.source"
         size="small"
-        >{{ offer.source.label }}</DisplayBadge
+        >{{ sourceName(offer.source) }}</DisplayBadge
       >
       <DisplayBadge
         v-if="0 < application.priority"
@@ -124,21 +135,50 @@
     margin-block-end: 0.4rem;
   }
 
+  // A long word (a name, a title in German) breaks where it must, and does not go out of the card.
   .application-card {
+    min-inline-size: 0;
     padding: 0.7rem 0.8rem;
+    overflow-wrap: anywhere;
     background: var(--surface);
     border: 1px solid var(--zk-border);
     border-radius: var(--zk-radius);
     cursor: grab;
 
     &:hover,
-    &:focus-visible {
+    &:focus-within {
       border-color: var(--primary);
+    }
+
+    .card-open {
+      padding: 0;
+      font: inherit;
+      color: inherit;
+      text-align: start;
+      cursor: pointer;
+      background: none;
+      border: 0;
+      border-radius: 0;
+      transition: none;
+
+      &:hover:not(:disabled) {
+        color: inherit;
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--zk-focus);
+        outline-offset: 2px;
+      }
     }
 
     h3 {
       margin: 0 0 0.2rem;
       font-size: 0.88rem;
+    }
+
+    // The badges go to the next line rather than squeeze one another.
+    .row {
+      flex-wrap: wrap;
     }
 
     p {

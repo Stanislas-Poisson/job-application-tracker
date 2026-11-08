@@ -23,7 +23,7 @@ There is no server and no account: the data is stored in the browser, and you ca
 
 - **Popup** - saves the offer you are reading in a few seconds, without leaving the page. The title and the address are filled from the page.
 - **Board** - one column per status (to apply, applied, follow-up, interview, offer, rejected). Drag a card to move it, search, archive. A card opens its details: the offer, notes, reminders, contacts and the timeline.
-- **Options** - the language (English or French), the appearance (light, dark, accent colours, colour-blind modes, high contrast), your own columns (name, colour, order), the export and the import of your data.
+- **Options** - the language (English or French), the appearance (light, dark, accent colours, colour-blind modes, no-colour mode, contrast that follows the system or is chosen), your own columns (name, colour, order), the export and the import of your data.
 
 ## Install
 

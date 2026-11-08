@@ -5,17 +5,33 @@ everyone with the next version, like a fix.
 
 ## What a translator does
 
-1. Copy `src/locales/en.ts` to `src/locales/<code>.ts` (`es`, `de`, `pt-BR`…) and translate the texts. The keys do not change.
+1. Copy `src/locales/en.ts` to `src/locales/<code>.ts` (`es`, `de`, `pt-BR`…) and translate the texts, but not the `notify` block.
+   The keys do not change. Each language is read by the extension only when it is used, so adding the file is all it takes to
+   have it.
+   The texts of the notification of the reminders go in a file of their own: copy `src/locales/notify/en.ts` to
+   `src/locales/notify/<code>.ts` and translate it. The background of the extension reads these small files and nothing of the
+   rest.
 2. Keep every `{placeholder}` as it is, in the order your language needs: `{count}`, `{date}`, `{name}`… A test checks that each
    language has the same keys and the same placeholders as English.
 3. A text that depends on a number has a form for each plural category of the language (`zero`, `one`, `two`, `few`, `many`,
    `other`). `other` is always there. English and French have `one` and `other`; Russian needs `one`, `few`, `many` and `other`; Arabic
    all six. The categories of a language are listed by `new Intl.PluralRules('<code>').resolvedOptions().pluralCategories`.
-4. Add the language to the table in `src/languages.ts` (its code, its name in itself, `ltr` or `rtl`, its script), to `LOCALES` in
-   `src/settings.ts` and to `src/i18n.ts`.
+4. Add the language to the table in `src/languages.ts` (its code, its name in itself, `ltr` or `rtl`, its script, and `reviewed`).
+   A test checks that the table, the files of texts and the files of notifications agree.
 5. Translate the name and the description of the store listing in `public/_locales/<code>/messages.json` (the description is 132
-   characters at most).
+   characters at most). The folder is named as the stores want it: `pt_PT`, `zh_CN` for `zh-Hans`, `zh_TW` for `zh-Hant`.
 6. Open a pull request into `develop`, with the three checks green (`npm run quality`).
+
+## Checked or not
+
+The extension comes in English, French, Spanish, German, Italian, Portuguese (Portugal), Dutch, Arabic, Hebrew, Japanese, Chinese (simplified and traditional), Korean, Hindi, Polish, Russian, Ukrainian, Turkish and Swedish. English and French are
+written and read by the author. The others were translated without a person who speaks them reading the result, so they are marked
+`reviewed: false` in `src/languages.ts`: the options say so under the language list, with a link that opens a pre-filled "Translation
+mistake" issue on GitHub (`.github/ISSUE_TEMPLATE/translation.yml`). The link holds the code of the language and nothing of the
+user's data; the extension sends nothing.
+
+When a person who speaks the language has read it, set `reviewed: true` in the pull request that holds their corrections: the notice
+goes away for that language.
 
 ## What to keep in mind
 
@@ -23,6 +39,16 @@ everyone with the next version, like a fix.
 - Do not translate the names of services or file formats (CSV, JSON, WCAG).
 - Texts get longer in some languages (30% more in German): do not count on a fixed width.
 - Dates, numbers and money are written by the browser for the language: do not write them in a text.
+
+## Developer mode: try a file in place of a language of the extension
+
+For someone who translates the extension, the option **"Developer mode"** (under "A language of your own") lets a file with the code
+of a language of the extension (`es`, `fr`…) take its place **on this computer only**, to see the result in the real pages before
+sending the pull request. The file is checked exactly like any other, the preview says that it replaces the language, and nothing is
+kept until the answer. In this mode a button **"Send a test notification"** shows the notification of the reminders in the
+language in use, with the `notify` texts of the file you added: the title, one line for each plural form of the language, and the
+line "and more". It needs the notifications of the reminders turned on and allowed. Turn the mode off and the file stays as a language of its own, with the code `<code>-x-mine`; it never
+leaves the computer and never goes into a backup.
 
 ## Checking that a language fits
 
@@ -41,7 +67,12 @@ variant such as `fr-CA`, a small language, personal wording), or try a translati
 What is checked, and why:
 
 - **The size** of the file (1 million characters at most) and its **shape**: a language file of this extension, nothing else.
-- **The code** (`es`, `pt-BR`…) is a valid language tag, and is not one of the languages the extension has.
+- **The code** (`sv`, `pt-BR`…) is a valid language tag, and is not one of the languages the extension has, unless the developer mode
+  is on (see below). To keep a version of your own of a language the extension has, add a private-use part: `es-x-mine`,
+  `fr-CA-x-work` (from one to three words of 1 to 8 letters or digits after `-x-`). The browser reads it as the language before
+  `-x-`, so the plurals, the dates and the names stay right, and it never clashes with a language the extension comes with later.
+- **When the extension later comes with your code**, your language is not lost: it is kept under `<code>-x-mine` (with a number if
+  that is taken), and the list of languages shows both.
 - **Only the keys of English** are kept. A key that is not in English is ignored; a key that could reach the prototype of an object
   (`__proto__`, `constructor`, `prototype`) is refused.
 - **Each text** is at most 2000 characters, with no control character, no mark that changes the direction of the text around it

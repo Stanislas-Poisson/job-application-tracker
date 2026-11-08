@@ -3,6 +3,7 @@
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
+  import { useDrawerMode } from '../../composables/useDrawerMode'
   import { useFormat } from '../../composables/useFormat'
   import type { Application } from '../../models'
   import { addNote } from '../../services/applications'
@@ -10,6 +11,7 @@
   const props = defineProps<{ application: Application }>()
 
   const { t } = useApp()
+  const { isEditing } = useDrawerMode()
   const format = useFormat()
 
   const body = ref('')
@@ -29,9 +31,10 @@
 </script>
 
 <template>
-  <section>
+  <section v-if="isEditing || 0 < notes.length">
     <h3>{{ t('drawer.notes') }}</h3>
     <form
+      v-if="isEditing"
       class="stack"
       @submit.prevent="add"
     >

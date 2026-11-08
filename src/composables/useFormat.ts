@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 import { resolveLocale } from '../i18n'
 import type { JobOffer } from '../models'
+import { type DateStyle, formatAbsolute, formatMoment, formatPlainDate } from '../utils/dateFormat'
 import {
   type Conversion,
   type Salary,
@@ -10,7 +11,7 @@ import {
   formatMoney,
 } from '../utils/money'
 import { effectiveRates } from '../utils/rates'
-import { formatDate, formatInstant, resolveTimeZone } from '../utils/time'
+import { resolveTimeZone } from '../utils/time'
 import { useApp } from './useApp'
 
 // The salary of an offer, as the money functions want it.
@@ -30,6 +31,16 @@ export function useFormat() {
   const { settings, t } = useApp()
   const locale = computed(() => resolveLocale(settings.locale, navigator.language))
   const timeZone = computed(() => resolveTimeZone(settings.timeZone))
+
+  // The way dates are written: the format of the settings over what the language does.
+  const style = computed<DateStyle>(() => ({
+    locale: locale.value,
+    timeZone: timeZone.value,
+    date: settings.dateFormat,
+    time: settings.timeFormat,
+    custom: settings.dateCustom,
+    relative: settings.relativeDates,
+  }))
 
   const labels = (): SalaryLabels => ({
     from: (amount) => t('salary.from', { amount }),
@@ -54,8 +65,13 @@ export function useFormat() {
     locale,
     timeZone,
     conversion,
-    instant: (iso: string) => formatInstant(iso, { locale: locale.value, timeZone: timeZone.value }),
-    date: (plain: string) => formatDate(plain, locale.value),
+    style,
+    // A moment: the date, how long ago, or both, as the settings say.
+    instant: (iso: string) => formatMoment(iso, style.value),
+    // A moment as a date and an hour, whatever the relative setting says.
+    absolute: (iso: string) => formatAbsolute(iso, style.value),
+    // A day, with no hour: it is the same everywhere.
+    date: (plain: string) => formatPlainDate(plain, style.value),
     // "EUR 45,000 - 55,000 / year (gross)", in the language and with the currency display of the settings.
     salary: (offer: Parameters<typeof salaryOf>[0]) =>
       describeSalary(salaryOf(offer), locale.value, settings.currencyDisplay, labels()),

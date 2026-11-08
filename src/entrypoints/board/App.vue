@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import { FormButton } from '@zairakai/vue-components/Form'
   import { useRepo } from 'pinia-orm'
   import { computed, onMounted, onUnmounted, ref } from 'vue'
   import AppFooter from '../../components/AppFooter.vue'
@@ -7,24 +8,36 @@
   import BackupReminder from '../../components/board/BackupReminder.vue'
   import BoardColumn from '../../components/board/BoardColumn.vue'
   import BoardFilters from '../../components/board/BoardFilters.vue'
+  import NewOfferDialog from '../../components/board/NewOfferDialog.vue'
   import { useApp } from '../../composables/useApp'
+  import { useBoardShortcuts } from '../../composables/useBoardShortcuts'
   import { useBoardView } from '../../composables/useBoardView'
   import { useFormat } from '../../composables/useFormat'
+  import { useKeyboardLayout } from '../../composables/useKeyboardLayout'
+  import { say } from '../../composables/useNotices'
   import { Application, CompanyRelation, PayProfile, Status } from '../../models'
   import { LEG_MODES } from '../../models/Journey'
   import { moveApplication } from '../../services/applications'
   import { queryApplications } from '../../services/boardQuery'
   import { finalClientsOf, linksOf } from '../../services/companyRelations'
-  import { COLUMNS, boardCsv, exportFileName } from '../../services/exportBoard'
+  import { COLUMNS, boardCsv, csvSeparator, exportFileName } from '../../services/exportBoard'
   import { estimateNet } from '../../services/netEstimate'
   import { downloadText } from '../../utils/download'
   import { todayIn } from '../../utils/time'
 
-  const { t, tn, persistence, settings } = useApp()
+  const { t, tn, persistence, settings, statusName, sourceName } = useApp()
   const format = useFormat()
   const { view, clearFilters } = useBoardView()
 
   const openId = ref<string | null>(null)
+
+  // An offer added from here, in the column of the button that was used (the first one for the general button).
+  const adding = ref(false)
+  const addingTo = ref('')
+  function addOffer(statusKey = '') {
+    addingTo.value = statusKey
+    adding.value = true
+  }
 
   // A notification opens the board on the application it is about: #application=<id>. An id that is not there opens nothing.
   function openFromAddress() {
@@ -83,7 +96,7 @@
   // The applications that are shown, in the order they are shown, as a file for a spreadsheet. A language that writes numbers
   // with a decimal comma (and whose spreadsheets want a semicolon) gets a semicolon.
   function exportCsv() {
-    const names = Object.fromEntries(statuses.value.map((status) => [status.id, status.label]))
+    const names = Object.fromEntries(statuses.value.map((status) => [status.id, statusName(status)]))
     const text = boardCsv(
       visible.value,
       {
@@ -115,9 +128,10 @@
               }
         },
         finalClients: (companyId) => finalClientsOf(companyId).map((client) => client.name),
+        sourceLabel: sourceName,
         statusLabel: (statusId) => (statusId ? (names[statusId] ?? '') : ''),
       },
-      'fr' === format.locale.value ? ';' : ','
+      csvSeparator(format.locale.value)
     )
     downloadText(exportFileName(todayIn(format.timeZone.value)), text, 'text/csv;charset=utf-8')
   }
@@ -126,11 +140,31 @@
     moveApplication(applicationId, statusId)
     await persistence.flush()
   }
+
+  // The keys of the board; a card moved with them is said to be in its new column.
+  const layout = useKeyboardLayout()
+  useBoardShortcuts({
+    enabled: () => settings.shortcuts,
+    keys: () => settings.shortcutKeys,
+    layoutKnown: () => layout.known.value,
+    drop,
+    moved(statusId) {
+      const status = useRepo(Status).find(statusId)
+      if (status) {
+        say(t('board.movedTo', { status: statusName(status) }))
+      }
+    },
+  })
 </script>
 
 <template>
-  <main class="page">
+  <main
+    id="main"
+    class="page page-wide"
+    tabindex="-1"
+  >
     <AppHeader :title="t('board.title')">
+      <a href="tables.html">{{ t('nav.tables') }}</a>
       <a
         id="export-csv"
         href="#"
@@ -147,6 +181,15 @@
 
     <BackupReminder />
 
+    <div class="board-actions">
+      <FormButton
+        type="button"
+        name="addOffer"
+        @click="addOffer()"
+        >{{ t('board.addOffer') }}</FormButton
+      >
+    </div>
+
     <BoardFilters
       :shown="visible.length"
       :total="inScope"
@@ -160,7 +203,13 @@
       {{ t('board.empty') }}
     </p>
 
-    <div class="board">
+    <!-- It scrolls sideways when the window is narrow or zoomed: with no card in it (a new board) the keyboard needs a way in. -->
+    <div
+      class="board"
+      role="region"
+      tabindex="0"
+      :aria-label="t('board.title')"
+    >
       <BoardColumn
         v-for="(column, index) in columns"
         :key="column.status.id"
@@ -168,9 +217,17 @@
         :status="column.status"
         :applications="column.applications"
         @open="openId = $event"
+        @add="addOffer"
         @drop-application="drop($event, column.status.id)"
       />
     </div>
+
+    <NewOfferDialog
+      :open="adding"
+      :status-key="addingTo"
+      @close="adding = false"
+      @added="openId = $event"
+    />
 
     <ApplicationDrawer
       :application-id="openId"
@@ -185,10 +242,16 @@
     margin-block-end: 1rem;
   }
 
+  .board-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-block-end: 0.75rem;
+  }
+
   .board {
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: minmax(15rem, 1fr);
+    grid-auto-columns: minmax(12rem, 1fr);
     gap: 0.75rem;
     overflow-x: auto;
     padding-block-end: 0.5rem;

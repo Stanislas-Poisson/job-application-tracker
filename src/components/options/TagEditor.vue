@@ -3,11 +3,13 @@
   import { useRepo } from 'pinia-orm'
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
+  import { notifyUndo } from '../../composables/useNotices'
   import { Tag } from '../../models'
   import { normalizeSymbol } from '../../services/symbol'
   import { TagError, createTag, deleteTag, recolorTag, renameTag, tagUsage } from '../../services/tags'
+  import { deleteWithUndo } from '../../services/undo'
 
-  const { t, tn } = useApp()
+  const { t, tn, persistence, settings, updateSettings } = useApp()
 
   const name = ref('')
   const problem = ref('')
@@ -42,16 +44,28 @@
     useRepo(Tag).where('id', tag.id).update({ symbol })
   }
 
-  function remove(tag: Tag) {
-    if (0 === tagUsage(tag.id) || window.confirm(tn('labels.confirmDelete', tagUsage(tag.id)))) {
-      deleteTag(tag.id)
-    }
+  // The tag goes to the trash with its links; the message offers to put it back.
+  async function remove(tag: Tag) {
+    const name = tag.name
+    const undo = await deleteWithUndo(persistence, () => deleteTag(tag.id))
+    notifyUndo(t('notice.removed', { name }), t('notice.undo'), async () => {
+      await undo()
+    })
   }
 </script>
 
 <template>
   <h2>{{ t('labels.manage') }}</h2>
   <p class="muted">{{ t('labels.manageHint') }}</p>
+  <label class="row">
+    <input
+      type="checkbox"
+      name="showTagSymbols"
+      :checked="settings.showTagSymbols"
+      @change="updateSettings({ showTagSymbols: ($event.target as HTMLInputElement).checked })"
+    />
+    {{ t('labels.showSymbols') }}
+  </label>
   <p
     v-if="0 === tags.length"
     class="muted"
@@ -110,6 +124,7 @@
   <p
     v-if="problem"
     class="error"
+    role="alert"
   >
     {{ problem }}
   </p>

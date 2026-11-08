@@ -1,4 +1,4 @@
-import { themeCss } from './customTheme'
+import { COLUMN_COUNT, themeCss } from './customTheme'
 import type { Accent, FontFamily, Settings, TextSpacing, Vision } from './settings'
 
 // The colours of an accent are in assets/main.scss. Here is what the pages need to draw their choices.
@@ -12,23 +12,35 @@ export const ACCENT_SWATCHES: Record<Accent, string> = {
   orange: '#ea580c',
 }
 
-// The palette of Okabe and Ito, made to be told apart by people with the usual kinds of colour blindness.
+// The palette of Okabe and Ito, made to be told apart by people with the usual kinds of colour blindness. The colours are
+// darkened or lightened to the middle of the range, so that each one stays at 3:1 or more against the white and the dark
+// surface alike (WCAG 1.4.11): the lightest and the black of the original palette vanished on one of the two.
 export const COLOUR_BLIND_PALETTE = [
   '#0072b2',
-  '#e69f00',
+  '#b87a00',
   '#009e73',
-  '#cc79a7',
-  '#56b4e9',
+  '#c0568c',
+  '#2d8fc9',
   '#d55e00',
-  '#f0e442',
-  '#000000',
+  '#9c9000',
+  '#6b6b6b',
 ]
+
+// People who see no colour get one grey, as legible on the light and on the dark surface: the shape tells the columns apart.
+export const MONOCHROME_COLOUR = '#808080'
 
 // A shape for each column, so that the colour is never the only way to tell them apart.
 export const SHAPES = ['●', '■', '▲', '◆', '★', '▼', '⬟', '✚']
 
 // The colour of a column. The one the user chose, or one of the palette in a colour-blind mode.
-export function statusColor(chosen: string, index: number, vision: Vision): string {
+export function statusColor(chosen: string, index: number, vision: Vision, customTheme = false): string {
+  // A custom theme has the colours of its own for the columns, in every mode: the shapes still tell them apart.
+  if (customTheme) {
+    return `var(--column-${String(index % COLUMN_COUNT)})`
+  }
+  if ('monochrome' === vision) {
+    return MONOCHROME_COLOUR
+  }
   if ('red-green' === vision || 'blue-yellow' === vision) {
     return COLOUR_BLIND_PALETTE[index % COLOUR_BLIND_PALETTE.length] ?? chosen
   }
@@ -37,7 +49,12 @@ export function statusColor(chosen: string, index: number, vision: Vision): stri
 
 // The shape of a column, only in the modes that are made for people who cannot rely on the colour.
 export function statusShape(index: number, vision: Vision): string {
-  return 'standard' === vision ? '' : (SHAPES[index % SHAPES.length] ?? '')
+  return 'standard' === vision ? '' : columnShape(index)
+}
+
+// The shape of a column whatever the mode: the page draws it when the system forces its colours and the colour is gone.
+export function columnShape(index: number): string {
+  return SHAPES[index % SHAPES.length] ?? ''
 }
 
 // The fonts offered. Each is a first choice, always followed by the system fonts, so that a script the chosen font does not
@@ -70,6 +87,7 @@ type Looks = Pick<
   | 'theme'
   | 'accent'
   | 'vision'
+  | 'contrast'
   | 'customThemes'
   | 'customThemeId'
   | 'fontFamily'
@@ -109,6 +127,7 @@ export function applyAppearance(root: HTMLElement, settings: Looks) {
   }
   root.setAttribute('data-accent', settings.accent)
   root.setAttribute('data-vision', settings.vision)
+  root.setAttribute('data-contrast', settings.contrast)
   applyCustomTheme(root, settings.customThemes, settings.customThemeId)
   root.setAttribute('data-density', settings.density)
   root.setAttribute('data-motion', settings.motion)

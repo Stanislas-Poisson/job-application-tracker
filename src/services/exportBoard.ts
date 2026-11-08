@@ -81,6 +81,7 @@ export interface ExportContext {
   finalClients: (companyId: string) => string[]
   // The label of the column an application is in, by the id of its status.
   statusLabel: (statusId: string | null) => string
+  sourceLabel: (source: { key: string; label: string }) => string
   // The mark of a decimal number in the file: "." for a comma-separated file, "," for a semicolon-separated one.
   decimal: '.' | ','
 }
@@ -147,7 +148,7 @@ export function boardRows(applications: Application[], context: ExportContext): 
       country: offer?.country ?? '',
       contract: offer?.contractType ?? '',
       workMode: offer?.workMode ?? '',
-      source: offer?.source?.label ?? '',
+      source: offer?.source ? context.sourceLabel(offer.source) : '',
       url: offer?.url ?? '',
       published: offer?.postedOn ?? '',
       salaryMin: decimalAmount(salary.min, currency, decimal),
@@ -183,6 +184,12 @@ export function boardCsv(
   separator: ',' | ';'
 ): string {
   return UTF8_BOM + toCsv(boardRows(applications, { ...context, decimal: ';' === separator ? ',' : '.' }), separator)
+}
+
+// A language that writes numbers with a decimal comma gets a file with semicolons, which is what its spreadsheets open.
+export function csvSeparator(locale: string): ',' | ';' {
+  const decimal = new Intl.NumberFormat(locale).formatToParts(1.5).find((part) => 'decimal' === part.type)?.value
+  return ',' === decimal ? ';' : ','
 }
 
 export const exportFileName = (day: string): string => `job-application-tracker-board-${day}.csv`

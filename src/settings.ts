@@ -1,22 +1,37 @@
+import { CODE } from './customLanguage'
 import { type CustomTheme, normalizeThemes } from './customTheme'
 import type { StorageAdapter } from './persistence/adapter'
 import { type AddressParts, emptyAddress, normalizeAddress } from './services/address'
 import { type PassphraseCheck, normalizeCheck } from './services/encryption'
+import { type ShortcutKeys, normalizeShortcutKeys } from './services/shortcutKeys'
 import { isCountry, normalizeEmail } from './utils/contact'
+import {
+  DATE_FORMATS,
+  DEFAULT_PATTERN,
+  type DateFormat,
+  RELATIVE_MODES,
+  type RelativeMode,
+  TIME_FORMATS,
+  type TimeFormat,
+  isPattern,
+} from './utils/dateFormat'
 import { CURRENCY_DISPLAYS, type CurrencyDisplay, DEFAULT_ASSUMPTIONS, isCurrency } from './utils/money'
 import { isInstant, isValidTimeZone } from './utils/time'
 
 export const THEMES = ['auto', 'light', 'dark'] as const
 export const ACCENTS = ['slate', 'blue', 'teal', 'green', 'purple', 'pink', 'orange'] as const
-// Colour-blind modes change the colours and give each column a shape; high contrast thickens the lines and the text.
-export const VISIONS = ['standard', 'red-green', 'blue-yellow', 'high-contrast'] as const
+// The vision modes change the colours and give each column a shape: two colour-blind modes, and one for people who see no colour.
+export const VISIONS = ['standard', 'red-green', 'blue-yellow', 'monochrome'] as const
+// The contrast is apart from the vision, so that both can be chosen. "auto" follows the system (more contrast, forced colours).
+export const CONTRASTS = ['auto', 'standard', 'high'] as const
 
 // "auto", a language of the extension, or the code of a language the user added from a file (checked when it is used).
 export type Locale = string
-const LOCALE_CODE = /^[a-z]{2,3}(-[A-Za-z0-9]{2,8}){0,2}$/
+const LOCALE_CODE = CODE
 export type ThemeMode = (typeof THEMES)[number]
 export type Accent = (typeof ACCENTS)[number]
 export type Vision = (typeof VISIONS)[number]
+export type Contrast = (typeof CONTRASTS)[number]
 
 // Rates fetched for a home currency: one unit of a currency in that home currency.
 export interface FetchedRates {
@@ -43,6 +58,7 @@ export interface Settings {
   theme: ThemeMode
   accent: Accent
   vision: Vision
+  contrast: Contrast
   // The themes of the user's own, and the one in use ("" for none).
   customThemes: CustomTheme[]
   customThemeId: string
@@ -57,6 +73,21 @@ export interface Settings {
   motion: Motion
   // "auto" is the time zone of the browser, or a name of the IANA database (Europe/Paris).
   timeZone: string
+  // Lets a language file take the place of a language of the extension, to try a translation before sending it.
+  developerMode: boolean
+  // The keys of the pages (search, moving between the cards and moving a card). Off until the user turns them on: a key made of
+  // one character can clash with a screen reader or a keyboard of their own (WCAG 2.1.4 asks that it can be turned off).
+  shortcuts: boolean
+  // Shows the symbol the user gave a tag in front of its name, on the cards, in the drawer and in the filters. The editor of the
+  // tags always shows them. On by default.
+  showTagSymbols: boolean
+  // The keys the user chose for the keys of the board (see services/shortcutKeys.ts); an action not in it has its default.
+  shortcutKeys: ShortcutKeys
+  // How dates are written: "auto" follows the language. The pattern is the one of the "custom" format. Relative dates say how long ago.
+  dateFormat: DateFormat
+  timeFormat: TimeFormat
+  dateCustom: string
+  relativeDates: RelativeMode
   // The country a phone number typed without a country code is read in: "auto" is the one of the language of the browser.
   defaultCountry: string
   // The currency the salaries are compared in (an ISO 4217 code), or '' for none.
@@ -104,6 +135,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'auto',
   accent: 'slate',
   vision: 'standard',
+  contrast: 'auto',
   customThemes: [],
   customThemeId: '',
   fontFamily: 'system',
@@ -113,6 +145,14 @@ export const DEFAULT_SETTINGS: Settings = {
   density: 'comfortable',
   motion: 'auto',
   timeZone: 'auto',
+  developerMode: false,
+  shortcuts: false,
+  showTagSymbols: true,
+  shortcutKeys: {},
+  dateFormat: 'auto',
+  timeFormat: 'auto',
+  dateCustom: DEFAULT_PATTERN,
+  relativeDates: 'off',
   defaultCountry: 'auto',
   homeCurrency: '',
   currencyDisplay: 'symbol',
@@ -144,7 +184,14 @@ const VALID: {
   [
     K in Exclude<
       keyof Settings,
-      'rates' | 'ownEmails' | 'autoRatesData' | 'lastBackupAt' | 'backupPassphraseCheck' | 'home' | 'customThemes'
+      | 'rates'
+      | 'ownEmails'
+      | 'autoRatesData'
+      | 'lastBackupAt'
+      | 'backupPassphraseCheck'
+      | 'home'
+      | 'customThemes'
+      | 'shortcutKeys'
     >
   ]: (value: unknown) => boolean
 } = {
@@ -152,6 +199,7 @@ const VALID: {
   theme: oneOf(THEMES),
   accent: oneOf(ACCENTS),
   vision: oneOf(VISIONS),
+  contrast: oneOf(CONTRASTS),
   customThemeId: (value) => 'string' === typeof value && 64 >= value.length,
   fontFamily: oneOf(FONT_FAMILIES),
   // The name of a font goes into a style: letters, digits, spaces, dots, dashes and underscores only.
@@ -161,6 +209,13 @@ const VALID: {
   density: oneOf(DENSITIES),
   motion: oneOf(MOTIONS),
   timeZone: (value) => 'auto' === value || isValidTimeZone(value),
+  developerMode: (value) => 'boolean' === typeof value,
+  shortcuts: (value) => 'boolean' === typeof value,
+  showTagSymbols: (value) => 'boolean' === typeof value,
+  dateFormat: oneOf(DATE_FORMATS),
+  timeFormat: oneOf(TIME_FORMATS),
+  dateCustom: isPattern,
+  relativeDates: oneOf(RELATIVE_MODES),
   defaultCountry: (value) => 'auto' === value || isCountry(value),
   homeCurrency: (value) => '' === value || isCurrency(value),
   currencyDisplay: oneOf(CURRENCY_DISPLAYS),
@@ -233,6 +288,7 @@ export function normalizeSettings(stored: unknown): Settings {
     ...DEFAULT_SETTINGS,
     rates: normalizeRates(source.rates),
     customThemes: normalizeThemes(source.customThemes),
+    shortcutKeys: normalizeShortcutKeys(source.shortcutKeys),
     autoRatesData: normalizeFetched(source.autoRatesData),
     ownEmails: normalizeEmails(source.ownEmails),
     lastBackupAt: isInstant(source.lastBackupAt) ? source.lastBackupAt : null,

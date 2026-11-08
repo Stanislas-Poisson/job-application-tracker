@@ -3,11 +3,14 @@
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { useBackup } from '../../composables/useBackup'
+  import { confirmAction } from '../../composables/useConfirm'
   import { useFormat } from '../../composables/useFormat'
+  import { say } from '../../composables/useNotices'
   import { type RestorePlan, importData, planRestore, settingsFromExport, wipeData } from '../../services/data'
   import { type EncryptedFile, WrongPassphraseError, decryptText, isEncryptedFile } from '../../services/encryption'
   import { type MergePlan, mergeData, planMerge } from '../../services/mergeData'
   import { emptyTrash } from '../../services/trash'
+  import { problemText } from '../../services/userError'
   import { type ChecksumStatus, verifyChecksum } from '../../utils/checksum'
   import PassphraseForm from '../PassphraseForm.vue'
 
@@ -15,15 +18,8 @@
   const format = useFormat()
   const { needs, protect, backup: backupToChosenFile } = useBackup()
 
-  const message = ref('')
-  const failed = ref(false)
   // Choosing a file is only offered by the browsers that can write to a file again later.
   const canChoose = 'function' === typeof (window as { showSaveFilePicker?: unknown }).showSaveFilePicker
-
-  function say(text: string, error = false) {
-    message.value = text
-    failed.value = error
-  }
 
   async function backup(forceChoice = false) {
     try {
@@ -32,7 +28,7 @@
         say(t('options.backedUp', { name }))
       }
     } catch (error) {
-      say(error instanceof Error ? error.message : String(error), true)
+      say(problemText(error, t), true)
     }
   }
 
@@ -65,15 +61,11 @@
       if (isEncryptedFile(content)) {
         // A protected backup: the passphrase is asked before anything can be read.
         locked.value = content
-        message.value = ''
         return
       }
       await prepare(content)
     } catch (error) {
-      say(
-        error instanceof SyntaxError ? t('options.notJson') : error instanceof Error ? error.message : String(error),
-        true
-      )
+      say(error instanceof SyntaxError ? t('options.notJson') : problemText(error, t), true)
     }
   }
 
@@ -85,7 +77,6 @@
     } else {
       pending.value = { content, plan: planRestore(content), checksum }
     }
-    message.value = ''
   }
 
   // A protected backup waits for its passphrase. A wrong one, or a file that was changed, fails and changes nothing.
@@ -108,9 +99,7 @@
           ? t('options.wrongPassphrase')
           : error instanceof SyntaxError
             ? t('options.notJson')
-            : error instanceof Error
-              ? error.message
-              : String(error),
+            : problemText(error, t),
         true
       )
     }
@@ -130,7 +119,7 @@
       pending.value = null
       say(t('options.imported'))
     } catch (error) {
-      say(error instanceof Error ? error.message : String(error), true)
+      say(problemText(error, t), true)
     }
   }
 
@@ -143,7 +132,7 @@
       merging.value = null
       say(t('options.merged'))
     } catch (error) {
-      say(error instanceof Error ? error.message : String(error), true)
+      say(problemText(error, t), true)
     }
   }
 
@@ -173,7 +162,7 @@
   }
 
   async function wipe() {
-    if (window.confirm(t('options.confirmWipe'))) {
+    if (await confirmAction({ message: t('options.confirmWipe'), danger: true })) {
       // Deleting everything leaves nothing behind: not even in the trash.
       await persistence.forget(() => {
         wipeData()
@@ -456,10 +445,4 @@
       >
     </div>
   </section>
-  <p
-    v-if="message"
-    :class="failed ? 'error' : 'success'"
-  >
-    {{ message }}
-  </p>
 </template>

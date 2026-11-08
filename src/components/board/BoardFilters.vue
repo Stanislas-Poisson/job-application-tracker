@@ -13,7 +13,7 @@
   defineProps<{ shown: number; total: number }>()
   const emit = defineEmits<{ clear: [] }>()
 
-  const { t } = useApp()
+  const { t, sourceName, settings } = useApp()
   const format = useFormat()
   const view = useProvidedView()
 
@@ -23,7 +23,7 @@
     ...Object.fromEntries(
       useRepo(Source)
         .all()
-        .map((source) => [source.id, source.label])
+        .map((source) => [source.id, sourceName(source)])
     ),
   }))
   const companyOptions = computed(() => ({
@@ -72,6 +72,7 @@
       <FormSelect
         :model-value="view.sort"
         name="sort"
+        :data-label="t('filters.sort')"
         :options="sortOptions"
         :label="t('filters.sort')"
         :field="false"
@@ -117,7 +118,10 @@
                 :aria-pressed="view.tagIds.includes(tag.id)"
                 @click="toggleTag(tag.id)"
               >
-                <ItemSymbol :symbol="tag.symbol" />
+                <ItemSymbol
+                  v-if="settings.showTagSymbols"
+                  :symbol="tag.symbol"
+                />
                 {{ tag.name }}
               </button>
             </li>

@@ -4,6 +4,8 @@
   import { computed, reactive, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
+  import { useDrawerMode } from '../../composables/useDrawerMode'
+  import { notifyUndo } from '../../composables/useNotices'
   import { type Application, Journey } from '../../models'
   import { DIRECTIONS, LEG_MODES, type LegMode } from '../../models/Journey'
   import {
@@ -18,10 +20,12 @@
     totalMeters,
     totalMinutes,
   } from '../../services/journeys'
+  import { deleteWithUndo } from '../../services/undo'
 
   const props = defineProps<{ application: Application }>()
 
-  const { t } = useApp()
+  const { t, persistence } = useApp()
+  const { isEditing } = useDrawerMode()
 
   const offerId = computed(() => props.application.jobOfferId ?? '')
   // Reading the journeys makes the list follow every change, in this page and in the others.
@@ -119,17 +123,26 @@
     }
   }
 
-  function remove(journey: Journey) {
-    if (window.confirm(t('journeys.confirmDelete'))) {
-      deleteJourney(journey.id)
-    }
+  async function remove(journey: Journey) {
+    const undo = await deleteWithUndo(persistence, () => deleteJourney(journey.id))
+    notifyUndo(t('journeys.removed'), t('notice.undo'), async () => {
+      await undo()
+    })
   }
 </script>
 
 <template>
-  <section id="journeys">
+  <section
+    v-if="isEditing || 0 < journeys.length"
+    id="journeys"
+  >
     <h3>{{ t('journeys.title') }}</h3>
-    <p class="muted">{{ t('journeys.hint') }}</p>
+    <p
+      v-if="isEditing"
+      class="muted"
+    >
+      {{ t('journeys.hint') }}
+    </p>
 
     <ul
       v-if="0 < journeys.length"
@@ -169,7 +182,10 @@
           </li>
         </ol>
         <p class="sr-only">{{ describeJourney(journey, modeName) }}</p>
-        <div class="row">
+        <div
+          v-if="isEditing"
+          class="row"
+        >
           <FormButton
             type="button"
             @click="startEdit(journey)"
@@ -204,6 +220,7 @@
     </p>
 
     <FormButton
+      v-if="isEditing"
       id="new-journey"
       type="button"
       @click="startNew()"
@@ -211,7 +228,7 @@
     >
 
     <form
-      v-if="undefined !== editing"
+      v-if="isEditing && undefined !== editing"
       id="journey-form"
       class="card stack"
       @submit.prevent="save"
@@ -296,6 +313,7 @@
       <p
         v-if="problem"
         class="error"
+        role="alert"
       >
         {{ problem }}
       </p>

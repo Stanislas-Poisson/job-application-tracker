@@ -8,6 +8,7 @@ import {
   applicationOfNotification,
   checkReminders,
   notificationId,
+  sendTestNotification,
 } from '../../src/background/reminders'
 import { SCHEMA_KEY, SCHEMA_VERSION, keyOf } from '../../src/persistence'
 import { memoryAdapter } from '../../src/persistence/adapter'
@@ -271,5 +272,42 @@ describe('the id of a notification', () => {
     // The grouped one opens the board, not an application.
     expect(applicationOfNotification(GROUP_ID)).toBeNull()
     expect(ALARM_NEXT).toBe('jat-reminder-next')
+  })
+})
+
+describe('the test notification', () => {
+  it('shows every plural form of the language in use, and the line "and more"', async () => {
+    const { env, shown } = setup(stored({ notifyReminders: false, locale: 'ar', timeZone: 'Europe/Paris' }))
+    await sendTestNotification(env)
+    expect(shown).toHaveLength(1)
+    expect(shown[0]?.title).toBe('تذكير')
+    // Arabic has six forms: zero, one, two, few, many, other; and the line "and more".
+    expect(shown[0]?.message.split('\n')).toHaveLength(7)
+  })
+
+  it('shows the notify texts of a file added in the developer mode over the ones of the extension', async () => {
+    const language = {
+      code: 'fr',
+      name: 'Mon français',
+      dir: 'ltr',
+      script: 'Latn',
+      messages: { notify: { title: 'Mon rappel' } },
+    }
+    const { env, shown } = setup({
+      ...stored({ notifyReminders: false, locale: 'fr', developerMode: true, timeZone: 'Europe/Paris' }),
+      'jat:languages': [language],
+    })
+    await sendTestNotification(env)
+    expect(shown[0]?.title).toBe('Mon rappel')
+    // The text it did not carry is English.
+    expect(shown[0]?.message).toContain('reminders are due')
+  })
+
+  it('rejects when the notification cannot be shown', async () => {
+    const { env } = setup()
+    env.notify = async () => {
+      throw new Error('no permission')
+    }
+    await expect(sendTestNotification(env)).rejects.toThrow('no permission')
   })
 })

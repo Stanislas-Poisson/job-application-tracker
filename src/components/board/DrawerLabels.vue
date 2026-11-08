@@ -1,18 +1,21 @@
 <script setup lang="ts">
-  import { FormButton, FormInput, FormSelect } from '@zairakai/vue-components/Form'
+  import { FormButton, FormSelect } from '@zairakai/vue-components/Form'
   import { useRepo } from 'pinia-orm'
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
+  import { useDrawerMode } from '../../composables/useDrawerMode'
   import { useFormat } from '../../composables/useFormat'
   import { type Application, Tag } from '../../models'
   import { PRIORITIES, TagError, setPriority, tagEntityByName, toggleFavorite, untagEntity } from '../../services/tags'
   import { collatorFor } from '../../utils/text'
+  import EntityPicker from '../EntityPicker.vue'
   import ItemSymbol from '../ItemSymbol.vue'
 
   const props = defineProps<{ application: Application }>()
 
-  const { t } = useApp()
+  const { t, settings } = useApp()
+  const { isEditing } = useDrawerMode()
   const format = useFormat()
 
   const name = ref('')
@@ -73,9 +76,13 @@
           class="tag-chip"
           :style="{ '--tag': tag.color }"
         >
-          <ItemSymbol :symbol="tag.symbol" />
+          <ItemSymbol
+            v-if="settings.showTagSymbols"
+            :symbol="tag.symbol"
+          />
           <span dir="auto">{{ tag.name }}</span>
           <button
+            v-if="isEditing"
             type="button"
             class="tag-remove"
             :aria-label="t('labels.remove', { name: tag.name })"
@@ -87,27 +94,22 @@
       </ul>
 
       <form
+        v-if="isEditing"
         class="row"
         @submit.prevent="add"
       >
-        <FormInput
+        <EntityPicker
           v-model="name"
           name="tagName"
-          list="known-tags"
+          :options="known.map((tag) => tag.name)"
           :placeholder="t('labels.add')"
         />
-        <datalist id="known-tags">
-          <option
-            v-for="tag in known"
-            :key="tag.id"
-            :value="tag.name"
-          />
-        </datalist>
         <FormButton type="submit">{{ t('labels.addButton') }}</FormButton>
       </form>
       <p
         v-if="problem"
         class="error"
+        role="alert"
       >
         {{ problem }}
       </p>

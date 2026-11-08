@@ -11,8 +11,19 @@ export const THEME_COLORS = [
   'warning',
   'error',
   'border',
+  // The colours of the columns of the board, in the order of the columns (the eighth is used again for the ninth...).
+  'column1',
+  'column2',
+  'column3',
+  'column4',
+  'column5',
+  'column6',
+  'column7',
+  'column8',
 ] as const
 export type ThemeColor = (typeof THEME_COLORS)[number]
+export const COLUMN_COLORS = THEME_COLORS.filter((name) => name.startsWith('column'))
+export const COLUMN_COUNT = COLUMN_COLORS.length
 export type ThemeColors = Record<ThemeColor, string>
 
 export interface CustomTheme {
@@ -35,6 +46,14 @@ export const DEFAULT_LIGHT: ThemeColors = {
   warning: '#b45309',
   error: '#b91c1c',
   border: '#8896a8',
+  column1: '#0072b2',
+  column2: '#b35c00',
+  column3: '#007a5a',
+  column4: '#a8467f',
+  column5: '#1a6fa8',
+  column6: '#c04a00',
+  column7: '#8a7a00',
+  column8: '#334155',
 }
 
 export const DEFAULT_DARK: ThemeColors = {
@@ -47,6 +66,14 @@ export const DEFAULT_DARK: ThemeColors = {
   warning: '#fbbf24',
   error: '#f87171',
   border: '#64748b',
+  column1: '#56b4e9',
+  column2: '#e69f00',
+  column3: '#2fc29a',
+  column4: '#e08cba',
+  column5: '#7fb8ff',
+  column6: '#ff8a4c',
+  column7: '#f0e442',
+  column8: '#cbd5e1',
 }
 
 // A set of colours: each one is a colour of six hexadecimal digits, else the default for that colour.
@@ -110,6 +137,7 @@ const declarations = (colors: ThemeColors): string =>
     ['--zk-warning', colors.warning],
     ['--error', colors.error],
     ['--zk-border', colors.border],
+    ...COLUMN_COLORS.map((name, index) => [`--column-${String(index)}`, colors[name]]),
   ]
     .map(([name, value]) => `${name}:${value}`)
     .join(';')
@@ -138,6 +166,7 @@ export const CONTRAST_PAIRS: readonly { color: ThemeColor; against: ThemeColor; 
   { color: 'border', against: 'background', ratio: LARGE_RATIO },
   { color: 'success', against: 'background', ratio: LARGE_RATIO },
   { color: 'warning', against: 'background', ratio: LARGE_RATIO },
+  ...COLUMN_COLORS.map((color) => ({ color, against: 'background' as const, ratio: LARGE_RATIO })),
 ]
 
 export interface ContrastIssue {

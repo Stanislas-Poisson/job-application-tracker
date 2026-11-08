@@ -6,6 +6,7 @@ import { type RawData, migrate } from '../persistence/schema'
 import { type Settings, normalizeSettings } from '../settings'
 import { canonicalJson } from '../utils/checksum'
 import { seedDefaults } from './seed'
+import { UserError } from './userError'
 
 export const EXPORT_APP = 'job-application-tracker'
 
@@ -60,17 +61,17 @@ export function exportData(pinia?: Pinia, settings?: Settings): ExportFile {
 export function readExport(file: unknown): ExportFile & { fromSchema: number } {
   const candidate = file as Partial<ExportFile> | null
   if (EXPORT_APP !== candidate?.app || 'object' !== typeof candidate.data || null === candidate.data) {
-    throw new Error('This file is not an export of Job Application Tracker.')
+    throw new UserError('notExport', 'This file is not an export of Job Application Tracker.')
   }
   if ('number' === typeof candidate.schema && SCHEMA_VERSION < candidate.schema) {
-    throw new Error('This export comes from a newer version of the extension.')
+    throw new UserError('newerExport', 'This export comes from a newer version of the extension.')
   }
 
   // A plain copy: the file may be held by the interface as reactive objects, which cannot be cloned by the migrations.
   const data = JSON.parse(JSON.stringify(candidate.data)) as Record<string, unknown>
   for (const model of MODELS) {
     if (undefined !== data[model.entity] && !Array.isArray(data[model.entity])) {
-      throw new Error(`The data of ${model.entity} is not a list.`)
+      throw new UserError('notList', `The data of ${model.entity} is not a list.`, { name: model.entity })
     }
   }
   let migrated: RawData
@@ -81,7 +82,7 @@ export function readExport(file: unknown): ExportFile & { fromSchema: number } {
     }
     migrated = migrate(raw, candidate.schema)
   } catch {
-    throw new Error('The version of this export is not known.')
+    throw new UserError('unknownExport', 'The version of this export is not known.')
   }
   return {
     ...(candidate as ExportFile),

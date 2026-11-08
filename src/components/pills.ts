@@ -5,6 +5,8 @@ export interface Pill {
   color: string
   // The path of a 24x24 icon.
   icon: string
+  // The path of the text, when the label is a sentence and not a name.
+  text?: string
 }
 
 export const PILLS: Pill[] = [
@@ -40,6 +42,8 @@ export const PILLS: Pill[] = [
   },
   {
     label: 'Support the stream',
+    // Written in the language of the page: the label above is for the code that has no translator.
+    text: 'footer.support',
     href: 'https://pots.lydia.me/collect/pots?id=18363-dons-stream',
     color: '#ff5a5f',
     icon: 'M12.001 4.529c2.349-2.532 6.15-2.522 8.489.021 2.34 2.545 2.34 6.674 0 9.218-2.34 2.545-8.489 6.514-8.489 6.514s-6.15-3.97-8.49-6.514c-2.34-2.544-2.34-6.673 0-9.218 2.34-2.545 6.14-2.553 8.49-.021z',

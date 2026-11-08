@@ -16,7 +16,7 @@ import {
   loadCustomLanguages,
   removeCustomLanguage,
 } from '../../src/customLanguages'
-import { createTranslator, ensureLocale, resolveLocale } from '../../src/i18n'
+import { createTranslator, ensureLocale, loadLocale, resolveLocale } from '../../src/i18n'
 import { applyLanguage } from '../../src/languages'
 import { memoryAdapter } from '../../src/persistence/adapter'
 
@@ -25,8 +25,8 @@ type Tree = Record<string, unknown>
 // A file as a person would make it from the template: the code, the name and the direction filled, some texts translated.
 const file = (messages: Tree, extra: Tree = {}): Tree => ({
   app: LANGUAGE_FILE,
-  code: 'es',
-  name: 'Español',
+  code: 'eo',
+  name: 'Esperanto',
   dir: 'ltr',
   messages,
   ...extra,
@@ -57,7 +57,7 @@ describe('the file to translate', () => {
     const template = JSON.parse(languageTemplate()) as Tree
     expect(template).toMatchObject({ app: LANGUAGE_FILE, code: '', name: '', dir: 'ltr' })
     expect(refused(template)).toBe('code')
-    const filled = ok({ ...template, code: 'es', name: 'Español' })
+    const filled = ok({ ...template, code: 'eo', name: 'Esperanto' })
     // Nothing translated yet: every text is the English one, valid, and kept.
     expect(filled.report.translated).toBe(filled.report.total)
     expect(filled.report.problems).toEqual([])
@@ -172,12 +172,12 @@ describe('what leaves one text out, and English is shown instead', () => {
 describe('the stored languages', () => {
   it('are checked again when they are read, and at most as many as can be kept', () => {
     const good = ok(file({ nav: { board: 'Tablero' } })).language
-    const tampered = { ...good, code: 'de', name: '<b>x</b>' }
+    const tampered = { ...good, code: 'da', name: '<b>x</b>' }
     const many = Array.from({ length: MAX_LANGUAGES + 2 }, (_, index) => ({
       ...good,
       code: `a${String.fromCharCode(97 + index)}`,
     }))
-    expect(normalizeStoredLanguages([good, tampered, 3, null, good]).map((language) => language.code)).toEqual(['es'])
+    expect(normalizeStoredLanguages([good, tampered, 3, null, good]).map((language) => language.code)).toEqual(['eo'])
     expect(normalizeStoredLanguages(many)).toHaveLength(MAX_LANGUAGES)
     expect(normalizeStoredLanguages('nope')).toEqual([])
   })
@@ -189,8 +189,8 @@ describe('the stored languages', () => {
     expect(await addCustomLanguage(adapter, { ...spanish, name: 'Español 2' })).toBe(true)
     expect(installed.value.map((language) => language.name)).toEqual(['Español 2'])
     installed.value = []
-    expect((await loadCustomLanguages(adapter)).map((language) => language.code)).toEqual(['es'])
-    await removeCustomLanguage(adapter, 'es')
+    expect((await loadCustomLanguages(adapter)).map((language) => language.code)).toEqual(['eo'])
+    await removeCustomLanguage(adapter, 'eo')
     expect(installed.value).toEqual([])
     expect(adapter.data[LANGUAGES_KEY]).toEqual([])
   })
@@ -208,28 +208,78 @@ describe('the stored languages', () => {
 describe('the language in use', () => {
   it('shows the texts of the file, English for the others, and follows the language of the browser', () => {
     installed.value = [ok(file({ nav: { board: 'Tablero' } })).language]
-    expect(resolveLocale('es', 'en')).toBe('es')
-    expect(resolveLocale('auto', 'es-ES')).toBe('es')
-    expect(resolveLocale('auto', 'de-DE')).toBe('en')
-    const translator = createTranslator('es', 'en')
+    expect(resolveLocale('eo', 'en')).toBe('eo')
+    expect(resolveLocale('auto', 'eo-001')).toBe('eo')
+    expect(resolveLocale('auto', 'is-IS')).toBe('en')
+    const translator = createTranslator('eo', 'en')
     expect(translator.__('nav.board')).toBe('Tablero')
     expect(translator.__('nav.options')).toBe(createTranslator('en', 'en').__('nav.options'))
   })
 
   it('is English when the language was removed, and a translator made before gets the texts of one added later', () => {
-    expect(resolveLocale('es', 'en')).toBe('en')
+    expect(resolveLocale('eo', 'en')).toBe('en')
     const early = createTranslator('en', 'en')
     installed.value = [ok(file({ nav: { board: 'Tablero' } })).language]
-    ensureLocale(early, 'es')
-    early.setLocale('es')
+    ensureLocale(early, 'eo')
+    early.setLocale('eo')
     expect(early.__('nav.board')).toBe('Tablero')
   })
 
   it('writes the direction of the language of the file', () => {
-    installed.value = [ok(file({ nav: { board: 'x' } }, { code: 'ar', name: 'العربية', dir: 'rtl' })).language]
+    installed.value = [ok(file({ nav: { board: 'x' } }, { code: 'yi', name: 'ייִדיש', dir: 'rtl' })).language]
     const root = document.createElement('html')
-    applyLanguage(root, 'ar')
+    applyLanguage(root, 'yi')
     expect(root.getAttribute('dir')).toBe('rtl')
-    expect(root.getAttribute('lang')).toBe('ar')
+    expect(root.getAttribute('lang')).toBe('yi')
+  })
+})
+
+describe('a code of the user: private use, the shipped codes, and the developer mode', () => {
+  it('accepts a private-use part after a language, which the browser reads as that language', () => {
+    for (const code of ['es-x-mine', 'fr-CA-x-work', 'sv-x-a-b-c']) {
+      expect(refused(file({ nav: { board: 'x' } }, { code }))).toBe('accepted')
+    }
+    expect(refused(file({ nav: { board: 'x' } }, { code: 'sv-x-' }))).toBe('code')
+    expect(refused(file({ nav: { board: 'x' } }, { code: 'sv-x-toolongvalue' }))).toBe('code')
+    expect(refused(file({ nav: { board: 'x' } }, { code: 'x-mine' }))).toBe('code')
+    expect(new Intl.PluralRules('es-x-mine').select(1)).toBe('one')
+  })
+
+  it('refuses a code the extension has, unless the developer mode is on', () => {
+    const raw = file({ nav: { board: 'Tablero' } }, { code: 'es' })
+    expect(refused(raw)).toBe('shipped')
+    expect(validateLanguage(raw, { developer: true }).ok).toBe(true)
+    expect(readLanguageFile(JSON.stringify(raw), { developer: true }).ok).toBe(true)
+    expect(readLanguageFile(JSON.stringify(raw)).ok).toBe(false)
+  })
+
+  it('keeps a stored language under a private code when the extension has since come with its code', () => {
+    const stored = ok(file({ nav: { board: 'Mi tablero' } }, { code: 'eo' })).language
+    // Before the extension had it, the language was stored as "es": today "es" is a shipped code.
+    const old = { ...stored, code: 'es', name: 'Mi español' }
+    const list = normalizeStoredLanguages([old])
+    expect(list.map((language) => [language.code, language.name])).toEqual([['es-x-mine', 'Mi español']])
+    // A second one with the same code gets a number, not the place of the first.
+    expect(normalizeStoredLanguages([old, { ...old, name: 'Otro' }]).map((language) => language.code)).toEqual([
+      'es-x-mine',
+      'es-x-mine2',
+    ])
+    // With the developer mode, it stays in the place of the language of the extension.
+    expect(normalizeStoredLanguages([old], { developer: true }).map((language) => language.code)).toEqual(['es'])
+  })
+
+  it('shows the texts of a language of the user over the ones of the extension in the developer mode', async () => {
+    const replacement = validateLanguage(file({ nav: { board: 'Mi tablero' } }, { code: 'es' }), { developer: true })
+    if (!replacement.ok) throw new Error('refused')
+    installed.value = [replacement.language]
+    expect(createTranslator('es', 'en').__('nav.board')).toBe('Mi tablero')
+    // The replacement is there already: the language of the extension is not read over it.
+    const replaced = createTranslator('es', 'en')
+    await loadLocale(replaced, 'es')
+    expect(replaced.__('nav.board')).toBe('Mi tablero')
+    installed.value = []
+    const shipped = createTranslator('es', 'en')
+    await loadLocale(shipped, 'es')
+    expect(shipped.__('nav.board')).toBe('Tablero')
   })
 })

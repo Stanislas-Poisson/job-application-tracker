@@ -1,4 +1,4 @@
-import { type Salary, type SalaryPeriod, toMinor } from '../utils/money'
+import { type Salary, type SalaryKind, type SalaryPeriod, toMinor } from '../utils/money'
 
 const CURRENCIES: Record<string, string> = {
   '€': 'EUR',
@@ -52,6 +52,40 @@ function toNumber(raw: string, suffix: string | undefined): number | null {
   return value * ('k' === letter ? 1000 : 'm' === letter ? 1_000_000 : 1)
 }
 
+// The words that say a period or gross/net, in French and English. "par an" and "/yr" are read apart (PERIOD above).
+const PERIOD_WORDS: [RegExp, SalaryPeriod][] = [
+  [/\b(?:annuels?|annuelles?|annual|annually|yearly)\b/i, 'year'],
+  [/\b(?:mensuels?|mensuelles?|monthly)\b/i, 'month'],
+  [/\b(?:hebdomadaires?|weekly)\b/i, 'week'],
+  [/\b(?:journalier|journali[eè]re|quotidien|daily)\b/i, 'day'],
+  [/\b(?:horaires?|hourly)\b/i, 'hour'],
+]
+
+// Gross or net, when the text says it: "40 k€ brut annuel", "35K net". Gross wins when both words are there ("brut / net").
+export function kindFromWords(text: string): SalaryKind | null {
+  if (/\b(?:brut|bruts|gross)\b/i.test(text)) {
+    return 'gross'
+  }
+  return /\b(?:net|nets)\b/i.test(text) ? 'net' : null
+}
+
+export function periodFromWords(text: string): SalaryPeriod | null {
+  return PERIOD_WORDS.find(([pattern]) => pattern.test(text))?.[1] ?? null
+}
+
+// Where a salary-like amount is written in a text: its place, its length and its value in minor units.
+export function findAmounts(text: string): { index: number; length: number; minor: number; currency: string }[] {
+  return [...text.matchAll(AMOUNT)].flatMap((match) => {
+    const symbol = match[1] ?? match[6]
+    const currency = symbol ? CURRENCIES[symbol] : undefined
+    const raw = match[2] ?? match[4]
+    const amount = raw ? toNumber(raw, match[3] ?? match[5]) : null
+    return currency && null !== amount
+      ? [{ index: match.index ?? 0, length: match[0].length, minor: toMinor(String(amount), currency), currency }]
+      : []
+  })
+}
+
 /**
  * A salary written in a line of text: "40K € par yr - 60K € par yr", "45 000 € - 55 000 €/an", "$90,000/yr".
  * One amount is both ends; two amounts are the range. Gross or net is not guessed. Null when no amount is found.
@@ -80,7 +114,7 @@ export function salaryFromText(text: string): Salary | null {
     min: Math.min(min, max),
     max: Math.max(min, max),
     currency,
-    period: period ? (PERIODS[period.toLowerCase()] ?? null) : null,
-    kind: null,
+    period: period ? (PERIODS[period.toLowerCase()] ?? null) : periodFromWords(text),
+    kind: kindFromWords(text),
   }
 }

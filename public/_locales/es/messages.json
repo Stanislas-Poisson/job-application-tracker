@@ -1,0 +1,17 @@
+{
+  "extName": {
+    "message": "Job Application Tracker"
+  },
+  "extShortName": {
+    "message": "Job Tracker"
+  },
+  "extDescription": {
+    "message": "Guarda las ofertas de empleo que has visto y sigue cada candidatura. Todo se queda en tu navegador."
+  },
+  "commandPopup": {
+    "message": "Guardar la oferta de esta página"
+  },
+  "commandBoard": {
+    "message": "Abrir el tablero"
+  }
+}

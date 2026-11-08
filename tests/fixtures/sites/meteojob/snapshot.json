@@ -1,0 +1,14 @@
+{
+  "url": "https://www.meteojob.com/candidat/offres/offre-emploi-example-0000000",
+  "title": "Example job title | Meteojob.com",
+  "jsonLd": [
+    "{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Example Corp\",\"item\":\"https://example.org/\"},{\"@type\":\"ListItem\",\"position\":2,\"name\":\"Example Corp\",\"item\":\"https://example.org/\"},{\"@type\":\"ListItem\",\"position\":3,\"name\":\"Example Corp\"}]}",
+    "{\"@context\":\"https://schema.org/\",\"@type\":\"JobPosting\",\"datePosted\":\"2026-10-03T02:39:15.000Z\",\"validThrough\":\"2026-12-02T03:39:15.000Z\",\"title\":\"Example job title\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\",\"directApply\":false,\"employmentType\":\"FULL_TIME\",\"workHours\":\"35H/semaine Travail en journée\",\"hiringOrganization\":{\"@type\":\"Organization\",\"name\":\"Example Corp\"},\"jobLocation\":{\"@type\":\"Place\",\"address\":{\"@type\":\"PostalAddress\",\"addressLocality\":\"Lyon\",\"addressRegion\":\"Auvergne-Rhône-Alpes\",\"postalCode\":\"69003\",\"addressCountry\":\"FR\"}},\"baseSalary\":{\"@type\":\"MonetaryAmount\",\"currency\":\"EUR\",\"value\":{\"@type\":\"QuantitativeValue\",\"minValue\":32000,\"maxValue\":38000,\"unitText\":\"YEAR\"}},\"occupationalCategory\":\"Example category\",\"experienceRequirements\":{\"@type\":\"OccupationalExperienceRequirements\",\"monthsOfExperience\":12},\"educationRequirements\":[{\"@type\":\"EducationalOccupationalCredential\",\"credentialCategory\":\"Example text\"},{\"@type\":\"EducationalOccupationalCredential\",\"credentialCategory\":\"Example text\"}],\"qualifications\":\"Example qualification\"}"
+  ],
+  "meta": {
+    "og:title": "Example text",
+    "og:site_name": "Meteojob",
+    "og:description": "Example text",
+    "description": "Example text"
+  }
+}

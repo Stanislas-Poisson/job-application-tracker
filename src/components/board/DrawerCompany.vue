@@ -1,17 +1,21 @@
 <script setup lang="ts">
-  import { FormButton, FormInput, FormSelect } from '@zairakai/vue-components/Form'
+  import { FormButton, FormSelect } from '@zairakai/vue-components/Form'
   import { useRepo } from 'pinia-orm'
   import { computed, ref } from 'vue'
   import { useApp } from '../../composables/useApp'
   import { hasText, useDirtyGuard } from '../../composables/useDirty'
+  import { useDrawerMode } from '../../composables/useDrawerMode'
   import { type Application, Company, CompanyRelation } from '../../models'
   import { RELATION_VIEWS, RelationError, addLink, linksOf, removeRelation } from '../../services/companyRelations'
+  import EntityPicker from '../EntityPicker.vue'
 
-  const props = defineProps<{ application: Application }>()
+  // The company of an application, or a company on its own (the drawer of a company).
+  const props = defineProps<{ application?: Application; company?: Company | null }>()
 
   const { t } = useApp()
+  const { isEditing } = useDrawerMode()
 
-  const company = computed(() => props.application.jobOffer?.company ?? null)
+  const company = computed(() => props.company ?? props.application?.jobOffer?.company ?? null)
   // Reading the relations makes the list follow every change, in this page and in the others.
   const links = computed(() => (useRepo(CompanyRelation).all(), company.value ? linksOf(company.value.id) : []))
   const known = computed(() => useRepo(Company).orderBy('name').get())
@@ -44,7 +48,7 @@
 </script>
 
 <template>
-  <section v-if="company">
+  <section v-if="company && (isEditing || 0 < links.length)">
     <h3>{{ t('company.title', { name: company.name }) }}</h3>
     <ul
       v-if="0 < links.length"
@@ -60,6 +64,7 @@
           <strong>{{ link.other.name }}</strong>
         </span>
         <button
+          v-if="isEditing"
           type="button"
           class="tag-remove"
           :aria-label="t('company.remove', { name: link.other.name })"
@@ -70,13 +75,14 @@
       </li>
     </ul>
     <p
-      v-else
+      v-else-if="isEditing"
       class="muted"
     >
       {{ t('company.none') }}
     </p>
 
     <form
+      v-if="isEditing"
       class="stack"
       @submit.prevent="add"
     >
@@ -88,23 +94,17 @@
           :label="t('company.kind')"
           :options="viewOptions"
         />
-        <FormInput
+        <EntityPicker
           v-model="other"
           name="relationCompany"
-          list="company-names"
+          :options="known.map((candidate) => candidate.name)"
           :label="t('company.other')"
         />
-        <datalist id="company-names">
-          <option
-            v-for="candidate in known"
-            :key="candidate.id"
-            :value="candidate.name"
-          />
-        </datalist>
       </div>
       <p
         v-if="problem"
         class="error"
+        role="alert"
       >
         {{ problem }}
       </p>

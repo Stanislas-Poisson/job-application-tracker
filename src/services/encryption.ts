@@ -1,5 +1,6 @@
 import { canonicalJson } from '../utils/checksum'
 import { EXPORT_APP } from './data'
+import { UserError } from './userError'
 
 // A backup protected by a passphrase. The file is still JSON, with a small readable header that says how it was
 // encrypted, so that the way of encrypting can change later without losing the old files:
@@ -85,10 +86,12 @@ export async function encryptText(
   { iterations = DEFAULT_ITERATIONS, salt, iv }: EncryptOptions = {}
 ): Promise<EncryptedFile> {
   if (!validPassphrase(passphrase)) {
-    throw new Error(`The passphrase needs at least ${MIN_PASSPHRASE} characters.`)
+    throw new UserError('shortPassphrase', `The passphrase needs at least ${MIN_PASSPHRASE} characters.`, {
+      min: MIN_PASSPHRASE,
+    })
   }
   if (iterations < MIN_ITERATIONS || iterations > MAX_ITERATIONS) {
-    throw new Error('The number of iterations is out of range.')
+    throw new UserError('iterations', 'The number of iterations is out of range.')
   }
   const saltBytes = salt ?? crypto.getRandomValues(new Uint8Array(16))
   const ivBytes = iv ?? crypto.getRandomValues(new Uint8Array(12))
@@ -123,7 +126,7 @@ export function isEncryptedFile(value: unknown): value is EncryptedFile {
 // Checks the header of a protected file, and says why it cannot be opened. Throws an Error with a message for the user.
 export function checkHeader(file: EncryptedFile): void {
   if ('number' !== typeof file.version || file.version > ENCRYPTION_VERSION) {
-    throw new Error('This backup was protected by a newer version of the extension.')
+    throw new UserError('newerBackup', 'This backup was protected by a newer version of the extension.')
   }
   const { kdf, cipher } = file
   const ok =
@@ -137,7 +140,7 @@ export function checkHeader(file: EncryptedFile): void {
     'AES-GCM' === cipher?.name &&
     'string' === typeof cipher.iv
   if (!ok) {
-    throw new Error('The header of this protected backup is not valid.')
+    throw new UserError('badHeader', 'The header of this protected backup is not valid.')
   }
 }
 

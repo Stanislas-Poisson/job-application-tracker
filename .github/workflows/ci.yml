@@ -44,8 +44,7 @@ jobs:
           cache: npm
 
       - run: npm ci
-      # The high advisory on braces (through stylelint and markdownlint) has no fixed version yet: only a critical one fails.
-      - run: npm audit --audit-level=critical
+      - run: npm audit --audit-level=high
 
   test:
     name: Unit tests
@@ -95,6 +94,9 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      - name: Clean the output of an earlier run
+        run: rm -rf .output firefox-package
 
       - name: Build the zips
         run: |
@@ -157,14 +159,51 @@ jobs:
         working-directory: tests/e2e
         run: npm ci
 
+      # The tests load the zip they find: one left by an earlier run on the same runner would be tested instead of this code.
+      - name: Clean the output of an earlier run
+        run: rm -rf .output firefox-package
+
       - name: Build the package
         run: npm run ${{ matrix.browser == 'firefox' && 'zip:firefox' || 'zip' }}
 
+      # The step has its own limit, shorter than the one of the job, so that the steps below always have the time to run.
+      # The browser is the current stable version, downloaded by Selenium Manager, and never the one installed on the runner: that one
+      # is whatever the image of the day holds (the Chrome of the runner even ignores --load-extension, "not allowed in Google
+      # Chrome", and the extension is then never loaded). The version used is written in the timeline of the run.
       - name: Run the tests in ${{ matrix.browser }}
+        timeout-minutes: 8
         working-directory: tests/e2e
         env:
           BROWSER: ${{ matrix.browser }}
+          SE_FORCE_BROWSER_DOWNLOAD: "true"
         run: npm test
+
+      # What the run wrote down (timeline, logs of the driver and of the browser, screenshots, pages): see tests/e2e/diagnostics.mjs.
+      - name: Summarise the diagnostics
+        if: always()
+        working-directory: tests/e2e
+        run: |
+          DIR=.diagnostics/${{ matrix.browser }}
+          {
+            echo "### Browser test (${{ matrix.browser }})"
+            if [ -f "$DIR/timeline.log" ]; then
+              echo '```'
+              grep -E "FAILED|capture|timeout|did not|still waiting|starting|started" "$DIR/timeline.log" | tail -40
+              echo '```'
+            else
+              echo "No timeline was written."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-diagnostics-${{ matrix.browser }}
+          path: tests/e2e/.diagnostics
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 14
 
   # The check that the branch protection requires. It runs even when a job
   # fails, and fails with it: a skipped job would count as a success.

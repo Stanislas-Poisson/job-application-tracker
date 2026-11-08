@@ -7,5 +7,11 @@
   },
   "extDescription": {
     "message": "Keeps the job offers you saw and follows each application. Everything stays in your browser."
+  },
+  "commandPopup": {
+    "message": "Save the offer of this page"
+  },
+  "commandBoard": {
+    "message": "Open the board"
   }
 }

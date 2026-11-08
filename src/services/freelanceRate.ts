@@ -17,6 +17,8 @@ export interface FreelanceInput {
   // How the charges are computed: a pay profile (a rate or a scale, as for the net pay), or a flat rate in percent.
   profile: Pick<PayProfile, 'currency' | 'lines'> | null
   flatRate: number
+  // The name of the line of a flat rate, in the language of the page.
+  flatLabel?: string
 }
 
 export interface FreelanceResult {
@@ -31,7 +33,7 @@ export interface FreelanceResult {
 
 const linesOf = (input: FreelanceInput): PayLine[] =>
   null === input.profile
-    ? [{ label: 'Charges', base: 'gross', kind: 'rate', rate: input.flatRate }]
+    ? [{ label: input.flatLabel ?? 'Charges', base: 'gross', kind: 'rate', rate: input.flatRate }]
     : input.profile.lines
 
 /**

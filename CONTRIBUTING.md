@@ -54,7 +54,9 @@ npm ci
 BROWSER=chrome npm test      # or edge, or firefox
 ```
 
-The browsers are downloaded by Selenium when they are missing.
+The tests run on the **current stable version** of each browser, downloaded by Selenium Manager, and never on the one that happens to be installed: on the CI runner that one is whatever the image of the day holds, and the Chrome of the runner even ignores `--load-extension`, so the extension would never be loaded. The CI sets `SE_FORCE_BROWSER_DOWNLOAD=true`; set it on your machine to test the same browsers as the CI. The version that ran is the first line of `tests/e2e/.diagnostics/<browser>/timeline.log`, and the CI keeps that folder as an artifact.
+
+The extension aims at browsers that are recent and still maintained, as [browser-update.org](https://browser-update.org) counts them: Chrome and Firefox at most three versions behind the latest, Edge at most four (it also warns about versions with severe security problems). That is why the tests do not pin an old version: they follow the stable one, and a release that breaks the extension shows in the CI at once.
 
 ## Build the packages
 

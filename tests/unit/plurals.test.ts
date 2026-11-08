@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { pluralCategory, pluralText } from '../../src/i18n'
 import en from '../../src/locales/en'
 import fr from '../../src/locales/fr'
+import frNotify from '../../src/locales/notify/fr'
 
 describe('plural categories', () => {
   it('follow the rules of each language', () => {
@@ -62,7 +63,8 @@ describe('pluralText', () => {
           : []
       )
     const inEnglish = counted(en)
-    expect(inEnglish.length).toBe(10)
-    expect(counted(fr)).toEqual(inEnglish)
+    expect(inEnglish.length).toBe(9)
+    // The texts of the notifications are in a file of their own.
+    expect(counted({ ...fr, notify: frNotify }).sort()).toEqual([...inEnglish].sort())
   })
 })

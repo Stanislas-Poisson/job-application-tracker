@@ -9,11 +9,30 @@ export interface Language {
   dir: 'ltr' | 'rtl'
   // The script, as ISO 15924 names it (Latn, Arab, Hebr, Hans…).
   script: string
+  // Whether a person who speaks the language has checked the texts. A language that was not checked says so in the options.
+  reviewed: boolean
 }
 
 export const LANGUAGES: readonly Language[] = [
-  { code: 'en', name: 'English', dir: 'ltr', script: 'Latn' },
-  { code: 'fr', name: 'Français', dir: 'ltr', script: 'Latn' },
+  { code: 'en', name: 'English', dir: 'ltr', script: 'Latn', reviewed: true },
+  { code: 'fr', name: 'Français', dir: 'ltr', script: 'Latn', reviewed: true },
+  { code: 'es', name: 'Español', dir: 'ltr', script: 'Latn', reviewed: false },
+  { code: 'de', name: 'Deutsch', dir: 'ltr', script: 'Latn', reviewed: false },
+  { code: 'it', name: 'Italiano', dir: 'ltr', script: 'Latn', reviewed: false },
+  { code: 'pt', name: 'Português', dir: 'ltr', script: 'Latn', reviewed: false },
+  { code: 'nl', name: 'Nederlands', dir: 'ltr', script: 'Latn', reviewed: false },
+  { code: 'ar', name: 'العربية', dir: 'rtl', script: 'Arab', reviewed: false },
+  { code: 'he', name: 'עברית', dir: 'rtl', script: 'Hebr', reviewed: false },
+  { code: 'ja', name: '日本語', dir: 'ltr', script: 'Jpan', reviewed: false },
+  { code: 'zh-Hans', name: '简体中文', dir: 'ltr', script: 'Hans', reviewed: false },
+  { code: 'zh-Hant', name: '繁體中文', dir: 'ltr', script: 'Hant', reviewed: false },
+  { code: 'ko', name: '한국어', dir: 'ltr', script: 'Kore', reviewed: false },
+  { code: 'hi', name: 'हिन्दी', dir: 'ltr', script: 'Deva', reviewed: false },
+  { code: 'pl', name: 'Polski', dir: 'ltr', script: 'Latn', reviewed: false },
+  { code: 'ru', name: 'Русский', dir: 'ltr', script: 'Cyrl', reviewed: false },
+  { code: 'uk', name: 'Українська', dir: 'ltr', script: 'Cyrl', reviewed: false },
+  { code: 'tr', name: 'Türkçe', dir: 'ltr', script: 'Latn', reviewed: false },
+  { code: 'sv', name: 'Svenska', dir: 'ltr', script: 'Latn', reviewed: false },
 ]
 
 // The scripts written from right to left: the direction of a language that is not in the table follows its script.

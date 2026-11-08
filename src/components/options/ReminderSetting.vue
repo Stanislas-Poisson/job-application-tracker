@@ -61,6 +61,7 @@
     v-if="denied"
     id="notify-denied"
     class="error"
+    role="alert"
   >
     {{ t('reminders.denied') }}
   </p>

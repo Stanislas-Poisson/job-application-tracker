@@ -1,0 +1,12 @@
+{
+  "url": "https://www.cadremploi.fr/emploi/detail_offre?offreId=000000",
+  "title": "Example job title",
+  "jsonLd": [
+    "{\"@context\":\"https://schema.org\",\"@type\":\"BreadcrumbList\",\"itemListElement\":[{\"@type\":\"ListItem\",\"position\":1,\"name\":\"Example Corp\",\"item\":\"https://example.org/\"},{\"@type\":\"ListItem\",\"position\":2,\"name\":\"Example Corp\",\"item\":\"https://example.org/\"},{\"@type\":\"ListItem\",\"position\":3,\"name\":\"Example Corp\",\"item\":\"https://example.org/\"},{\"@type\":\"ListItem\",\"position\":4,\"name\":\"Example Corp\",\"item\":\"https://example.org/\"},{\"@type\":\"ListItem\",\"position\":5,\"name\":\"Example Corp\"}]}",
+    "{\"@context\":\"https://schema.org\",\"@type\":\"JobPosting\",\"title\":\"Example job title\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\",\"datePosted\":\"2026-10-12T23:38:07.703Z\",\"validThrough\":\"2026-11-10T00:38:07.703Z\",\"employmentType\":\"FULL_TIME\",\"industry\":\"Example industry\",\"occupationalCategory\":\"Example category\",\"jobLocation\":{\"address\":{\"addressLocality\":\"Obernai\",\"postalCode\":\"67210\",\"addressRegion\":\"Alsace\",\"addressCountry\":\"France\"}},\"hiringOrganization\":{\"name\":\"Example Corp\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\",\"address\":{\"addressLocality\":\"Obernai\",\"postalCode\":\"67210\",\"addressRegion\":\"Alsace\",\"addressCountry\":\"France\"}},\"directApply\":false,\"qualifications\":\"Example qualification\"}",
+    "{\"@context\":\"https://schema.org\",\"@graph\":[{\"@id\":\"https://example.org/\",\"@type\":\"WebSite\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\",\"inLanguage\":\"Example text\",\"name\":\"Example Corp\",\"publisher\":{\"@id\":\"https://example.org/\"}},{\"@id\":\"https://example.org/\",\"@type\":\"Organization\",\"areaServed\":\"Example text\",\"description\":\"<p>Example description of the offer.</p><p>Second paragraph.</p>\",\"name\":\"Example Corp\",\"contactPoint\":{\"@type\":\"ContactPoint\",\"contactType\":\"Example text\",\"availableLanguage\":\"Example text\"}},{\"@id\":\"https://example.org/\",\"@type\":\"ImageObject\",\"caption\":\"Example text\",\"contentUrl\":\"https://example.org/\",\"inLanguage\":\"Example text\"},{\"@id\":\"https://example.org/\",\"@type\":\"Organization\",\"name\":\"Example Corp\"}]}"
+  ],
+  "meta": {
+    "description": "Example text"
+  }
+}

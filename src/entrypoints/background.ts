@@ -5,6 +5,7 @@ import {
   POLL_MINUTES,
   applicationOfNotification,
   checkReminders,
+  sendTestNotification,
 } from '../background/reminders'
 import { keyOf } from '../persistence'
 import { browserAdapter } from '../persistence/adapter'
@@ -85,6 +86,24 @@ export default defineBackground(() => {
       void browser.notifications.clear(id)
     })
   }
+
+  // The options ask for a test notification (the developer mode, to see a translation as it shows).
+  browser.runtime.onMessage.addListener((message: unknown) => {
+    if ('jat:test-notification' !== (message as { type?: string } | null)?.type) {
+      return undefined
+    }
+    return sendTestNotification(env).then(
+      () => ({ ok: true }),
+      () => ({ ok: false })
+    )
+  })
+
+  // The key of the browser that opens the board (the other, that opens the popup, is the browser's own).
+  browser.commands?.onCommand.addListener((command) => {
+    if ('open-board' === command) {
+      void openApplication(null)
+    }
+  })
 
   browser.runtime.onInstalled.addListener(check)
   browser.runtime.onStartup.addListener(check)

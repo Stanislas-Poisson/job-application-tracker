@@ -1,0 +1,17 @@
+{
+  "extName": {
+    "message": "Job Application Tracker"
+  },
+  "extShortName": {
+    "message": "Job Tracker"
+  },
+  "extDescription": {
+    "message": "Sparar jobbannonserna du sett och följer varje ansökan. Allt stannar i din webbläsare."
+  },
+  "commandPopup": {
+    "message": "Spara jobbet på den här sidan"
+  },
+  "commandBoard": {
+    "message": "Öppna tavlan"
+  }
+}

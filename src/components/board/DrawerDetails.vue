@@ -1,79 +1,64 @@
 <script setup lang="ts">
   import { FormButton, FormInput, FormSelect, FormTextarea } from '@zairakai/vue-components/Form'
   import { useRepo } from 'pinia-orm'
-  import { computed, nextTick, reactive, ref, watch } from 'vue'
+  import { computed } from 'vue'
   import { useApp } from '../../composables/useApp'
-  import { useDirtyGuard } from '../../composables/useDirty'
+  import { useCardDraft } from '../../composables/useCardDraft'
+  import { useDrawerMode } from '../../composables/useDrawerMode'
   import { useFormat } from '../../composables/useFormat'
-  import { type Application, JobOffer, Status } from '../../models'
-  import { deleteApplication, findOrCreateCompany, moveApplication, setArchived } from '../../services/applications'
-  import { SalaryError, salaryFromForm } from '../../services/salary'
+  import { notifyUndo } from '../../composables/useNotices'
+  import { type Application, Company, Status } from '../../models'
+  import { deleteApplication, moveApplication, setArchived } from '../../services/applications'
+  import { deleteWithUndo } from '../../services/undo'
   import { countryName, listCountries } from '../../utils/contact'
-  import { SALARY_KINDS, SALARY_PERIODS, currencyName, listCurrencies, minorToInput } from '../../utils/money'
+  import { SALARY_KINDS, SALARY_PERIODS, currencyName, listCurrencies } from '../../utils/money'
+  import EntityPicker from '../EntityPicker.vue'
 
   const props = defineProps<{ application: Application }>()
   const emit = defineEmits<{ deleted: [] }>()
 
-  const { t, persistence } = useApp()
+  const { t, persistence, statusName } = useApp()
   const format = useFormat()
-  // What is wrong with the form, shown under it.
-  const problem = ref('')
-
+  const { isEditing } = useDrawerMode()
   const offer = computed(() => props.application.jobOffer)
-  const form = reactive({
-    title: '',
-    company: '',
-    url: '',
-    location: '',
-    country: '',
-    contractType: '',
-    postedOn: '',
-    salaryMin: '',
-    salaryMax: '',
-    salaryCurrency: '',
-    salaryPeriod: '',
-    salaryKind: '',
-    description: '',
+  // The form works on the draft of the card: nothing is written until the card is saved.
+  const { draft, problem } = useCardDraft()
+  const form = draft.details
+
+  // What the card says when it is read: the order of the form, with what is empty left out.
+  const facts = computed(() => {
+    const source = offer.value
+    if (!source) {
+      return []
+    }
+    return [
+      { key: 'company', label: t('fields.company'), value: source.company?.name ?? '' },
+      { key: 'location', label: t('fields.location'), value: source.location ?? '' },
+      {
+        key: 'country',
+        label: t('fields.country'),
+        value: source.country ? countryName(source.country, format.locale.value) : '',
+      },
+      { key: 'contractType', label: t('fields.contractType'), value: source.contractType ?? '' },
+      { key: 'postedOn', label: t('fields.postedOn'), value: source.postedOn ? format.date(source.postedOn) : '' },
+      { key: 'salary', label: t('drawer.salary'), value: format.salary(source) },
+      { key: 'description', label: t('fields.description'), value: source.description ?? '' },
+    ].filter((fact) => '' !== fact.value)
   })
 
-  // The values the form starts from: what is stored.
-  const stored = computed(() => ({
-    title: offer.value?.title ?? '',
-    company: offer.value?.company?.name ?? '',
-    url: offer.value?.url ?? '',
-    location: offer.value?.location ?? '',
-    country: offer.value?.country ?? '',
-    contractType: offer.value?.contractType ?? '',
-    postedOn: offer.value?.postedOn ?? '',
-    salaryMin: minorToInput(offer.value?.salaryMin ?? null, offer.value?.salaryCurrency ?? null),
-    salaryMax: minorToInput(offer.value?.salaryMax ?? null, offer.value?.salaryCurrency ?? null),
-    salaryCurrency: offer.value?.salaryCurrency ?? '',
-    salaryPeriod: offer.value?.salaryPeriod ?? '',
-    salaryKind: offer.value?.salaryKind ?? '',
-    description: offer.value?.description ?? '',
-  }))
-
-  // The form starts again from the stored values when another application is opened.
-  watch(
-    () => props.application.id,
-    () => Object.assign(form, stored.value),
-    { immediate: true }
+  // The companies that exist, offered to the field of the company.
+  const companyNames = computed(() =>
+    useRepo(Company)
+      .all()
+      .map((company) => company.name)
   )
-
-  // The form is unsaved when it differs from what is stored. A number field can hold a number, hence the texts.
-  const dirty = computed(() =>
-    Object.keys(stored.value).some(
-      (key) => String(form[key as keyof typeof form] ?? '') !== String(stored.value[key as keyof typeof stored.value])
-    )
-  )
-  useDirtyGuard(() => dirty.value)
 
   const statusOptions = computed(() =>
     Object.fromEntries(
       useRepo(Status)
         .orderBy('order')
         .get()
-        .map((status) => [status.id, status.label])
+        .map((status) => [status.id, statusName(status)])
     )
   )
 
@@ -98,59 +83,22 @@
     ...Object.fromEntries(SALARY_KINDS.map((kind) => [kind, t(`salary.kind.${kind}`)])),
   }))
 
-  async function save() {
-    if (!offer.value) {
-      return
-    }
-    problem.value = ''
-    let salary
-    try {
-      salary = salaryFromForm({
-        min: form.salaryMin,
-        max: form.salaryMax,
-        currency: form.salaryCurrency,
-        period: form.salaryPeriod,
-        kind: form.salaryKind,
-      })
-    } catch (error) {
-      if (error instanceof SalaryError) {
-        problem.value = t(`drawer.salaryErrors.${error.code}`)
-        return
-      }
-      throw error
-    }
-    useRepo(JobOffer)
-      .where('id', offer.value.id)
-      .update({
-        title: form.title.trim(),
-        companyId: '' === form.company.trim() ? null : findOrCreateCompany(form.company).id,
-        url: form.url || null,
-        location: form.location || null,
-        country: form.country || null,
-        contractType: form.contractType || null,
-        postedOn: form.postedOn || null,
-        ...salary,
-        description: form.description || null,
-      })
-    // The form shows what was stored (trimmed, the amounts written back), so that it is no longer unsaved. The drawer gets
-    // the new values on its next update: reading them before would put the old ones back.
-    await nextTick()
-    Object.assign(form, stored.value)
-  }
-
   // A move is written at once: closing the tab right after must not lose it.
   async function move(statusId: string) {
     moveApplication(props.application.id, statusId)
     await persistence.flush()
   }
 
-  // A deletion is written at once: closing the tab right after must not bring the application back.
+  // A deletion is written at once: closing the tab right after must not bring the application back. It goes to the trash, and
+  // the message offers to put it back, with what went with it.
   async function remove() {
-    if (window.confirm(t('drawer.confirmDelete'))) {
-      deleteApplication(props.application.id)
-      emit('deleted')
-      await persistence.flush()
-    }
+    const title = props.application.jobOffer?.title ?? ''
+    const id = props.application.id
+    emit('deleted')
+    const undo = await deleteWithUndo(persistence, () => deleteApplication(id))
+    notifyUndo(t('notice.removed', { name: title }), t('notice.undo'), async () => {
+      await undo()
+    })
   }
 </script>
 
@@ -158,8 +106,9 @@
   <section>
     <h3>{{ t('drawer.details') }}</h3>
     <form
+      v-if="isEditing"
       class="stack"
-      @submit.prevent="save"
+      @submit.prevent
     >
       <FormSelect
         :model-value="application.statusId ?? ''"
@@ -174,9 +123,10 @@
         :label="t('fields.title')"
         required
       />
-      <FormInput
+      <EntityPicker
         v-model="form.company"
         name="company"
+        :options="companyNames"
         :label="t('fields.company')"
       />
       <FormInput
@@ -271,22 +221,11 @@
       <p
         v-if="problem"
         class="error"
+        role="alert"
       >
         {{ problem }}
       </p>
       <div class="row">
-        <FormButton
-          type="submit"
-          :disabled="!dirty"
-          >{{ t('drawer.save') }}</FormButton
-        >
-        <span
-          v-if="dirty"
-          id="offer-unsaved"
-          class="muted"
-          role="status"
-          >{{ t('dirty.unsaved') }}</span
-        >
         <FormButton
           type="button"
           @click="setArchived(application.id, !application.archived)"
@@ -300,6 +239,39 @@
         >
       </div>
     </form>
+    <div
+      v-else
+      class="stack"
+    >
+      <!-- Moving the card to another column is an action of the day: it stays in reach while reading. -->
+      <FormSelect
+        :model-value="application.statusId ?? ''"
+        name="status"
+        :label="t('fields.status')"
+        :options="statusOptions"
+        @update:model-value="move(String($event))"
+      />
+      <a
+        v-if="offer?.url"
+        :href="offer.url"
+        target="_blank"
+        rel="noopener"
+        >{{ t('drawer.openOffer') }}</a
+      >
+      <dl class="facts">
+        <div
+          v-for="fact in facts"
+          :key="fact.key"
+          class="fact"
+        >
+          <dt class="muted">{{ fact.label }}</dt>
+          <!-- bdi: the text keeps its own direction, and the line follows the one of the page, so that a column of values lines up. -->
+          <dd :class="{ 'fact-text': 'description' === fact.key }">
+            <bdi>{{ fact.value }}</bdi>
+          </dd>
+        </div>
+      </dl>
+    </div>
   </section>
 </template>
 

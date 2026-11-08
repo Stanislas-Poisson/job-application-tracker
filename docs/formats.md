@@ -19,6 +19,18 @@ The rules, in `src/utils/time.ts`:
 - When the clocks go back, an hour happens twice: the first one is taken. When they go forward, an hour does not exist: the time is moved forward by the length of the jump.
 - A page shows a date again when the language or the time zone changes, with no reload.
 
+### How a date is written
+
+Settings `dateFormat`, `timeFormat`, `dateCustom` and `relativeDates`, in `src/utils/dateFormat.ts`. What is stored does not change; only the way it is shown.
+
+- `dateFormat`: `auto` (what the language does: 13/10/2026 in French, 10/13/2026 in English, 13.10.2026 in German, 2026-10-13 in Swedish), `dmy`, `mdy`, `ymd`, `medium`, `long`, `full` (the names of the months and days come from the browser), or `custom`. A choice of the user wins over the language.
+- `dateCustom`, for `custom`: 1 to 40 characters, with the tokens `YYYY YY MMMM MMM MM M dddd ddd DD D`. Text in `[square brackets]` and any other character are kept as they are. The result is text: nothing in it is read as markup.
+- `timeFormat`: `auto` (the language), `h24` or `h12`.
+- `relativeDates`: `off` (the date), `both` (the date and how long ago) or `recent` (how long ago for a moment of the last 30 days, else the date). The words ("5 minutes ago", "yesterday", "in 3 days") come from `Intl.RelativeTimeFormat`, so every language has them. Under an hour: minutes; under a day: hours; then the days of the calendar of the time zone; then months and years.
+- A plain date (the day an offer was published, the dates of a job) is read at midnight UTC and shown as a date only: no hour, no time zone, and relative dates never apply to it.
+- A notification says how long the reminder has been due and writes its date with the format of the user, in absolute form.
+- The CSV file keeps ISO dates in UTC, whatever the format: a spreadsheet reads them back.
+
 ## Money
 
 | What | Stored as | Shown as |
@@ -431,6 +443,13 @@ A process of its own, different from the restore: the restore replaces what is s
 - **A deletion is not a record that is missing.** What was deleted here (it is in the trash) is not brought back from the file. What was deleted on the other computer is not deleted here: the trash of the file is not merged.
 - **Duplicates are possible**: a company, contact or tag created on both computers has two ids, so it is there twice. The preview counts the likely ones (same company name, same contact name, same address of an offer) and the user merges them by hand.
 
+## Codes of the languages
+
+A language of the user has a code that is a language tag (`sv`, `pt-BR`), optionally followed by a private-use part (`es-x-mine`,
+`fr-CA-x-work`). The setting `locale` accepts the same codes. The setting `developerMode` (off by default) lets a language file take
+the code of a language of the extension; when it is off, a stored language whose code the extension has since come with is read
+again as `<code>-x-mine`, `<code>-x-mine2`… so that it stays. See `docs/translating.md`.
+
 ## Text appearance
 
 Settings, kept with the others and in the backups: `fontFamily` (`system`, `serif`, `monospace` as `mono`, `custom`), `fontCustom` (the name of a font installed on the computer, letters, digits, spaces, dots, dashes and underscores only, 100 characters at most, so that it cannot break out of a style), `textScale` (80, 90, 100, 110, 125, 150, 175 or 200, in percent of the usual size, written on the root so every size in `rem` follows), `textSpacing` (`default`, `wide`, `wcag` for line height 1.5, letters 0.12 em and words 0.16 em, `widest`), `density` (`comfortable`, `compact`) and `motion` (`auto` follows the system, `reduce` forces it). The chosen font is always followed by the system fonts so that every script keeps a font that has its letters. No font is shipped: the fonts made for easier reading are used when installed, by name.
@@ -460,8 +479,8 @@ A text that depends on a number is an object in the file of texts, with a form f
 
 ## Your own themes
 
-Settings `customThemes` (at most 20: `id`, `name` of 60 characters at most, and the colours `light` and `dark`) and `customThemeId` (the one in use, empty for none; an id that is gone is none). A set of colours has `background`, `surface`, `text`, `primary` (the accent), `onPrimary`, `success`, `warning`, `error` and `border`, each of six hexadecimal digits; anything else is the default for that colour, so that nothing but a colour can reach a style sheet.
+Settings `customThemes` (at most 20: `id`, `name` of 60 characters at most, and the colours `light` and `dark`) and `customThemeId` (the one in use, empty for none; an id that is gone is none). A set of colours has `background`, `surface`, `text`, `primary` (the accent), `onPrimary`, `success`, `warning`, `error`, `border` and `column1` to `column8` (the colours of the columns), each of six hexadecimal digits; anything else is the default for that colour, so that nothing but a colour can reach a style sheet.
 
-The theme in use is a style sheet of its own (`#jat-custom-theme`, last in the head), written from the colours: the light set always, the dark set when the page is dark (chosen, or the system's when the theme is left to the system). It wins over the accent and the vision modes, since a custom theme comes with its own colours. The contrast of the pairs that matter is measured as WCAG 2 does (relative luminance): text on background and on surface, text on the accent and the error colour at 4.5 to 1; the accent, the borders, success and warning at 3 to 1. The correction moves a colour toward black or white, keeping its hue, by the smallest step that reaches the ratio.
+The theme in use is a style sheet of its own (`#jat-custom-theme`, last in the head), written from the colours: the light set always, the dark set when the page is dark (chosen, or the system's when the theme is left to the system). It wins over the accent and the vision modes, since a custom theme comes with its own colours. The contrast of the pairs that matter is measured as WCAG 2 does (relative luminance): text on background and on surface, text on the accent and the error colour at 4.5 to 1; the accent, the borders, success and warning at 3 to 1. The correction moves a colour toward black or white, keeping its hue, by the smallest step that reaches the ratio. The colours of the columns are written as `--column-0` to `--column-7`; with a custom theme in use, the column at place n takes `--column-(n mod 8)` in every mode (the shapes of the vision modes stay), and each is held to 3 to 1 on the background.
 
 A theme is exported as a small JSON file (`app: "job-application-tracker-theme"`, the name and the two sets, no id); importing one gives it a new id. The themes are in the settings, so they are in the backups.

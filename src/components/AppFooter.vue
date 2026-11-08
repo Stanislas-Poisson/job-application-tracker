@@ -47,7 +47,7 @@
         >
           <path :d="pill.icon" />
         </svg>
-        {{ pill.label }}
+        {{ pill.text ? t(pill.text) : pill.label }}
       </a>
     </div>
   </footer>

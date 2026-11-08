@@ -6,7 +6,7 @@
 // 2. options: the language, and the columns of the board.
 // 3. flow: an offer is saved in the popup, seen on the board, noted and moved, and it is still there after a reload.
 import assert from 'node:assert/strict'
-import { after, before, describe, test } from 'node:test'
+import { after, afterEach, before, describe, test } from 'node:test'
 
 import { By } from 'selenium-webdriver'
 
@@ -15,7 +15,19 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
-import { launch, openPage, unpack, version, waitFor, zipFor } from './lib.mjs'
+import { afterTest } from './diagnostics.mjs'
+import {
+  launch,
+  openPage,
+  quitBrowser,
+  saveCard,
+  showTabOf,
+  startEditing,
+  unpack,
+  version,
+  waitFor,
+  zipFor,
+} from './lib.mjs'
 
 const browser = process.env.BROWSER || 'chrome'
 
@@ -30,7 +42,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
     const dir = unpack(zip)
     ;({ driver, base } = await launch(browser, { dir, zip }))
   })
-  after(async () => driver?.quit())
+  afterEach(afterTest)
+  after(async () => quitBrowser(driver))
 
   const css = (selector) => driver.findElement(By.css(selector))
   const all = (selector) => driver.findElements(By.css(selector))
@@ -64,6 +77,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
   const open = async (page, ready) => {
     const handle = await openPage(driver, browser, `${base}${page}.html`)
     await waitFor(async () => (await all(ready)).length > 0, { message: `${page} to load` })
+    await showTabOf(driver, ready)
     return handle
   }
 
@@ -120,9 +134,14 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await choose('select[name=theme]', 'dark')
       await css('button[data-accent-choice=purple]').then((swatch) => swatch.click())
       await choose('select[name=vision]', 'red-green')
-      await waitFor(async () => (await root('data-theme')) === 'dark' && (await root('data-vision')) === 'red-green', {
-        message: 'the appearance of the options page',
-      })
+      await choose('select[name=contrast]', 'high')
+      await waitFor(
+        async () =>
+          (await root('data-theme')) === 'dark' &&
+          (await root('data-vision')) === 'red-green' &&
+          (await root('data-contrast')) === 'high',
+        { message: 'the appearance of the options page' }
+      )
       assert.equal(await root('data-accent'), 'purple')
 
       // The board, open in another tab, follows without a reload: dark, and a shape on each column.
@@ -140,7 +159,13 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await choose('select[name=theme]', 'auto')
       await css('button[data-accent-choice=slate]').then((swatch) => swatch.click())
       await choose('select[name=vision]', 'standard')
-      await waitFor(async () => (await root('data-vision')) === 'standard', { message: 'the standard appearance' })
+      await choose('select[name=contrast]', 'auto')
+      await waitFor(
+        async () => (await root('data-vision')) === 'standard' && (await root('data-contrast')) === 'auto',
+        {
+          message: 'the standard appearance',
+        }
+      )
     })
 
     test('a column is renamed, and the board shows its new name', async () => {
@@ -209,6 +234,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
     test('the card opens its details, takes a note, and moves to another column', async () => {
       await driver.switchTo().window(boardTab)
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('textarea[name=newNote]')).length > 0, { message: 'the drawer' })
 
       // The note typed in the popup is the first one.
@@ -257,15 +283,14 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       await driver.switchTo().window(boardTab)
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('input[name=salaryMin]')).length > 0, { message: 'the salary fields' })
       await type('input[name=salaryMin]', '4000')
       await type('input[name=salaryMax]', '5000')
       await choose('select[name=salaryCurrency]', 'USD')
       await choose('select[name=salaryPeriod]', 'month')
       await choose('select[name=salaryKind]', 'gross')
-      await driver.executeScript(
-        `document.querySelector('input[name=salaryMin]').closest('form').querySelector('button[type=submit]').click()`
-      )
+      await saveCard(driver)
 
       // The card shows the range, the period and the kind, with the dollar as the language writes it.
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
@@ -298,6 +323,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
     test('a contact is saved with its phone in the international format', async () => {
       await driver.switchTo().window(boardTab)
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('input[name=firstName]')).length > 0, { message: 'the contact form' })
 
       await type('input[name=firstName]', 'Ada')
@@ -371,6 +397,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       await driver.switchTo().window(boardTab)
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('input[name=interactionSubject]')).length > 0, {
         message: 'the exchange form',
       })
@@ -428,6 +455,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
     test('an email pasted as text, and a CSV file, are imported once each, after a preview', async () => {
       await driver.switchTo().window(boardTab)
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('details.import')).length > 0, { message: 'the import section' })
       await driver.executeScript(`document.querySelector('details.import').open = true`)
 
@@ -464,7 +492,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.executeScript(
         `[...document.querySelectorAll('details.import button')].find((b) => /Import 1/.test(b.textContent)).click()`
       )
-      await waitFor(async () => /1 added/.test(await text('details.import [role=status]')), { message: 'the result' })
+      await waitFor(async () => /1 added/.test(await text('#notices')), { message: 'the result' })
 
       const saved = await waitFor(async () => (await stored()).length > before && (await stored()), {
         message: 'the exchange to be stored',
@@ -478,7 +506,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.executeScript(
         `[...document.querySelectorAll('details.import button')].find((b) => /Import 1/.test(b.textContent)).click()`
       )
-      await waitFor(async () => /1 already there/.test(await text('details.import [role=status]')), {
+      await waitFor(async () => /1 already there/.test(await text('#notices')), {
         message: 'the duplicate to be seen',
       })
 
@@ -502,7 +530,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.executeScript(
         `[...document.querySelectorAll('details.import button')].find((b) => /Import 1/.test(b.textContent)).click()`
       )
-      await waitFor(async () => /1 added/.test(await text('details.import [role=status]')), {
+      await waitFor(async () => /1 added/.test(await text('#notices')), {
         message: 'the result of the file',
       })
       fs.rmSync(file)
@@ -513,11 +541,31 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
     test('a tag, a favourite and a priority show on the card, and a tag is renamed from the options', async () => {
       await driver.switchTo().window(boardTab)
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('input[name=tagName]')).length > 0, { message: 'the labels section' })
 
+      // A tag that does not exist is said to be new before it is made.
       await type('input[name=tagName]', 'remote')
+      await waitFor(async () => (await all('dialog[open] .picker-hint[data-state=new]')).length === 1, {
+        message: 'the tag to be told as new',
+      })
       await driver.executeScript(
         `document.querySelector('input[name=tagName]').closest('form').querySelector('button[type=submit]').click()`
+      )
+      // Once it exists it is offered, and told as one that exists, whatever the case.
+      await waitFor(
+        async () =>
+          driver.executeScript(
+            `return [...document.querySelectorAll('dialog[open] datalist option')].some((option) => option.value === 'remote')`
+          ),
+        { message: 'the tag to be offered' }
+      )
+      await type('input[name=tagName]', 'REMOTE')
+      await waitFor(async () => /Already in your list: remote/.test(await text('dialog[open]')), {
+        message: 'the tag to be told as existing',
+      })
+      await driver.executeScript(
+        `const field = document.querySelector('input[name=tagName]'); field.value = ''; field.dispatchEvent(new Event('input', { bubbles: true }))`
       )
       await css('button[name=favorite]').then((button) => button.click())
       await choose('select[name=priority]', '3')
@@ -565,6 +613,53 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       assert.equal(links[0].length, 1)
       assert.equal(links[1][0].name, 'télétravail')
 
+      await driver.switchTo().window(optionsTab)
+    })
+
+    test('the symbol of a tag shows with its name, and the option of the tags turns it off and on', async () => {
+      // A symbol for the tag, chosen in the options (a letter: every machine can draw it).
+      const optionsTab = await open('options', 'input[name^=symbol-]:not([name^=symbol-status])')
+      await type('input[name^=symbol-]:not([name^=symbol-status])', 'T')
+      await driver.executeScript(
+        `document.querySelector('input[name^=symbol-]:not([name^=symbol-status])').dispatchEvent(new Event('change', { bubbles: true }))`
+      )
+      // It is kept in the storage first, then the card shows it.
+      await waitFor(
+        async () =>
+          driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:tags', (items) => done((items['jat:tags'] || []).some((tag) => tag.symbol === 'T')));
+          `),
+        { message: 'the symbol to be kept' }
+      )
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => (await all('.application-card .tag-chip .item-symbol')).length > 0, {
+        message: 'the symbol on the card',
+      })
+
+      // Turned off in the options: the card follows, and the name and the colour stay.
+      await driver.switchTo().window(optionsTab)
+      assert.equal(await css('input[name=showTagSymbols]').then((box) => box.isSelected()), true, 'on by default')
+      await css('input[name=showTagSymbols]').then((box) => box.click())
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => (await all('.application-card .tag-chip .item-symbol')).length === 0, {
+        message: 'the symbol to go',
+      })
+      assert.ok((await all('.application-card .tag-chip')).length > 0, 'the tag is still on the card')
+
+      // The editor of the tags still shows the symbol that was chosen, to be changed or removed.
+      await driver.switchTo().window(optionsTab)
+      assert.equal(
+        await css('input[name^=symbol-]:not([name^=symbol-status])').then((field) => field.getAttribute('value')),
+        'T'
+      )
+
+      // And turned on again.
+      await css('input[name=showTagSymbols]').then((box) => box.click())
+      await driver.switchTo().window(boardTab)
+      await waitFor(async () => (await all('.application-card .tag-chip .item-symbol')).length > 0, {
+        message: 'the symbol to come back',
+      })
       await driver.switchTo().window(optionsTab)
     })
 
@@ -643,6 +738,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       await driver.switchTo().window(boardTab)
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('input[name=reminderDue]')).length > 0, { message: 'the reminder form' })
 
       await type('input[name=reminderTitle]', 'Follow up')
@@ -734,8 +830,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       fs.writeFileSync(file, JSON.stringify({ hello: 'world' }))
       await open('options', '#restore-file')
       await css('#restore-file').then((input) => input.sendKeys(file))
-      await waitFor(async () => (await all('.error')).length > 0, { message: 'the error' })
-      assert.match(await text('.error'), /not an export/)
+      await waitFor(async () => (await all('#notices [data-variant=error]')).length > 0, { message: 'the error' })
+      assert.match(await text('#notices [data-variant=error]'), /not an export/)
       assert.equal((await all('#restore-preview')).length, 0)
       fs.unlinkSync(file)
     })
@@ -765,7 +861,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         await waitFor(async () => (await all('#merge-preview')).length === 0, { message: 'the merge to be applied' })
       } catch (error) {
         throw new Error(
-          `${error.message} / page says: ${(await all('.error')).length ? await text('.error') : 'nothing'}`
+          `${error.message} / page says: ${(await all('#notices [data-variant=error]')).length ? await text('#notices [data-variant=error]') : 'nothing'}`
         )
       }
 
@@ -932,7 +1028,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         }
         for (const el of document.body.querySelectorAll('*')) {
           const style = getComputedStyle(el);
-          if (style.display === 'none' || !el.textContent.trim()) continue;
+          // Text made for a screen reader and clipped on purpose is not text that is cut.
+          if (style.display === 'none' || !el.textContent.trim() || el.closest('.visually-hidden')) continue;
           const hides = ['hidden', 'clip'].includes(style.overflowX) || style.textOverflow === 'ellipsis';
           if (hides && el.scrollWidth > el.clientWidth + 1 && !el.closest('select, option, input, textarea')) {
             problems.push((el.className || el.tagName) + ' cuts its text (' + el.scrollWidth + ' > ' + el.clientWidth + ')');
@@ -975,7 +1072,6 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
     test('a custom theme changes the colours at once, warns about a contrast that is too low, and corrects it', async () => {
       await open('options', 'select[name=theme]')
-      await driver.executeScript('window.confirm = () => true')
       await choose('select[name=theme]', 'light')
       await type('input[name=newTheme]', 'Warm')
       await driver.executeScript(`document.querySelector('input[name=newTheme]').form.requestSubmit()`)
@@ -1019,12 +1115,107 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       // Delete it and leave things as they were.
       await open('options', '#theme-editor')
-      await driver.executeScript('window.confirm = () => true')
       await driver.executeScript(
         `[...document.querySelectorAll('#theme-editor button')].find((b) => b.textContent.trim() === 'Delete this theme').click()`
       )
       await waitFor(async () => (await all('#theme-editor')).length === 0, { message: 'the theme to be deleted' })
       await choose('select[name=theme]', 'auto')
+    })
+
+    test('the date follows the language, is overridden by the format of the user, and can say how long ago', async () => {
+      await open('options', 'select[name=dateFormat]')
+      const preview = () => text('#date-preview')
+      // By default the language decides: month first in English.
+      assert.match(await preview(), /\d{1,2}\/\d{1,2}\/\d{4}/)
+
+      await choose('select[name=dateFormat]', 'ymd')
+      await waitFor(async () => /\d{4}-\d{2}-\d{2}/.test(await preview()), { message: 'year-month-day' })
+      await choose('select[name=timeFormat]', 'h24')
+      await waitFor(async () => /\d{2}:\d{2}$/.test(await preview()), { message: '24 hours' })
+
+      // The language of the page does not change a format the user chose.
+      await choose('select[name=language]', 'fr')
+      await waitFor(async () => /Affiché ainsi/.test(await preview()), { message: 'the page in French' })
+      assert.match(await preview(), /\d{4}-\d{2}-\d{2}/)
+
+      // A format of the user's own, with a text kept as written.
+      await choose('select[name=dateFormat]', 'custom')
+      const input = await css('input[name=dateCustom]')
+      await input.clear()
+      await input.sendKeys('dddd D MMMM YYYY [!]')
+      await waitFor(async () => /\d{1,2} \p{L}+ \d{4} !/u.test(await preview()), { message: 'the custom format' })
+
+      await choose('select[name=relativeDates]', 'both')
+      await waitFor(async () => /·/.test(await preview()), { message: 'the date and how long ago' })
+
+      await choose('select[name=dateFormat]', 'auto')
+      await choose('select[name=timeFormat]', 'auto')
+      await choose('select[name=relativeDates]', 'off')
+      await choose('select[name=language]', 'en')
+    })
+
+    test('a language file with the code of a language of the extension is refused, and in the developer mode it is only previewed as a replacement', async () => {
+      const file = path.join(os.tmpdir(), `jat-replace-${Date.now()}.json`)
+      fs.writeFileSync(
+        file,
+        JSON.stringify({
+          app: 'job-application-tracker-language',
+          code: 'es',
+          name: 'Español de prueba',
+          dir: 'ltr',
+          messages: { nav: { board: 'Mi tablero' } },
+        })
+      )
+      await open('options', '#language-file')
+      await css('#language-file').then((input) => input.sendKeys(file))
+      await waitFor(async () => (await all('#notices [data-variant=error]')).length > 0, { message: 'the refusal' })
+      assert.match(await text('#notices [data-variant=error]'), /already in the extension/)
+
+      await driver.executeScript(`document.querySelector('input[name=developerMode]').click()`)
+      await css('#language-file').then((input) => input.sendKeys(file))
+      await waitFor(async () => (await all('#language-replaces')).length > 0, { message: 'the replacement notice' })
+      assert.match(await text('#language-replaces'), /replaces the language/)
+      // Only a preview: nothing is kept until the answer, and cancelling keeps nothing.
+      await driver.executeScript(`[...document.querySelectorAll('#language-preview button')].at(-1).click()`)
+      assert.equal((await all('#language-installed')).length, 0)
+      await driver.executeScript(`document.querySelector('input[name=developerMode]').click()`)
+      fs.unlinkSync(file)
+    })
+
+    test('each language the extension comes with holds on the pages, tells its direction, and says when nobody who speaks it checked it', async () => {
+      const expected = {
+        fr: { dir: 'ltr', column: 'À postuler', notice: false },
+        es: { dir: 'ltr', column: 'Por enviar', notice: true },
+        de: { dir: 'ltr', column: 'Zu bewerben', notice: true },
+        ar: { dir: 'rtl', column: 'للتقديم', notice: true },
+        en: { dir: 'ltr', column: 'To apply', notice: false },
+      }
+      for (const [code, want] of Object.entries(expected)) {
+        await open('options', 'select[name=language]')
+        await choose('select[name=language]', code)
+        await waitFor(async () => (await driver.executeScript(`return document.documentElement.lang`)) === code, {
+          message: `lang to be ${code}`,
+        })
+        assert.equal(await driver.executeScript(`return document.documentElement.dir`), want.dir, code)
+        const notices = await all('#language-unreviewed')
+        assert.equal(notices.length > 0, want.notice, `${code}: notice`)
+        if (want.notice) {
+          const link = await driver.executeScript(`return document.querySelector('#language-unreviewed a').href`)
+          assert.match(link, /issues\/new\?template=translation\.yml/, code)
+          assert.match(link, new RegExp(`language=${code}`), code)
+        }
+        const overflow = await driver.executeScript(
+          `return document.documentElement.scrollWidth - document.documentElement.clientWidth`
+        )
+        assert.ok(overflow <= 1, `${code}: options is ${overflow}px too wide`)
+        await open('board', '.column')
+        await loaded()
+        assert.match(await text('.column'), new RegExp(want.column), code)
+        const boardOverflow = await driver.executeScript(
+          `return document.documentElement.scrollWidth - document.documentElement.clientWidth`
+        )
+        assert.ok(boardOverflow <= 1, `${code}: board is ${boardOverflow}px too wide`)
+      }
     })
 
     test('a language of the user is imported from a file, checked before it is kept, used, and removed', async () => {
@@ -1033,32 +1224,31 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         file,
         JSON.stringify({
           app: 'job-application-tracker-language',
-          code: 'es',
-          name: 'Español',
+          code: 'eo',
+          name: 'Esperanto',
           dir: 'ltr',
           messages: {
-            options: { language: 'Idioma' },
+            options: { language: 'Språk' },
             // Refused: it looks like markup. Refused: it drops the placeholder of the English text.
             nav: { board: '<img src=x onerror=alert(1)>' },
-            trash: { related: { one: '{count} relacionado', other: '{count} {extra}' } },
+            trash: { related: { one: '{count} relaterad', other: '{count} {extra}' } },
             made: { up: 'ignored' },
           },
         })
       )
       await open('options', '#language-file')
-      await driver.executeScript('window.confirm = () => true')
       // A file that is not a language file is refused with its reason.
       const wrong = path.join(os.tmpdir(), `jat-wrong-${Date.now()}.json`)
       fs.writeFileSync(wrong, JSON.stringify({ hello: 'world' }))
       await css('#language-file').then((input) => input.sendKeys(wrong))
-      await waitFor(async () => (await all('.error')).length > 0, { message: 'the error' })
-      assert.match(await text('.error'), /not a language file/)
+      await waitFor(async () => (await all('#notices [data-variant=error]')).length > 0, { message: 'the error' })
+      assert.match(await text('#notices [data-variant=error]'), /not a language file/)
       fs.unlinkSync(wrong)
 
       await css('#language-file').then((input) => input.sendKeys(file))
       await waitFor(async () => (await all('#language-preview')).length > 0, { message: 'the preview' })
       const preview = await text('#language-preview')
-      assert.match(preview, /Español/)
+      assert.match(preview, /Esperanto/)
       assert.match(preview, /2 texts were refused/)
       assert.match(await text('#language-problems'), /nav\.board/)
       assert.match(await text('#language-problems'), /trash\.related/)
@@ -1068,18 +1258,17 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       await css('#language-keep').then((button) => button.click())
       await waitFor(async () => (await all('#language-installed')).length > 0, { message: 'the language to be kept' })
-      await choose('select[name=language]', 'es')
-      await waitFor(async () => (await driver.executeScript(`return document.documentElement.lang`)) === 'es', {
-        message: 'lang to be es',
+      await choose('select[name=language]', 'eo')
+      await waitFor(async () => (await driver.executeScript(`return document.documentElement.lang`)) === 'eo', {
+        message: 'lang to be sv',
       })
-      await waitFor(async () => /Idioma/.test(await text('main')), { message: 'the translated text' })
+      await waitFor(async () => /Språk/.test(await text('main')), { message: 'the translated text' })
       // A text that was refused is English.
       await open('board', '.column')
       assert.match(await text('header, .header'), /Board/)
 
       // Removing it: the page is back to English.
       await open('options', '#language-installed')
-      await driver.executeScript('window.confirm = () => true')
       await driver.executeScript(`document.querySelector('#language-installed button').click()`)
       await waitFor(async () => (await all('#language-installed')).length === 0, {
         message: 'the language to be removed',
@@ -1175,9 +1364,12 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const file = JSON.parse(written)
       assert.equal(file.format, 'encrypted')
       assert.equal(file.kdf.name, 'PBKDF2')
-      assert.ok(file.kdf.iterations >= 600000)
-      assert.ok(!written.includes('Backend developer'))
-      assert.ok(!written.includes('Acme'))
+      assert.ok(file.kdf.iterations >= 600000, `the key is made with ${file.kdf.iterations} iterations`)
+      assert.ok(!written.includes('Backend developer'), 'the title of an offer is readable in the protected backup')
+      assert.ok(
+        !written.includes('Acme'),
+        `the name of a company is readable in the protected backup (${written.length} characters)`
+      )
 
       // Restoring: the passphrase is asked, a wrong one changes nothing, the right one shows the preview.
       const protectedFile = path.join(os.tmpdir(), `jat-protected-${Date.now()}.json`)
@@ -1188,8 +1380,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       await type('#restore-passphrase', 'a wrong passphrase')
       await driver.executeScript(`document.querySelector('#restore-locked').requestSubmit()`)
-      await waitFor(async () => (await all('.error')).length > 0, { message: 'the error' })
-      assert.match(await text('.error'), /wrong/)
+      await waitFor(async () => (await all('#notices [data-variant=error]')).length > 0, { message: 'the error' })
+      assert.match(await text('#notices [data-variant=error]'), /wrong/)
       assert.equal((await all('#restore-preview')).length, 0)
 
       await type('#restore-passphrase', PASSPHRASE)
@@ -1207,49 +1399,235 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       })
     })
 
+    test('the card is read first: the details as text, no form, and the button edits on purpose', async () => {
+      await open('board', '.application-card')
+      await css('.application-card').then((card) => card.click())
+      await waitFor(async () => (await all('dialog[open] button[name=toggleEdit]')).length > 0, {
+        message: 'the drawer',
+      })
+
+      // Reading: what the card says, with a way to move it, and no field to type in.
+      assert.equal(await text('dialog[open] button[name=toggleEdit]'), 'Edit')
+      await waitFor(async () => (await all('dialog[open] dl.facts')).length > 0, { message: 'the details as text' })
+      assert.equal((await all('dialog[open] input[name=title]')).length, 0, 'no field while reading')
+      assert.equal((await all('dialog[open] textarea[name=newNote]')).length, 0, 'no form to add a note while reading')
+      assert.equal((await all('dialog[open] select[name=status]')).length, 1, 'the card can still be moved')
+
+      // Editing: the form, and the same button says Done.
+      await startEditing(driver)
+      assert.equal(await text('dialog[open] button[name=toggleEdit]'), 'Done')
+      assert.equal((await all('dialog[open] input[name=title]')).length, 1)
+
+      // Done with nothing changed goes back to reading without a question.
+      await css('dialog[open] button[name=toggleEdit]').then((button) => button.click())
+      await waitFor(async () => (await all('dialog[open] input[name=title]')).length === 0, {
+        message: 'back to reading',
+      })
+      assert.equal((await all('#confirm-dialog')).length, 0)
+
+      // With something typed, Done asks first, and keeping it leaves the form as it was.
+      await startEditing(driver)
+      await type('textarea[name=newNote]', 'Not added yet')
+      await css('dialog[open] button[name=toggleEdit]').then((button) => button.click())
+      await waitFor(async () => (await all('#confirm-dialog[open]')).length === 1, { message: 'the question' })
+      await driver.executeScript(`document.querySelector('#confirm-dialog button:not([value=confirm])').click()`)
+      await waitFor(async () => (await all('#confirm-dialog')).length === 0, { message: 'the question to close' })
+      assert.equal(
+        await css('textarea[name=newNote]').then((field) => field.getAttribute('value') ?? field.getText()),
+        'Not added yet'
+      )
+
+      // Discarding goes back to reading and drops the text.
+      await css('dialog[open] button[name=toggleEdit]').then((button) => button.click())
+      await waitFor(async () => (await all('#confirm-dialog[open]')).length === 1, { message: 'the question again' })
+      await driver.executeScript(`document.querySelector('#confirm-dialog button[value=confirm]').click()`)
+      await waitFor(async () => (await all('dialog[open] textarea[name=newNote]')).length === 0, {
+        message: 'back to reading',
+      })
+      await startEditing(driver)
+      assert.equal(await css('textarea[name=newNote]').then((field) => field.getAttribute('value') ?? ''), '')
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
+
     test('unsaved text asks before the drawer is closed, and the offer form says it has changes', async () => {
       await open('board', '.application-card')
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
 
-      // The form of the offer is not dirty, and its button has nothing to save.
-      const save = await css('.drawer-content form button[type=submit]')
-      assert.equal(await save.isEnabled(), false)
+      // Nothing has changed: the bar of the drawer has nothing to save, only Done.
+      assert.equal((await all('dialog[open] button[name=save]')).length, 0)
       assert.equal((await all('#offer-unsaved')).length, 0)
 
+      // A change shows, and puts Save and Cancel in the place of Done.
+      const before =
+        (await css('.drawer-content input[name=location]').then((input) => input.getAttribute('value'))) ?? ''
       await type('.drawer-content input[name=location]', 'Somewhere else')
       await waitFor(async () => (await all('#offer-unsaved')).length > 0, { message: 'the unsaved mark' })
-      assert.equal(await save.isEnabled(), true)
+      assert.equal((await all('dialog[open] button[name=save]')).length, 1)
+      assert.equal((await all('dialog[open] button[name=cancel]')).length, 1)
+      assert.equal((await all('dialog[open] button[name=toggleEdit]')).length, 0)
 
-      // Closing asks first. Declining cancels the closing: the drawer stays, with what was typed.
+      // Putting it back is not a change any more: the mark goes, and Save with it.
+      await driver.executeScript(
+        `const field = document.querySelector('.drawer-content input[name=location]'); field.value = arguments[0]; field.dispatchEvent(new Event('input', { bubbles: true }))`,
+        before
+      )
+      await waitFor(async () => (await all('#offer-unsaved')).length === 0, { message: 'the mark to go when put back' })
+      assert.equal((await all('dialog[open] button[name=save]')).length, 0)
+      await type('.drawer-content input[name=location]', 'Somewhere else')
+      await waitFor(async () => (await all('#offer-unsaved')).length > 0, { message: 'the mark again' })
+
+      // Closing asks first, in a dialog of the extension. Declining cancels the closing: the drawer stays, with what was typed.
       const cancelled = await driver.executeScript(`
-        window.__asked = 0;
-        window.confirm = () => { window.__asked++; return false };
         const event = new Event('cancel', { cancelable: true });
-        document.querySelector('dialog[open]').dispatchEvent(event);
-        return [window.__asked, event.defaultPrevented];
+        document.querySelector('dialog[open]:not(#confirm-dialog)').dispatchEvent(event);
+        return event.defaultPrevented;
       `)
-      assert.deepEqual(cancelled, [1, true])
+      assert.equal(cancelled, true)
+      await waitFor(async () => (await all('#choice-dialog[open]')).length === 1, { message: 'the question' })
+      // Three answers, and the one that loses nothing has the focus.
+      assert.deepEqual(
+        await driver.executeScript(
+          `return [...document.querySelectorAll('#choice-dialog button')].map((button) => button.value)`
+        ),
+        ['keep', 'discard', 'save']
+      )
+      assert.equal(await driver.executeScript(`return document.activeElement && document.activeElement.value`), 'keep')
+      await driver.executeScript(`document.querySelector('#choice-dialog button[value=keep]').click()`)
+      await waitFor(async () => (await all('#choice-dialog')).length === 0, { message: 'the question to go' })
       assert.equal((await all('dialog[open]')).length, 1)
       assert.equal(
         await css('.drawer-content input[name=location]').then((input) => input.getAttribute('value')),
         'Somewhere else'
       )
 
-      // Accepting lets it close.
-      const accepted = await driver.executeScript(`
-        window.confirm = () => true;
-        const event = new Event('cancel', { cancelable: true });
-        document.querySelector('dialog[open]').dispatchEvent(event);
-        return event.defaultPrevented;
-      `)
-      assert.equal(accepted, false)
-
-      // Saving makes the form clean again.
-      await save.click()
+      // Saving makes the card clean again, and shows it as it is read.
+      await saveCard(driver)
       await waitFor(async () => (await all('#offer-unsaved')).length === 0, { message: 'the mark to go' })
-      assert.equal(await save.isEnabled(), false)
+      assert.match(await text('dialog[open] dl.facts'), /Somewhere else/)
+
+      // Cancel drops the draft: the card is as it was.
+      await startEditing(driver)
+      await type('.drawer-content input[name=location]', 'Never kept')
+      await waitFor(async () => (await all('dialog[open] button[name=cancel]')).length === 1, { message: 'Cancel' })
+      await css('dialog[open] button[name=cancel]').then((button) => button.click())
+      await waitFor(async () => (await all('dialog[open] input[name=location]')).length === 0, {
+        message: 'back to reading',
+      })
+      assert.doesNotMatch(await text('dialog[open] dl.facts'), /Never kept/)
+      await startEditing(driver)
+      assert.equal(
+        await css('.drawer-content input[name=location]').then((input) => input.getAttribute('value')),
+        'Somewhere else'
+      )
+
+      // Typing again and closing: accepting lets it close.
+      await type('.drawer-content input[name=location]', 'Elsewhere again')
+      await waitFor(async () => (await all('#offer-unsaved')).length > 0, { message: 'the unsaved mark again' })
+      await driver.executeScript(
+        `document.querySelector('dialog[open]:not(#confirm-dialog):not(#choice-dialog)').dispatchEvent(new Event('cancel', { cancelable: true }))`
+      )
+      await waitFor(async () => (await all('#choice-dialog[open]')).length === 1, { message: 'the question again' })
+      await driver.executeScript(`document.querySelector('#choice-dialog button[value=discard]').click()`)
+      await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the drawer to close' })
+    })
+
+    test('leaving a card that changed: save and close, close without saving, or keep editing', async () => {
+      const askToLeave = async () => {
+        await driver.executeScript(
+          `document.querySelector('dialog[open]:not(#confirm-dialog):not(#choice-dialog)').dispatchEvent(new Event('cancel', { cancelable: true }))`
+        )
+        await waitFor(async () => (await all('#choice-dialog[open]')).length === 1, { message: 'the question' })
+      }
+      const answer = (value) =>
+        driver.executeScript(`document.querySelector('#choice-dialog button[value=${value}]').click()`)
+      const reopen = async () => {
+        await css('.application-card').then((card) => card.click())
+        await waitFor(async () => (await all('dialog[open] button[name=toggleEdit]')).length > 0, {
+          message: 'the drawer',
+        })
+      }
+
+      await open('board', '.application-card')
+      await reopen()
+      await startEditing(driver)
+
+      // Close without saving: the drawer closes and the card is as it was.
+      await type('.drawer-content input[name=location]', 'Dropped')
+      await askToLeave()
+      await answer('discard')
+      await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the drawer to close' })
+      await reopen()
+      assert.doesNotMatch(await text('dialog[open] dl.facts'), /Dropped/)
+
+      // Save and close: the drawer closes and the card has the change.
+      await startEditing(driver)
+      await type('.drawer-content input[name=location]', 'Kept on leaving')
+      await askToLeave()
+      await answer('save')
+      await waitFor(async () => (await all('dialog[open]')).length === 0, { message: 'the drawer to close' })
+      await reopen()
+      assert.match(await text('dialog[open] dl.facts'), /Kept on leaving/)
+
+      // A card that cannot be saved stays open, and says why.
+      await startEditing(driver)
+      await type('.drawer-content input[name=salaryMin]', '5000')
+      await type('.drawer-content input[name=salaryMax]', '1000')
+      await choose('select[name=salaryCurrency]', 'EUR')
+      await askToLeave()
+      await answer('save')
+      await waitFor(async () => (await all('#choice-dialog')).length === 0, { message: 'the question to go' })
+      await waitFor(async () => (await all('.drawer-content form .error')).length > 0, { message: 'the reason' })
+      assert.equal((await all('dialog[open]')).length, 1)
+
+      // Escape answers nothing: the card stays open, still being edited.
+      await askToLeave()
+      await driver.actions().sendKeys('\uE00C').perform()
+      await waitFor(async () => (await all('#choice-dialog')).length === 0, { message: 'the question to go' })
+      assert.equal((await all('dialog[open]')).length, 1)
+      assert.equal((await all('dialog[open] input[name=salaryMin]')).length, 1)
+
+      // Cancel drops it all.
+      await css('dialog[open] button[name=cancel]').then((button) => button.click())
+      await waitFor(async () => (await all('dialog[open] input[name=salaryMin]')).length === 0, {
+        message: 'back to reading',
+      })
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+    })
+
+    test('a company that exists is offered, and a new one is said to be added on saving', async () => {
+      await open('popup', 'form')
+      const clear = (selector) =>
+        driver.executeScript(
+          `const field = document.querySelector(arguments[0]); field.value = ''; field.dispatchEvent(new Event('input', { bubbles: true }))`,
+          selector
+        )
+      // The case and the accents do not matter: "acme" is the company Acme.
+      await type('input[name=company]', 'acme')
+      await waitFor(async () => (await all('.picker-hint[data-state=existing]')).length === 1, {
+        message: 'the company to be told as existing',
+      })
+      assert.match(await text('.picker-hint'), /Acme/)
+      // The companies that exist are the ones the field offers.
+      assert.ok(
+        (
+          await driver.executeScript(`return [...document.querySelectorAll('datalist option')].map((o) => o.value)`)
+        ).includes('Acme')
+      )
+      // A name that is not in the list is a new company, and the field says so before the offer is saved.
+      await type('input[name=company]', 'Never Heard Of Inc')
+      await waitFor(async () => (await all('.picker-hint[data-state=new]')).length === 1, {
+        message: 'the company to be told as new',
+      })
+      // The field is described by the hint, for a screen reader.
+      const described = await driver.executeScript(
+        `const field = document.querySelector('input[name=company]'); return document.getElementById(field.getAttribute('aria-describedby'))?.textContent.trim()`
+      )
+      assert.match(described, /Not in your list/)
+      // Nothing is left behind for the popup that follows.
+      await clear('input[name=company]')
+      await waitFor(async () => (await all('.picker-hint')).length === 0, { message: 'the hint to go' })
     })
 
     test('the popup gives back what was typed and not saved, and forgets it once the offer is saved', async () => {
@@ -1298,6 +1676,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const cards = await all('.application-card')
       const titles = await Promise.all(cards.map((card) => card.getText()))
       await cards[titles.findIndex((line) => /Follow me/.test(line))].click()
+      await startEditing(driver)
       await waitFor(async () => (await all('#follow-up-suggestion')).length > 0, { message: 'the suggestion' })
       assert.match(await text('#follow-up-suggestion'), /7 days later/)
 
@@ -1357,6 +1736,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       // A reminder that was due long ago.
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
       await type('input[name=reminderTitle]', 'Overdue for the badge')
       await driver.executeScript(`
@@ -1415,6 +1795,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const cards = await all('.application-card')
       const cardTexts = await Promise.all(cards.map((card) => card.getText()))
       await cards[cardTexts.findIndex((line) => /Backend developer/.test(line))].click()
+      await startEditing(driver)
       await waitFor(async () => (await all('select[name=relationView]')).length > 0, { message: 'the company section' })
 
       // The firm recruits for Big Client.
@@ -1460,6 +1841,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
         const cards = await all('.application-card')
         const lines = await Promise.all(cards.map((card) => card.getText()))
         await cards[lines.findIndex((line) => line.includes(title))].click()
+        await startEditing(driver)
         await waitFor(async () => (await all('.drawer-content')).length > 0, { message: `the drawer of ${title}` })
       }
       const submit = (selector) =>
@@ -1568,6 +1950,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const cards = await all('.application-card')
       const lines = await Promise.all(cards.map((card) => card.getText()))
       await cards[lines.findIndex((line) => /Backend developer/.test(line))].click()
+      await startEditing(driver)
       await waitFor(async () => (await all('#net-estimate')).length > 0, { message: 'the estimate' })
       const estimate = await text('#net-estimate')
       assert.match(estimate, /About \$3,200 - \$4,000 net per month/)
@@ -1639,6 +2022,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const cards = await all('.application-card')
       const lines = await Promise.all(cards.map((card) => card.getText()))
       await cards[lines.findIndex((line) => /Follow me/.test(line))].click()
+      await startEditing(driver)
       await waitFor(async () => (await all('input[name=addressLine1]')).length > 0, { message: 'the place section' })
 
       // No address, no link.
@@ -1675,7 +2059,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       })
 
       // The address is kept in the offer, in fields.
-      await driver.executeScript(`document.querySelector('#place form').requestSubmit()`)
+      await saveCard(driver)
       const kept = await waitFor(
         async () => {
           const found = await driver.executeAsyncScript(`
@@ -1701,6 +2085,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const again = await all('.application-card')
       const names = await Promise.all(again.map((card) => card.getText()))
       await again[names.findIndex((line) => /Follow me/.test(line))].click()
+      await startEditing(driver)
       // The settings say public transport, for which OpenStreetMap has no route: for this offer, by car, it has one.
       await choose('select[name=routeMode]', 'car')
       await waitFor(async () => (await all('#map-route')).length > 0, { message: 'the route on OpenStreetMap' })
@@ -1730,8 +2115,8 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const cards = await all('.application-card')
       const lines = await Promise.all(cards.map((card) => card.getText()))
       await cards[lines.findIndex((line) => /Follow me/.test(line))].click()
+      await startEditing(driver)
       await waitFor(async () => (await all('#new-journey')).length > 0, { message: 'the journeys section' })
-      await driver.executeScript('window.confirm = () => true')
 
       // Tours to Bussy-Saint-Georges: on foot, bus, train, metro, suburban train, on foot.
       const legs = [
@@ -1795,6 +2180,7 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const again = await all('.application-card')
       const names = await Promise.all(again.map((card) => card.getText()))
       await again[names.findIndex((line) => /Follow me/.test(line))].click()
+      await startEditing(driver)
       await waitFor(async () => (await all('.journey-reverse')).length > 0, { message: 'the journeys' })
       await driver.executeScript(`document.querySelector('.journey-reverse').click()`)
       await waitFor(async () => (await all('.journey[data-direction=return]')).length > 0, { message: 'the way back' })
@@ -1834,10 +2220,10 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       const last = await all('.application-card')
       const labels = await Promise.all(last.map((card) => card.getText()))
       await last[labels.findIndex((line) => /Follow me/.test(line))].click()
+      await startEditing(driver)
       await waitFor(async () => (await all('.journey[data-direction=outbound]')).length === 2, {
         message: 'the journeys again',
       })
-      await driver.executeScript('window.confirm = () => true')
       await driver.executeScript(`
         [...[...document.querySelectorAll('.journey[data-direction=outbound]')].find((j) => j.textContent.includes('By car')).querySelectorAll('.row button')].find((b) => b.textContent.trim() === 'Delete').click()
       `)
@@ -1848,13 +2234,36 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
       await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
     })
 
+    test('a deleted application can be undone from the message that tells it was deleted', async () => {
+      await open('board', '.application-card')
+      const before = (await all('.application-card')).length
+
+      await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
+      await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
+      const buttons = await all('.drawer-content button')
+      const labels = await Promise.all(buttons.map((button) => button.getText()))
+      await buttons[labels.indexOf('Delete')].click()
+      await waitFor(async () => (await all('.application-card')).length === before - 1, { message: 'the card to go' })
+
+      // No question is asked: the message says what was removed and offers to undo it.
+      assert.equal((await all('#confirm-dialog')).length, 0)
+      await waitFor(async () => (await all('#notices .notice-action')).length > 0, { message: 'the undo button' })
+      assert.match(await text('#notices'), /Removed/)
+      await css('#notices .notice-action').then((button) => button.click())
+      await waitFor(async () => (await all('.application-card')).length === before, {
+        message: 'the card to come back',
+      })
+      assert.equal((await all('#notices .notice-action')).length, 0)
+    })
+
     test('a deleted application goes to the trash, and comes back from it', async () => {
       await open('board', '.application-card')
       const before = (await all('.application-card')).length
 
       await css('.application-card').then((card) => card.click())
+      await startEditing(driver)
       await waitFor(async () => (await all('.drawer-content')).length > 0, { message: 'the drawer' })
-      await driver.executeScript('window.confirm = () => true')
       const buttons = await all('.drawer-content button')
       const labels = await Promise.all(buttons.map((button) => button.getText()))
       await buttons[labels.indexOf('Delete')].click()
@@ -1880,6 +2289,372 @@ describe(`extension in ${browser}`, { timeout: 300_000 }, () => {
 
       await open('board', '.application-card')
       assert.equal((await all('.application-card')).length, before)
+    })
+
+    test('an offer is added from the board: by the general button, and by the plus of a column', async () => {
+      await open('board', '.application-card')
+      const count = async () => (await all('.application-card')).length
+      const start = await count()
+      const dialog = '#new-offer-dialog'
+
+      // The general button: a company that exists is picked, and the offer lands in the first column.
+      await css('button[name=addOffer]').then((button) => button.click())
+      await waitFor(async () => (await all(`${dialog}[open]`)).length === 1, { message: 'the dialog' })
+      await type(`${dialog} input[name=title]`, 'Added by hand')
+      await type(`${dialog} input[name=company]`, 'acme')
+      await waitFor(async () => (await all(`${dialog} .picker-hint[data-state=existing]`)).length === 1, {
+        message: 'the company to be told as existing',
+      })
+      await css(`${dialog} form button[type=submit]`).then((button) => button.click())
+      await waitFor(async () => (await count()) === start + 1, { message: 'the new card' })
+      assert.match(await text('.column:first-child'), /Added by hand/)
+
+      // The message offers to open it, and the drawer opens on it.
+      await waitFor(async () => (await all('.toast .notice-action')).length > 0, { message: 'the message' })
+      await css('.toast .notice-action').then((button) => button.click())
+      await waitFor(async () => /Added by hand/.test(await text('dialog[open]')), {
+        message: 'the drawer of the new offer',
+      })
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      // The plus of a column starts the offer in that column, and a company that does not exist is made.
+      await css('.column:nth-child(2) .column-add').then((button) => button.click())
+      await waitFor(async () => (await all(`${dialog}[open]`)).length === 1, { message: 'the dialog again' })
+      assert.equal(
+        await driver.executeScript(
+          `const select = document.querySelector('#new-offer-dialog select[name=status]'); return select.options[select.selectedIndex].text`
+        ),
+        'Applied'
+      )
+      await type(`${dialog} input[name=title]`, 'Added to Applied')
+      await type(`${dialog} input[name=company]`, 'Brand New Company')
+      await waitFor(async () => (await all(`${dialog} .picker-hint[data-state=new]`)).length === 1, {
+        message: 'the company to be told as new',
+      })
+      await css(`${dialog} form button[type=submit]`).then((button) => button.click())
+      await waitFor(async () => /Added to Applied/.test(await text('.column:nth-child(2)')), {
+        message: 'the card in the column of the plus',
+      })
+      const companies = await driver.executeAsyncScript(`
+        const done = arguments[arguments.length - 1];
+        chrome.storage.local.get('jat:companies', (items) => done((items['jat:companies'] || []).map((c) => c.name)));
+      `)
+      assert.ok(companies.includes('Brand New Company'), 'the new company was made')
+      assert.equal(
+        companies.filter((name) => /^acme$/i.test(name)).length,
+        1,
+        'the company that exists was not made again'
+      )
+
+      // What was typed is not lost by a stray Escape: the question comes first.
+      await css('button[name=addOffer]').then((button) => button.click())
+      await waitFor(async () => (await all(`${dialog}[open]`)).length === 1, { message: 'the dialog a third time' })
+      await type(`${dialog} input[name=title]`, 'Not finished')
+      await driver.actions().sendKeys('\uE00C').perform()
+      await waitFor(async () => (await all('#confirm-dialog[open]')).length === 1, { message: 'the question' })
+      await driver.executeScript(`document.querySelector('#confirm-dialog button[value=cancel]').click()`)
+      await waitFor(async () => (await all('#confirm-dialog')).length === 0, { message: 'the question to go' })
+      assert.equal((await all(`${dialog}[open]`)).length, 1, 'the dialog is kept')
+      await driver.executeScript(`document.querySelector('#new-offer-dialog')?.close()`)
+    })
+
+    test('the applications are read in a table that sorts, searches, opens a row and remembers how it was left', async () => {
+      await open('board', '.application-card')
+      const total = (await all('.application-card')).length
+      await open('tables', 'footer')
+      const rows = () => all('tbody tr.table-row')
+      await waitFor(async () => (await rows()).length === total, { message: 'a row for each application' })
+      const titles = () => texts('tbody tr.table-row td[data-column=title]')
+      const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
+      const sortOf = (column) =>
+        driver.executeScript(
+          `return document.querySelector('th:has(button[data-column=' + arguments[0] + '])').getAttribute('aria-sort')`,
+          column
+        )
+
+      // It opens sorted by the title, from A to Z, and says so to a screen reader.
+      assert.equal(await sortOf('title'), 'ascending')
+      const ascending = await titles()
+      assert.deepEqual(ascending, [...ascending].sort(collator.compare))
+
+      // The header sorts: again for the other way, and another column for the order of that one.
+      await css('th button[data-column=title]').then((button) => button.click())
+      await waitFor(async () => 'descending' === (await sortOf('title')), { message: 'the title sorted the other way' })
+      assert.deepEqual(await titles(), [...ascending].reverse())
+      await css('th button[data-column=company]').then((button) => button.click())
+      await waitFor(async () => 'ascending' === (await sortOf('company')), { message: 'the company sorted' })
+      assert.equal(await sortOf('title'), 'none')
+
+      // The search ignores the case and the accents, and the count says what is shown.
+      await type('input[name=tableSearch]', 'ADDED BY')
+      await waitFor(async () => (await rows()).length === 1, { message: 'the search to narrow the table' })
+      assert.match(await text('.table-count'), new RegExp(`1 of ${total} shown`))
+      await type('input[name=tableSearch]', 'nothing like this')
+      await waitFor(async () => (await all('tbody tr.table-row')).length === 0, { message: 'no row' })
+      assert.match(await text('tbody'), /Nothing to show/)
+      await driver.executeScript(
+        `const field = document.querySelector('input[name=tableSearch]'); field.value = ''; field.dispatchEvent(new Event('input', { bubbles: true }))`
+      )
+      await waitFor(async () => (await rows()).length === total, { message: 'the table to be whole again' })
+
+      // A column can be hidden, and the first one cannot.
+      await driver.executeScript(`document.querySelector('details.table-columns').open = true`)
+      assert.equal(await css('input[name=column-title]').then((box) => box.isEnabled()), false)
+      await css('input[name=column-place]').then((box) => box.click())
+      await waitFor(async () => (await all('th button[data-column=place]')).length === 0, {
+        message: 'the column to go',
+      })
+
+      // A row opens the drawer of the application, by its first cell.
+      await css('tbody tr.table-row .row-open').then((button) => button.click())
+      await waitFor(async () => (await all('dialog[open] button[name=toggleEdit]')).length > 0, {
+        message: 'the drawer',
+      })
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+
+      // What was chosen is kept: the sort and the column, when the page is opened again.
+      await waitFor(
+        async () =>
+          driver.executeAsyncScript(`
+            const done = arguments[arguments.length - 1];
+            chrome.storage.local.get('jat:tables', (items) => {
+              const state = (items['jat:tables'] || {}).applications;
+              done(Boolean(state && state.sort === 'company' && state.hidden.includes('place')));
+            });
+          `),
+        { message: 'the choice to be kept' }
+      )
+      await open('tables', 'footer')
+      await waitFor(async () => 'ascending' === (await sortOf('company')), { message: 'the sort to come back' })
+      assert.equal((await all('th button[data-column=place]')).length, 0, 'the column is still hidden')
+    })
+
+    test('the options are in tabs: one panel at a time, the arrows move between the tabs, and the address keeps the place', async () => {
+      await open('options', 'footer')
+      const selected = () =>
+        driver.executeScript(`return document.querySelector('[role=tab][aria-selected=true]')?.dataset.tab`)
+      const visiblePanels = async () => (await all('[role=tabpanel]:not([hidden])')).length
+
+      // The first tab is shown, and only one panel at a time.
+      assert.equal(await selected(), 'appearance')
+      assert.equal(await visiblePanels(), 1)
+      assert.equal((await all('[role=tab]')).length, 5)
+      // One tab is in the order of the keyboard: the one in use.
+      assert.deepEqual(
+        await driver.executeScript(`return [...document.querySelectorAll('[role=tab]')].map((tab) => tab.tabIndex)`),
+        [0, -1, -1, -1, -1]
+      )
+
+      // A tab is chosen with a click: its panel shows, the address says it.
+      await css('[role=tab][data-tab=money]').then((tab) => tab.click())
+      await waitFor(async () => 'money' === (await selected()), { message: 'the money tab' })
+      assert.equal(await visiblePanels(), 1)
+      assert.equal(await driver.executeScript(`return location.hash`), '#tab=money')
+      assert.ok(await css('select[name=homeCurrency]').then((field) => field.isDisplayed()), 'its section is there')
+
+      // The arrows move between the tabs, round the ends, and Home and End go to the first and the last one.
+      await css('[role=tab][data-tab=money]').then((tab) => tab.sendKeys('\uE014'))
+      await waitFor(async () => 'places' === (await selected()), { message: 'the next tab' })
+      assert.equal(
+        await driver.executeScript(`return document.activeElement.dataset.tab`),
+        'places',
+        'the focus follows'
+      )
+      await driver.actions().sendKeys('\uE011').perform()
+      await waitFor(async () => 'appearance' === (await selected()), { message: 'Home' })
+      await driver.actions().sendKeys('\uE010').perform()
+      await waitFor(async () => 'data' === (await selected()), { message: 'End' })
+      await driver.actions().sendKeys('\uE014').perform()
+      await waitFor(async () => 'appearance' === (await selected()), { message: 'round the end' })
+
+      // The address keeps the place: a reload opens the tab that was left, and an unknown tab gives the first one.
+      await css('[role=tab][data-tab=board]').then((tab) => tab.click())
+      await waitFor(async () => 'board' === (await selected()), { message: 'the board tab' })
+      await driver.navigate().refresh()
+      await waitFor(async () => 'board' === (await selected()), { message: 'the tab to come back' })
+      await driver.executeScript(`location.hash = 'tab=nothing'`)
+      await waitFor(async () => 'appearance' === (await selected()), { message: 'the first tab for an unknown one' })
+    })
+
+    test('the companies are read in a table, edited once in their drawer, merged when they are the same, and deleted when empty', async () => {
+      await open('tables', 'footer')
+      await css('[role=tab][data-tab=companies]').then((tab) => tab.click())
+      const rows = () => all('tbody tr.table-row')
+      await waitFor(async () => (await rows()).length > 1, { message: 'the companies' })
+      const names = () => texts('tbody tr.table-row td[data-column=name]')
+      const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
+      const sorted = await names()
+      assert.deepEqual(sorted, [...sorted].sort(collator.compare), 'sorted by the name')
+      assert.ok(sorted.includes('Acme') && sorted.includes('Brand New Company'))
+      // The offers are counted in a column that sorts by the number.
+      await css('th button[data-column=offers]').then((button) => button.click())
+      const counts = (await texts('tbody tr.table-row td[data-column=offers]')).map(Number)
+      assert.deepEqual(
+        counts,
+        [...counts].sort((a, b) => a - b),
+        'sorted by the number of offers'
+      )
+
+      const openCompany = async (name) => {
+        const rowButtons = await all('tbody tr.table-row .row-open')
+        const labels = await Promise.all(rowButtons.map((button) => button.getText()))
+        await rowButtons[labels.indexOf(name)].click()
+        await waitFor(async () => (await all('dialog[open] .company-drawer')).length > 0, {
+          message: `the drawer of ${name}`,
+        })
+      }
+      const drawer = 'dialog[open] .company-drawer'
+
+      // A name another company has is refused (the case and the accents do not count), with the way out said.
+      await openCompany('Brand New Company')
+      await type(`${drawer} input[name=name]`, 'acme')
+      await css(`${drawer} button[name=save]`).then((button) => button.click())
+      await waitFor(async () => /Another company has this name/.test(await text(`${drawer} .error`)), {
+        message: 'the refusal of the duplicate',
+      })
+
+      // Renamed once: the offer that names it shows the new name.
+      await type(`${drawer} input[name=name]`, 'Brand New Co')
+      await type(`${drawer} input[name=city]`, 'Lyon')
+      await css(`${drawer} button[name=save]`).then((button) => button.click())
+      await waitFor(async () => (await all(`${drawer} .error`)).length === 0, { message: 'the refusal to go' })
+      await waitFor(async () => /Brand New Co\b/.test(await text('dialog[open] .modal-title')), {
+        message: 'the new title',
+      })
+      assert.match(await text(drawer), /Added to Applied/, 'its offer is listed')
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+      await waitFor(async () => (await names()).includes('Brand New Co'), { message: 'the new name in the table' })
+      assert.ok(!(await names()).includes('Brand New Company'))
+
+      // Two names for one company: merged. The offer moves, and the company goes.
+      await openCompany('Brand New Co')
+      await driver.executeScript(
+        `const select = document.querySelector('dialog[open] select[name=mergeInto]'); select.value = [...select.options].find((o) => o.text === 'Acme').value; select.dispatchEvent(new Event('change', { bubbles: true }))`
+      )
+      await css(`${drawer} button[name=merge]`).then((button) => button.click())
+      await waitFor(async () => (await all('#confirm-dialog[open]')).length === 1, { message: 'the question' })
+      assert.match(await text('#confirm-dialog'), /Merge Brand New Co into Acme/)
+      await driver.executeScript(`document.querySelector('#confirm-dialog button[value=confirm]').click()`)
+      await waitFor(async () => !(await names()).includes('Brand New Co'), { message: 'the company to go' })
+      const acmeRow = (await texts('tbody tr.table-row')).find((line) => /^Acme\b/.test(line)) ?? ''
+      assert.match(acmeRow, /Added to Applied|\b[3-9]\b/, 'Acme has the offer now')
+
+      // A company with no offer is deleted, and the message puts it back.
+      const empty = (await rows()).length
+      const emptyName = await driver.executeScript(`
+        const row = [...document.querySelectorAll('tbody tr.table-row')].find((r) => r.querySelector('td[data-column=offers]').textContent.trim() === '0');
+        return row ? row.querySelector('.row-open').textContent.trim() : null`)
+      assert.ok(emptyName, 'a company with no offer exists')
+      await openCompany(emptyName)
+      await css(`${drawer} button[name=deleteCompany]`).then((button) => button.click())
+      await waitFor(async () => (await rows()).length === empty - 1, { message: 'the company to be deleted' })
+      await waitFor(async () => (await all('.toast .notice-action')).length > 0, { message: 'the message' })
+      await css('.toast .notice-action').then((button) => button.click())
+      await waitFor(async () => (await rows()).length === empty, { message: 'the company to come back' })
+      assert.ok((await names()).includes(emptyName))
+    })
+
+    test('the contacts are read in a table, made on their own, edited once, and deleted with their undo', async () => {
+      await open('tables', 'footer')
+      await css('[role=tab][data-tab=contacts]').then((tab) => tab.click())
+      const rows = () => all('tbody tr.table-row')
+      await waitFor(async () => (await rows()).length > 0, { message: 'the contacts' })
+      const start = (await rows()).length
+      const names = () => texts('tbody tr.table-row td[data-column=name]')
+      const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
+      const sorted = await names()
+      assert.deepEqual(sorted, [...sorted].sort(collator.compare), 'sorted by the name')
+      const drawer = 'dialog[open] .contact-drawer'
+      const title = () => text('dialog[open] .modal-title')
+
+      // A contact is made on its own, with a company that does not exist yet, said to be new before it is made.
+      await css('button[name=addContact]').then((button) => button.click())
+      await waitFor(async () => (await all(drawer)).length > 0, { message: 'the form of a new contact' })
+      assert.match(await title(), /New contact/)
+      await css(`${drawer} button[name=save]`).then((button) => button.click())
+      await waitFor(async () => /first name or a last name/.test(await text(`${drawer} .error`)), {
+        message: 'the refusal of a contact with no name',
+      })
+      await type(`${drawer} input[name=firstName]`, 'Zed')
+      await type(`${drawer} input[name=lastName]`, 'Zebra')
+      await type(`${drawer} input[name=company]`, 'Brand New Org')
+      await waitFor(async () => (await all(`${drawer} .picker-hint[data-state=new]`)).length === 1, {
+        message: 'the company to be told as new',
+      })
+      await type(`${drawer} input[name=email]`, 'ZED@Example.com')
+      await css(`${drawer} button[name=save]`).then((button) => button.click())
+
+      // It opens as a contact that exists: its way to reach it and its company are listed, in canonical forms.
+      await waitFor(async () => /Zed Zebra/.test(await title()), { message: 'the contact that was made' })
+      await waitFor(async () => /zed@example\.com/.test(await text(drawer)), { message: 'its email' })
+      assert.match(await text(drawer), /Brand New Org/)
+
+      // Edited once: the role, and the table shows it.
+      await type(`${drawer} input[name=role]`, 'CTO')
+      await css(`${drawer} button[name=save]`).then((button) => button.click())
+      await waitFor(async () => (await all(`${drawer} .picker-hint`)).length === 0, { message: 'settled' })
+      await css(`${drawer} button[name=favorite]`).then((button) => button.click())
+      await waitFor(
+        async () =>
+          'true' === (await css(`${drawer} button[name=favorite]`).then((b) => b.getAttribute('aria-pressed'))),
+        {
+          message: 'the favourite mark',
+        }
+      )
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
+      await waitFor(async () => (await rows()).length === start + 1, { message: 'the new row' })
+      const line = (await texts('tbody tr.table-row')).find((row) => /Zed Zebra/.test(row)) ?? ''
+      assert.match(line, /CTO/)
+      assert.match(line, /Brand New Org/)
+      assert.match(line, /zed@example\.com/)
+
+      // Deleted with the message that puts it back.
+      const openContact = async () => {
+        const buttons = await all('tbody tr.table-row .row-open')
+        const labels = await Promise.all(buttons.map((button) => button.getText()))
+        await buttons[labels.indexOf('Zed Zebra')].click()
+        await waitFor(async () => (await all(drawer)).length > 0, { message: 'the drawer of the contact' })
+      }
+      await openContact()
+      await css(`${drawer} button[name=deleteContact]`).then((button) => button.click())
+      await waitFor(async () => (await rows()).length === start, { message: 'the contact to be deleted' })
+      await waitFor(async () => (await all('.toast .notice-action')).length > 0, { message: 'the message' })
+      await css('.toast .notice-action').then((button) => button.click())
+      await waitFor(async () => (await rows()).length === start + 1, { message: 'the contact to come back' })
+      // Left as it was found, for the tests that count what is there.
+      await openContact()
+      await css(`${drawer} button[name=deleteContact]`).then((button) => button.click())
+      await waitFor(async () => (await rows()).length === start, { message: 'the contact to be deleted again' })
+    })
+
+    test('the addresses of the offers are read in a table, with the map link, and a row opens the application', async () => {
+      await open('tables', 'footer')
+      await css('[role=tab][data-tab=addresses]').then((tab) => tab.click())
+      const rows = () => all('tbody tr.table-row')
+      await waitFor(async () => (await rows()).length > 0, { message: 'the addresses' })
+      const lines = () => texts('tbody tr.table-row td[data-column=address]')
+      const collator = new Intl.Collator('en', { numeric: true, sensitivity: 'base' })
+      const sorted = await lines()
+      assert.deepEqual(sorted, [...sorted].sort(collator.compare), 'sorted by the address')
+
+      // The address that was given in fields earlier is there, in one line, and found by its postal code.
+      await type('input[name=tableSearch]', '69001')
+      await waitFor(async () => (await rows()).length >= 1, { message: 'the search by the postal code' })
+      assert.match((await lines())[0], /Lyon/)
+      assert.match(await text('tbody tr.table-row td[data-column=company]'), /\S/)
+
+      // The link opens the place on the map chosen, in a new tab with no referrer.
+      const link = await css('tbody tr.table-row td[data-column=map] a')
+      assert.match(await link.getAttribute('href'), /^https:\/\//)
+      assert.match(await link.getAttribute('rel'), /noopener/)
+      assert.equal(await link.getAttribute('target'), '_blank')
+
+      // The row opens the application, where the address is edited.
+      await css('tbody tr.table-row .row-open').then((button) => button.click())
+      await waitFor(async () => (await all('dialog[open] button[name=toggleEdit]')).length > 0, {
+        message: 'the drawer',
+      })
+      await driver.executeScript(`document.querySelector('dialog[open]')?.close()`)
     })
   })
 })

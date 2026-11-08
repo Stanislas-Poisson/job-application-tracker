@@ -1,0 +1,31 @@
+name: Translation mistake
+description: Report a mistake or an awkward text in a translation of the extension
+title: "[Translation] "
+labels: ["translation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping. Nothing from the extension is sent here: this form is filled by you.
+        A language that nobody who speaks it has checked says so in the options of the extension.
+  - type: input
+    id: language
+    attributes:
+      label: Language
+      description: The language of the translation (for example es, de, ar).
+    validations:
+      required: true
+  - type: textarea
+    id: text
+    attributes:
+      label: The text that is wrong
+      description: Where you saw it, and what it says.
+    validations:
+      required: true
+  - type: textarea
+    id: correction
+    attributes:
+      label: How it should be written
+      description: Your correction. If you can, say whether you speak the language yourself.
+    validations:
+      required: false

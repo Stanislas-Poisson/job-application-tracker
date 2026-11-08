@@ -4,7 +4,7 @@ import { defineConfig } from 'wxt'
 export default defineConfig({
   srcDir: 'src',
   modules: ['@wxt-dev/module-vue'],
-  manifest: ({ browser }) => ({
+  manifest: ({ browser, manifestVersion }) => ({
     // The name and the description of the store listing are in public/_locales, one folder per language.
     default_locale: 'en',
     name: '__MSG_extName__',
@@ -19,6 +19,19 @@ export default defineConfig({
     optional_permissions: ['notifications'],
     // Asked only when the user turns on the automatic exchange rates, and dropped when it is turned off.
     optional_host_permissions: ['https://api.frankfurter.dev/*'],
+    // The keys of the browser, that the user can change in the shortcuts of the browser (the page of the extensions in Chrome and
+    // Edge, the manager of the shortcuts of the add-ons in Firefox). A key that another program of the browser holds is left
+    // free: it is suggested, never forced. Alt+Shift+B is the bookmarks bar of Chrome, so the board takes L, for the list.
+    commands: {
+      [3 === manifestVersion ? '_execute_action' : '_execute_browser_action']: {
+        suggested_key: { default: 'Alt+Shift+J' },
+        description: '__MSG_commandPopup__',
+      },
+      'open-board': {
+        suggested_key: { default: 'Alt+Shift+L' },
+        description: '__MSG_commandBoard__',
+      },
+    },
     ...('firefox' === browser
       ? {
           browser_specific_settings: {
