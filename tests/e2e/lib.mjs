@@ -134,8 +134,9 @@ const GECKODRIVER_MIRROR = 'https://registry.npmmirror.com/-/binary/geckodriver'
 // GitHub Releases answers 504 now and then, and Selenium Manager has no other source for geckodriver (its mirror option needs a
 // geckodriver-support.json that the mirrors do not have). Downloads the very same asset from a mirror and hands it to Selenium
 // Manager through a temporary folder, used by this retry only (nothing is kept in the usual cache of the machine), and returns
-// true. Returns false when the error is not that download.
-async function useGeckodriverMirror(error) {
+// true. With persist (the preparation step of the CI, whose runner is thrown away), it goes in the usual cache instead, where the
+// next processes find it. Returns false when the error is not that download.
+async function useGeckodriverMirror(error, { persist = false } = {}) {
   const match = GECKODRIVER_ASSET.exec(`${error?.message ?? ''} ${error?.cause?.message ?? ''}`)
   if (!match) return false
   const [, version, asset, platform] = match
@@ -155,16 +156,19 @@ async function useGeckodriverMirror(error) {
     throw new Error(`the file of the mirror is not geckodriver ${version}: ${reported.split('\n')[0]}`)
   }
   // <folder>/geckodriver/<platform>/<version without the v>/geckodriver, the layout that Selenium Manager reads before it downloads.
-  const target = path.join(work, 'selenium', 'geckodriver', platform, version.slice(1))
+  const cache = persist
+    ? (process.env.SE_CACHE_PATH ?? path.join(os.homedir(), '.cache', 'selenium'))
+    : path.join(work, 'selenium')
+  const target = path.join(cache, 'geckodriver', platform, version.slice(1))
   fs.mkdirSync(target, { recursive: true })
   fs.copyFileSync(binary, path.join(target, 'geckodriver'))
-  process.env.SE_CACHE_PATH = path.join(work, 'selenium')
+  if (!persist) process.env.SE_CACHE_PATH = cache
   diag.log(`geckodriver ${version} comes from the mirror, in ${target}`)
   return true
 }
 
 // Starts Firefox. When Selenium Manager cannot download geckodriver from GitHub, retries once with the mirror.
-async function buildFirefox() {
+export async function buildFirefox({ persist = false } = {}) {
   // The current stable Firefox: with SE_FORCE_BROWSER_DOWNLOAD (the CI sets it) Selenium Manager downloads it, whatever is installed.
   const build = async () => {
     const options = new firefox.Options()
@@ -181,7 +185,7 @@ async function buildFirefox() {
   try {
     return await build()
   } catch (error) {
-    if (!(await useGeckodriverMirror(error))) throw error
+    if (!(await useGeckodriverMirror(error, { persist }))) throw error
     return build()
   }
 }
